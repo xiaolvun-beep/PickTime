@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>拾光日历字体预览</title>
+  <style>
+    @font-face { font-family: "P-Kuaile"; src: url("/fonts/kuaile.woff2") format("woff2"); font-display: swap; }
+    @font-face { font-family: "P-Zhimang"; src: url("/fonts/zhimang.woff2") format("woff2"); font-display: swap; }
+    @font-face { font-family: "P-Mashanzheng"; src: url("/fonts/mashanzheng.woff2") format("woff2"); font-display: swap; }
+    @font-face { font-family: "P-Longcang"; src: url("/fonts/longcang.woff2") format("woff2"); font-display: swap; }
+    @font-face { font-family: "P-Maocao"; src: url("/fonts/maocao.woff2") format("woff2"); font-display: swap; }
+    @font-face { font-family: "P-Huangyou"; src: url("/fonts/huangyou.woff2") format("woff2"); font-display: swap; }
+    @font-face { font-family: "P-Ruanti"; src: url("/fonts/ruanti-Medium.woff2") format("woff2"); font-display: swap; }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 24px 20px 60px;
+      background: #ffffff;
+      color: #0e1116;
+      font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1 { font-size: 20px; margin: 0 0 4px; }
+
+    .tip { font-size: 13px; color: #5b6472; margin: 0 0 20px; }
+
+    .opt {
+      border: 1px solid #e3e8ee;
+      border-radius: 20px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 18px 36px -30px rgba(14, 17, 22, 0.2);
+    }
+
+    .opt__name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #5b6472;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .opt__name em { font-style: normal; font-weight: 400; color: #98a1ad; }
+
+    .opt__sample {
+      margin-top: 10px;
+      font-size: 30px;
+      line-height: 1.3;
+      color: #0e1116;
+    }
+
+    .f1 { font-family: "P-Kuaile", sans-serif; }
+    .f2 { font-family: "P-Zhimang", sans-serif; }
+    .f3 { font-family: "P-Mashanzheng", sans-serif; }
+    .f4 { font-family: "P-Longcang", sans-serif; }
+    .f5 { font-family: "P-Maocao", sans-serif; }
+    .f6 { font-family: "P-Huangyou", sans-serif; }
+    .f7 { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
+    .f8 { font-family: "P-Ruanti", sans-serif; }
+  </style>
+</head>
+<body>
+  <h1>拾光日历 · 字体预览</h1>
+  <p class="tip">打开后告诉我要几号即可。字体已内嵌，任何手机显示效果一致。</p>
+
+  <section class="opt">
+    <div class="opt__name">1. 站酷快乐体 <em>圆润手写、活泼</em></div>
+    <div class="opt__sample f1">拾光日历</div>
+  </section>
+
+  <section class="opt">
+    <div class="opt__name">2. 志莽行书 <em>行书手写、飘逸</em></div>
+    <div class="opt__sample f2">拾光日历</div>
+  </section>
+
+  <section class="opt">
+    <div class="opt__name">3. 马善政毛笔楷书 <em>毛笔楷书、端正</em></div>
+    <div class="opt__sample f3">拾光日历</div>
+  </section>
+
+  <section class="opt">
+    <div class="opt__name">4. 龙藏 <em>清瘦手写</em></div>
+    <div class="opt__sample f4">拾光日历</div>
+  </section>
+
+  <section class="opt">
+    <div class="opt__name">5. 柳建毛草 <em>草书、奔放</em></div>
+    <div class="opt__sample f5">拾光日历</div>
+  </section>
+
+  <section class="opt">
+    <div class="opt__name">6. 站酷庆科黄油体 <em>圆润粗体（非手写）</em></div>
+    <div class="opt__sample f6">拾光日历</div>
+  </section>
+
+  <section class="opt">
+    <div class="opt__name">7. 系统默认 <em>当前默认字体</em></div>
+    <div class="opt__sample f7">拾光日历</div>
+  </section>
+
+  <section class="opt">
+    <div class="opt__name">8. 思源柔黑 圆体 <em>圆润无衬线</em></div>
+    <div class="opt__sample f8">拾光日历</div>
+  </section>
+</body>
+</html>

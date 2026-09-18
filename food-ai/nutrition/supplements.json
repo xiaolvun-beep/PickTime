@@ -1,0 +1,2578 @@
+[
+ {
+  "code": "SUP001",
+  "name": "白砂糖",
+  "aliases": [
+   "糖",
+   "白糖",
+   "砂糖"
+  ],
+  "per100g": {
+   "kcal": 400,
+   "protein": 0,
+   "fat": 0,
+   "carbs": 99.9,
+   "fiber": 0,
+   "sugar": 99.9,
+   "sodium": 0.4,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 20,
+   "fe": 0.6
+  }
+ },
+ {
+  "code": "SUP002",
+  "name": "绵白糖",
+  "aliases": [
+   "绵糖"
+  ],
+  "per100g": {
+   "kcal": 396,
+   "protein": 0.1,
+   "fat": 0,
+   "carbs": 98.9,
+   "fiber": 0,
+   "sugar": 98.9,
+   "sodium": 0.2,
+   "water": 0.9,
+   "cholesterol": 0,
+   "ca": 1,
+   "fe": 0.3
+  }
+ },
+ {
+  "code": "SUP003",
+  "name": "红糖",
+  "aliases": [
+   "赤砂糖"
+  ],
+  "per100g": {
+   "kcal": 389,
+   "protein": 0.7,
+   "fat": 0,
+   "carbs": 96.6,
+   "fiber": 0,
+   "sugar": 96,
+   "sodium": 28,
+   "water": 1.4,
+   "cholesterol": 0,
+   "ca": 157,
+   "fe": 2.2
+  }
+ },
+ {
+  "code": "SUP004",
+  "name": "蜂蜜",
+  "aliases": [],
+  "per100g": {
+   "kcal": 321,
+   "protein": 0.4,
+   "fat": 1.9,
+   "carbs": 75.6,
+   "fiber": 0,
+   "sugar": 74,
+   "sodium": 0.3,
+   "water": 22,
+   "cholesterol": 0,
+   "ca": 4,
+   "fe": 1
+  }
+ },
+ {
+  "code": "SUP005",
+  "name": "食盐",
+  "aliases": [
+   "盐",
+   "精盐"
+  ],
+  "per100g": {
+   "kcal": 0,
+   "protein": 0,
+   "fat": 0,
+   "carbs": 0,
+   "fiber": 0,
+   "sugar": 0,
+   "sodium": 39311,
+   "water": 0.2,
+   "cholesterol": 0,
+   "ca": 22,
+   "fe": 1
+  }
+ },
+ {
+  "code": "SUP006",
+  "name": "酱油",
+  "aliases": [
+   "生抽",
+   "老抽",
+   "酱汁"
+  ],
+  "per100g": {
+   "kcal": 63,
+   "protein": 5.6,
+   "fat": 0.1,
+   "carbs": 10.1,
+   "fiber": 0.2,
+   "sugar": 3,
+   "sodium": 5757,
+   "water": 64.8,
+   "cholesterol": 0,
+   "ca": 66,
+   "fe": 8.6
+  }
+ },
+ {
+  "code": "SUP007",
+  "name": "醋",
+  "aliases": [
+   "陈醋",
+   "香醋",
+   "米醋"
+  ],
+  "per100g": {
+   "kcal": 31,
+   "protein": 2.1,
+   "fat": 0.3,
+   "carbs": 4.9,
+   "fiber": 0,
+   "sugar": 0.5,
+   "sodium": 262,
+   "water": 90.6,
+   "cholesterol": 0,
+   "ca": 17,
+   "fe": 6
+  }
+ },
+ {
+  "code": "SUP008",
+  "name": "蚝油",
+  "aliases": [],
+  "per100g": {
+   "kcal": 114,
+   "protein": 4.5,
+   "fat": 0.2,
+   "carbs": 21.7,
+   "fiber": 0.2,
+   "sugar": 6,
+   "sodium": 4000,
+   "water": 65,
+   "cholesterol": 0,
+   "ca": 30,
+   "fe": 1
+  }
+ },
+ {
+  "code": "SUP009",
+  "name": "料酒",
+  "aliases": [
+   "黄酒",
+   "绍酒"
+  ],
+  "per100g": {
+   "kcal": 66,
+   "protein": 0.5,
+   "fat": 0,
+   "carbs": 15.9,
+   "fiber": 0,
+   "sugar": 2,
+   "sodium": 100,
+   "water": 83,
+   "cholesterol": 0,
+   "ca": 5,
+   "fe": 0.2
+  }
+ },
+ {
+  "code": "SUP010",
+  "name": "豆瓣酱",
+  "aliases": [
+   "郫县豆瓣"
+  ],
+  "per100g": {
+   "kcal": 178,
+   "protein": 13.6,
+   "fat": 6.8,
+   "carbs": 17.1,
+   "fiber": 1.5,
+   "sugar": 2,
+   "sodium": 6012,
+   "water": 56,
+   "cholesterol": 0,
+   "ca": 53,
+   "fe": 16.4
+  }
+ },
+ {
+  "code": "SUP011",
+  "name": "甜面酱",
+  "aliases": [],
+  "per100g": {
+   "kcal": 136,
+   "protein": 5.5,
+   "fat": 0.6,
+   "carbs": 26.5,
+   "fiber": 1.2,
+   "sugar": 8,
+   "sodium": 2097,
+   "water": 62,
+   "cholesterol": 0,
+   "ca": 29,
+   "fe": 3.6
+  }
+ },
+ {
+  "code": "SUP012",
+  "name": "番茄酱",
+  "aliases": [
+   "番茄沙司"
+  ],
+  "per100g": {
+   "kcal": 81,
+   "protein": 4.9,
+   "fat": 0.2,
+   "carbs": 16.9,
+   "fiber": 1.3,
+   "sugar": 12,
+   "sodium": 37,
+   "water": 76,
+   "cholesterol": 0,
+   "ca": 17,
+   "fe": 1.5
+  }
+ },
+ {
+  "code": "SUP013",
+  "name": "沙拉酱",
+  "aliases": [
+   "蛋黄酱",
+   "千岛酱"
+  ],
+  "per100g": {
+   "kcal": 725,
+   "protein": 1.1,
+   "fat": 78.8,
+   "carbs": 3.4,
+   "fiber": 0,
+   "sugar": 3,
+   "sodium": 600,
+   "water": 15,
+   "cholesterol": 42,
+   "ca": 10,
+   "fe": 0.5
+  }
+ },
+ {
+  "code": "SUP014",
+  "name": "芝麻酱",
+  "aliases": [
+   "麻酱"
+  ],
+  "per100g": {
+   "kcal": 630,
+   "protein": 19.2,
+   "fat": 52.7,
+   "carbs": 22.7,
+   "fiber": 5.9,
+   "sugar": 3,
+   "sodium": 38,
+   "water": 0.3,
+   "cholesterol": 0,
+   "ca": 1170,
+   "fe": 50.3
+  }
+ },
+ {
+  "code": "SUP015",
+  "name": "花生酱",
+  "aliases": [],
+  "per100g": {
+   "kcal": 600,
+   "protein": 25,
+   "fat": 50,
+   "carbs": 18,
+   "fiber": 6,
+   "sugar": 5,
+   "sodium": 350,
+   "water": 1,
+   "cholesterol": 0,
+   "ca": 50,
+   "fe": 2
+  }
+ },
+ {
+  "code": "SUP016",
+  "name": "辣椒油",
+  "aliases": [
+   "红油"
+  ],
+  "per100g": {
+   "kcal": 900,
+   "protein": 0,
+   "fat": 99.9,
+   "carbs": 0,
+   "fiber": 0,
+   "sugar": 0,
+   "sodium": 5,
+   "water": 0.1,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP017",
+  "name": "花椒",
+  "aliases": [
+   "麻椒"
+  ],
+  "per100g": {
+   "kcal": 258,
+   "protein": 6.7,
+   "fat": 8.9,
+   "carbs": 66.5,
+   "fiber": 28.7,
+   "sugar": 3,
+   "sodium": 47,
+   "water": 9.1,
+   "cholesterol": 0,
+   "ca": 639,
+   "fe": 8.4
+  }
+ },
+ {
+  "code": "SUP018",
+  "name": "味精",
+  "aliases": [],
+  "per100g": {
+   "kcal": 268,
+   "protein": 40.1,
+   "fat": 0.2,
+   "carbs": 26.5,
+   "fiber": 0,
+   "sugar": 0,
+   "sodium": 21053,
+   "water": 0.2,
+   "cholesterol": 0,
+   "ca": 7,
+   "fe": 1.2
+  }
+ },
+ {
+  "code": "SUP019",
+  "name": "鸡精",
+  "aliases": [
+   "鸡粉"
+  ],
+  "per100g": {
+   "kcal": 211,
+   "protein": 11,
+   "fat": 2.8,
+   "carbs": 33.5,
+   "fiber": 0,
+   "sugar": 5,
+   "sodium": 20000,
+   "water": 3,
+   "cholesterol": 0,
+   "ca": 20,
+   "fe": 1
+  }
+ },
+ {
+  "code": "SUP020",
+  "name": "淀粉",
+  "aliases": [
+   "生粉",
+   "玉米淀粉",
+   "土豆淀粉"
+  ],
+  "per100g": {
+   "kcal": 345,
+   "protein": 1.2,
+   "fat": 0.1,
+   "carbs": 85,
+   "fiber": 0.1,
+   "sugar": 0.1,
+   "sodium": 6,
+   "water": 13,
+   "cholesterol": 0,
+   "ca": 18,
+   "fe": 0.4
+  }
+ },
+ {
+  "code": "SUP021",
+  "name": "可乐",
+  "aliases": [
+   "可口可乐",
+   "百事可乐"
+  ],
+  "per100g": {
+   "kcal": 43,
+   "protein": 0,
+   "fat": 0,
+   "carbs": 10.8,
+   "fiber": 0,
+   "sugar": 10.8,
+   "sodium": 12,
+   "water": 89,
+   "cholesterol": 0,
+   "ca": 2,
+   "fe": 0.1
+  }
+ },
+ {
+  "code": "SUP022",
+  "name": "雪碧",
+  "aliases": [
+   "七喜",
+   "汽水"
+  ],
+  "per100g": {
+   "kcal": 43,
+   "protein": 0,
+   "fat": 0,
+   "carbs": 10.5,
+   "fiber": 0,
+   "sugar": 10.5,
+   "sodium": 10,
+   "water": 89,
+   "cholesterol": 0,
+   "ca": 1,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP023",
+  "name": "橙汁",
+  "aliases": [
+   "鲜橙汁"
+  ],
+  "per100g": {
+   "kcal": 45,
+   "protein": 0.7,
+   "fat": 0.1,
+   "carbs": 10.5,
+   "fiber": 0.2,
+   "sugar": 9,
+   "sodium": 3,
+   "water": 88,
+   "cholesterol": 0,
+   "ca": 11,
+   "fe": 0.2
+  }
+ },
+ {
+  "code": "SUP024",
+  "name": "苹果汁",
+  "aliases": [],
+  "per100g": {
+   "kcal": 46,
+   "protein": 0.1,
+   "fat": 0.1,
+   "carbs": 11.3,
+   "fiber": 0.1,
+   "sugar": 10,
+   "sodium": 4,
+   "water": 88,
+   "cholesterol": 0,
+   "ca": 4,
+   "fe": 0.1
+  }
+ },
+ {
+  "code": "SUP025",
+  "name": "奶茶",
+  "aliases": [
+   "珍珠奶茶",
+   "奶盖茶"
+  ],
+  "per100g": {
+   "kcal": 65,
+   "protein": 1.2,
+   "fat": 1.6,
+   "carbs": 11.5,
+   "fiber": 0,
+   "sugar": 10,
+   "sodium": 30,
+   "water": 85,
+   "cholesterol": 5,
+   "ca": 30,
+   "fe": 0.1
+  }
+ },
+ {
+  "code": "SUP026",
+  "name": "美式咖啡",
+  "aliases": [
+   "黑咖啡",
+   "咖啡"
+  ],
+  "per100g": {
+   "kcal": 2,
+   "protein": 0.1,
+   "fat": 0,
+   "carbs": 0.3,
+   "fiber": 0,
+   "sugar": 0,
+   "sodium": 5,
+   "water": 99,
+   "cholesterol": 0,
+   "ca": 2,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP027",
+  "name": "拿铁咖啡",
+  "aliases": [
+   "拿铁"
+  ],
+  "per100g": {
+   "kcal": 55,
+   "protein": 3,
+   "fat": 3,
+   "carbs": 4.5,
+   "fiber": 0,
+   "sugar": 4.5,
+   "sodium": 40,
+   "water": 89,
+   "cholesterol": 10,
+   "ca": 100,
+   "fe": 0.1
+  }
+ },
+ {
+  "code": "SUP028",
+  "name": "卡布奇诺",
+  "aliases": [],
+  "per100g": {
+   "kcal": 45,
+   "protein": 2.5,
+   "fat": 2.2,
+   "carbs": 3.8,
+   "fiber": 0,
+   "sugar": 3.8,
+   "sodium": 30,
+   "water": 91,
+   "cholesterol": 8,
+   "ca": 80,
+   "fe": 0.1
+  }
+ },
+ {
+  "code": "SUP029",
+  "name": "啤酒",
+  "aliases": [
+   "生啤"
+  ],
+  "per100g": {
+   "kcal": 32,
+   "protein": 0.4,
+   "fat": 0,
+   "carbs": 3.7,
+   "fiber": 0,
+   "sugar": 0.1,
+   "sodium": 8,
+   "water": 92,
+   "cholesterol": 0,
+   "ca": 9,
+   "fe": 0.1
+  }
+ },
+ {
+  "code": "SUP030",
+  "name": "红葡萄酒",
+  "aliases": [
+   "红酒",
+   "葡萄酒"
+  ],
+  "per100g": {
+   "kcal": 74,
+   "protein": 0.1,
+   "fat": 0,
+   "carbs": 2.6,
+   "fiber": 0,
+   "sugar": 0.6,
+   "sodium": 4,
+   "water": 87,
+   "cholesterol": 0,
+   "ca": 8,
+   "fe": 0.4
+  }
+ },
+ {
+  "code": "SUP031",
+  "name": "白酒",
+  "aliases": [
+   "烧酒",
+   "白酒52度"
+  ],
+  "per100g": {
+   "kcal": 298,
+   "protein": 0,
+   "fat": 0,
+   "carbs": 0.1,
+   "fiber": 0,
+   "sugar": 0,
+   "sodium": 1,
+   "water": 62,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP032",
+  "name": "矿泉水",
+  "aliases": [
+   "纯净水",
+   "水"
+  ],
+  "per100g": {
+   "kcal": 0,
+   "protein": 0,
+   "fat": 0,
+   "carbs": 0,
+   "fiber": 0,
+   "sugar": 0,
+   "sodium": 1,
+   "water": 100,
+   "cholesterol": 0,
+   "ca": 2,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP033",
+  "name": "无糖茶饮",
+  "aliases": [
+   "绿茶",
+   "乌龙茶",
+   "红茶"
+  ],
+  "per100g": {
+   "kcal": 0,
+   "protein": 0,
+   "fat": 0,
+   "carbs": 0,
+   "fiber": 0,
+   "sugar": 0,
+   "sodium": 1,
+   "water": 99.9,
+   "cholesterol": 0,
+   "ca": 1,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP034",
+  "name": "运动饮料",
+  "aliases": [
+   "电解质水"
+  ],
+  "per100g": {
+   "kcal": 26,
+   "protein": 0,
+   "fat": 0,
+   "carbs": 6.4,
+   "fiber": 0,
+   "sugar": 6,
+   "sodium": 40,
+   "water": 93,
+   "cholesterol": 0,
+   "ca": 2,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP035",
+  "name": "乳酸菌饮料",
+  "aliases": [
+   "养乐多"
+  ],
+  "per100g": {
+   "kcal": 65,
+   "protein": 1.1,
+   "fat": 0.4,
+   "carbs": 14.6,
+   "fiber": 0,
+   "sugar": 13,
+   "sodium": 30,
+   "water": 83,
+   "cholesterol": 3,
+   "ca": 35,
+   "fe": 0.1
+  }
+ },
+ {
+  "code": "SUP036",
+  "name": "面包（白）",
+  "aliases": [
+   "面包",
+   "白面包"
+  ],
+  "per100g": {
+   "kcal": 312,
+   "protein": 8.3,
+   "fat": 5.1,
+   "carbs": 58.6,
+   "fiber": 2.5,
+   "sugar": 6,
+   "sodium": 230,
+   "water": 25,
+   "cholesterol": 0,
+   "ca": 40,
+   "fe": 2.5
+  }
+ },
+ {
+  "code": "SUP037",
+  "name": "吐司",
+  "aliases": [
+   "吐司面包",
+   "切片面包"
+  ],
+  "per100g": {
+   "kcal": 280,
+   "protein": 8.5,
+   "fat": 4.5,
+   "carbs": 50,
+   "fiber": 2.7,
+   "sugar": 6,
+   "sodium": 450,
+   "water": 34,
+   "cholesterol": 0,
+   "ca": 60,
+   "fe": 2.7
+  }
+ },
+ {
+  "code": "SUP038",
+  "name": "蛋糕（海绵）",
+  "aliases": [
+   "蛋糕",
+   "蛋糕胚"
+  ],
+  "per100g": {
+   "kcal": 350,
+   "protein": 7,
+   "fat": 15,
+   "carbs": 50,
+   "fiber": 1,
+   "sugar": 30,
+   "sodium": 200,
+   "water": 26,
+   "cholesterol": 80,
+   "ca": 40,
+   "fe": 1
+  }
+ },
+ {
+  "code": "SUP039",
+  "name": "生日蛋糕",
+  "aliases": [
+   "奶油蛋糕",
+   "慕斯蛋糕"
+  ],
+  "per100g": {
+   "kcal": 350,
+   "protein": 4.5,
+   "fat": 20,
+   "carbs": 40,
+   "fiber": 0.5,
+   "sugar": 30,
+   "sodium": 180,
+   "water": 34,
+   "cholesterol": 70,
+   "ca": 50,
+   "fe": 0.6
+  }
+ },
+ {
+  "code": "SUP040",
+  "name": "甜甜圈",
+  "aliases": [
+   "多拿滋"
+  ],
+  "per100g": {
+   "kcal": 452,
+   "protein": 6,
+   "fat": 25,
+   "carbs": 51,
+   "fiber": 2,
+   "sugar": 25,
+   "sodium": 350,
+   "water": 16,
+   "cholesterol": 30,
+   "ca": 60,
+   "fe": 1.5
+  }
+ },
+ {
+  "code": "SUP041",
+  "name": "蛋挞",
+  "aliases": [
+   "葡式蛋挞"
+  ],
+  "per100g": {
+   "kcal": 290,
+   "protein": 5.5,
+   "fat": 15,
+   "carbs": 33,
+   "fiber": 1,
+   "sugar": 15,
+   "sodium": 200,
+   "water": 45,
+   "cholesterol": 90,
+   "ca": 50,
+   "fe": 0.8
+  }
+ },
+ {
+  "code": "SUP042",
+  "name": "泡芙",
+  "aliases": [
+   "奶油泡芙"
+  ],
+  "per100g": {
+   "kcal": 245,
+   "protein": 6,
+   "fat": 14,
+   "carbs": 25,
+   "fiber": 1,
+   "sugar": 12,
+   "sodium": 150,
+   "water": 52,
+   "cholesterol": 70,
+   "ca": 60,
+   "fe": 1
+  }
+ },
+ {
+  "code": "SUP043",
+  "name": "月饼",
+  "aliases": [
+   "广式月饼"
+  ],
+  "per100g": {
+   "kcal": 400,
+   "protein": 7,
+   "fat": 15,
+   "carbs": 60,
+   "fiber": 2,
+   "sugar": 35,
+   "sodium": 200,
+   "water": 15,
+   "cholesterol": 40,
+   "ca": 50,
+   "fe": 3
+  }
+ },
+ {
+  "code": "SUP044",
+  "name": "冰淇淋",
+  "aliases": [
+   "雪糕",
+   "冰激凌"
+  ],
+  "per100g": {
+   "kcal": 127,
+   "protein": 2.4,
+   "fat": 5.3,
+   "carbs": 17.3,
+   "fiber": 0,
+   "sugar": 16,
+   "sodium": 54,
+   "water": 74,
+   "cholesterol": 20,
+   "ca": 126,
+   "fe": 0.1
+  }
+ },
+ {
+  "code": "SUP045",
+  "name": "薯片",
+  "aliases": [
+   "薯条（油炸）"
+  ],
+  "per100g": {
+   "kcal": 548,
+   "protein": 6.5,
+   "fat": 34.4,
+   "carbs": 51.7,
+   "fiber": 4.1,
+   "sugar": 2,
+   "sodium": 585,
+   "water": 3,
+   "cholesterol": 0,
+   "ca": 25,
+   "fe": 1.4
+  }
+ },
+ {
+  "code": "SUP046",
+  "name": "巧克力",
+  "aliases": [
+   "黑巧克力",
+   "牛奶巧克力"
+  ],
+  "per100g": {
+   "kcal": 589,
+   "protein": 4.3,
+   "fat": 40.1,
+   "carbs": 53.4,
+   "fiber": 1.5,
+   "sugar": 48,
+   "sodium": 111,
+   "water": 1,
+   "cholesterol": 3,
+   "ca": 111,
+   "fe": 1.7
+  }
+ },
+ {
+  "code": "SUP047",
+  "name": "饼干（曲奇）",
+  "aliases": [
+   "曲奇",
+   "饼干"
+  ],
+  "per100g": {
+   "kcal": 546,
+   "protein": 6,
+   "fat": 27,
+   "carbs": 65,
+   "fiber": 2,
+   "sugar": 30,
+   "sodium": 300,
+   "water": 3,
+   "cholesterol": 40,
+   "ca": 50,
+   "fe": 2
+  }
+ },
+ {
+  "code": "SUP048",
+  "name": "苏打饼干",
+  "aliases": [
+   "梳打饼干"
+  ],
+  "per100g": {
+   "kcal": 408,
+   "protein": 8.4,
+   "fat": 7.7,
+   "carbs": 76.2,
+   "fiber": 2.5,
+   "sugar": 5,
+   "sodium": 800,
+   "water": 5,
+   "cholesterol": 0,
+   "ca": 60,
+   "fe": 2
+  }
+ },
+ {
+  "code": "SUP049",
+  "name": "辣条",
+  "aliases": [
+   "麻辣条"
+  ],
+  "per100g": {
+   "kcal": 450,
+   "protein": 10,
+   "fat": 20,
+   "carbs": 55,
+   "fiber": 3,
+   "sugar": 8,
+   "sodium": 2500,
+   "water": 10,
+   "cholesterol": 0,
+   "ca": 50,
+   "fe": 2
+  }
+ },
+ {
+  "code": "SUP050",
+  "name": "爆米花",
+  "aliases": [],
+  "per100g": {
+   "kcal": 387,
+   "protein": 12.9,
+   "fat": 4.5,
+   "carbs": 77.8,
+   "fiber": 14.5,
+   "sugar": 0.9,
+   "sodium": 8,
+   "water": 4,
+   "cholesterol": 0,
+   "ca": 7,
+   "fe": 2.7
+  }
+ },
+ {
+  "code": "SUP051",
+  "name": "方便面",
+  "aliases": [
+   "泡面",
+   "速食面"
+  ],
+  "per100g": {
+   "kcal": 472,
+   "protein": 9.5,
+   "fat": 21.1,
+   "carbs": 61.6,
+   "fiber": 2.5,
+   "sugar": 5,
+   "sodium": 1144,
+   "water": 4,
+   "cholesterol": 0,
+   "ca": 40,
+   "fe": 2
+  }
+ },
+ {
+  "code": "SUP052",
+  "name": "肉松",
+  "aliases": [],
+  "per100g": {
+   "kcal": 396,
+   "protein": 41.8,
+   "fat": 10.5,
+   "carbs": 33.5,
+   "fiber": 0,
+   "sugar": 10,
+   "sodium": 1948,
+   "water": 10,
+   "cholesterol": 100,
+   "ca": 30,
+   "fe": 3
+  }
+ },
+ {
+  "code": "SUP053",
+  "name": "火腿肠",
+  "aliases": [
+   "香肠（火腿）"
+  ],
+  "per100g": {
+   "kcal": 212,
+   "protein": 14,
+   "fat": 10.4,
+   "carbs": 15.6,
+   "fiber": 0,
+   "sugar": 3,
+   "sodium": 771,
+   "water": 57,
+   "cholesterol": 60,
+   "ca": 20,
+   "fe": 1.5
+  }
+ },
+ {
+  "code": "SUP054",
+  "name": "香肠",
+  "aliases": [
+   "腊肠",
+   "广式香肠"
+  ],
+  "per100g": {
+   "kcal": 508,
+   "protein": 24.1,
+   "fat": 40.7,
+   "carbs": 11.2,
+   "fiber": 0,
+   "sugar": 3,
+   "sodium": 2309,
+   "water": 20,
+   "cholesterol": 82,
+   "ca": 14,
+   "fe": 2.9
+  }
+ },
+ {
+  "code": "SUP055",
+  "name": "培根",
+  "aliases": [
+   "烟肉"
+  ],
+  "per100g": {
+   "kcal": 181,
+   "protein": 22.3,
+   "fat": 9.5,
+   "carbs": 0,
+   "fiber": 0,
+   "sugar": 0,
+   "sodium": 1087,
+   "water": 65,
+   "cholesterol": 60,
+   "ca": 6,
+   "fe": 0.5
+  }
+ },
+ {
+  "code": "SUP056",
+  "name": "午餐肉",
+  "aliases": [],
+  "per100g": {
+   "kcal": 229,
+   "protein": 9.4,
+   "fat": 15.9,
+   "carbs": 12.3,
+   "fiber": 0,
+   "sugar": 2,
+   "sodium": 981,
+   "water": 59,
+   "cholesterol": 56,
+   "ca": 20,
+   "fe": 1
+  }
+ },
+ {
+  "code": "SUP057",
+  "name": "鱼豆腐",
+  "aliases": [],
+  "per100g": {
+   "kcal": 150,
+   "protein": 10,
+   "fat": 6,
+   "carbs": 14,
+   "fiber": 0,
+   "sugar": 2,
+   "sodium": 500,
+   "water": 65,
+   "cholesterol": 20,
+   "ca": 60,
+   "fe": 0.5
+  }
+ },
+ {
+  "code": "SUP058",
+  "name": "蟹棒",
+  "aliases": [
+   "蟹柳"
+  ],
+  "per100g": {
+   "kcal": 121,
+   "protein": 8.1,
+   "fat": 2.1,
+   "carbs": 17.7,
+   "fiber": 0,
+   "sugar": 6,
+   "sodium": 800,
+   "water": 70,
+   "cholesterol": 15,
+   "ca": 20,
+   "fe": 0.3
+  }
+ },
+ {
+  "code": "SUP059",
+  "name": "汤圆（黑芝麻）",
+  "aliases": [
+   "汤圆",
+   "元宵"
+  ],
+  "per100g": {
+   "kcal": 311,
+   "protein": 4.4,
+   "fat": 7.3,
+   "carbs": 55,
+   "fiber": 1.5,
+   "sugar": 20,
+   "sodium": 40,
+   "water": 33,
+   "cholesterol": 0,
+   "ca": 30,
+   "fe": 1.2
+  }
+ },
+ {
+  "code": "SUP060",
+  "name": "粽子（肉）",
+  "aliases": [
+   "肉粽",
+   "粽子"
+  ],
+  "per100g": {
+   "kcal": 220,
+   "protein": 5,
+   "fat": 7,
+   "carbs": 33,
+   "fiber": 1,
+   "sugar": 1,
+   "sodium": 400,
+   "water": 55,
+   "cholesterol": 15,
+   "ca": 20,
+   "fe": 1
+  }
+ },
+ {
+  "code": "SUP061",
+  "name": "年糕",
+  "aliases": [
+   "水磨年糕"
+  ],
+  "per100g": {
+   "kcal": 154,
+   "protein": 3.3,
+   "fat": 0.6,
+   "carbs": 34.7,
+   "fiber": 0.8,
+   "sugar": 1,
+   "sodium": 5,
+   "water": 61,
+   "cholesterol": 0,
+   "ca": 10,
+   "fe": 0.5
+  }
+ },
+ {
+  "code": "SUP062",
+  "name": "米线（熟）",
+  "aliases": [
+   "米粉",
+   "米粉（熟）"
+  ],
+  "per100g": {
+   "kcal": 117,
+   "protein": 1.8,
+   "fat": 0.2,
+   "carbs": 26,
+   "fiber": 0.5,
+   "sugar": 0,
+   "sodium": 5,
+   "water": 71,
+   "cholesterol": 0,
+   "ca": 5,
+   "fe": 0.2
+  }
+ },
+ {
+  "code": "SUP063",
+  "name": "河粉（熟）",
+  "aliases": [
+   "粿条",
+   "沙河粉"
+  ],
+  "per100g": {
+   "kcal": 110,
+   "protein": 1.5,
+   "fat": 0.3,
+   "carbs": 24,
+   "fiber": 0.4,
+   "sugar": 0,
+   "sodium": 5,
+   "water": 73,
+   "cholesterol": 0,
+   "ca": 5,
+   "fe": 0.2
+  }
+ },
+ {
+  "code": "SUP064",
+  "name": "螺蛳粉（含汤）",
+  "aliases": [
+   "螺狮粉"
+  ],
+  "per100g": {
+   "kcal": 150,
+   "protein": 3,
+   "fat": 6,
+   "carbs": 21,
+   "fiber": 1,
+   "sugar": 1,
+   "sodium": 800,
+   "water": 68,
+   "cholesterol": 5,
+   "ca": 30,
+   "fe": 1
+  }
+ },
+ {
+  "code": "SUP065",
+  "name": "麻辣烫",
+  "aliases": [
+   "冒菜"
+  ],
+  "per100g": {
+   "kcal": 120,
+   "protein": 5,
+   "fat": 6,
+   "carbs": 11,
+   "fiber": 1.5,
+   "sugar": 1.5,
+   "sodium": 600,
+   "water": 75,
+   "cholesterol": 10,
+   "ca": 40,
+   "fe": 1
+  }
+ },
+ {
+  "code": "SUP066",
+  "name": "火锅（清汤涮煮）",
+  "aliases": [
+   "火锅"
+  ],
+  "per100g": {
+   "kcal": 110,
+   "protein": 7,
+   "fat": 6,
+   "carbs": 6,
+   "fiber": 1,
+   "sugar": 1,
+   "sodium": 350,
+   "water": 78,
+   "cholesterol": 20,
+   "ca": 30,
+   "fe": 1
+  }
+ },
+ {
+  "code": "SUP067",
+  "name": "烤肉（混合）",
+  "aliases": [
+   "烧烤",
+   "烤串"
+  ],
+  "per100g": {
+   "kcal": 250,
+   "protein": 18,
+   "fat": 17,
+   "carbs": 5,
+   "fiber": 0.5,
+   "sugar": 1,
+   "sodium": 400,
+   "water": 58,
+   "cholesterol": 60,
+   "ca": 15,
+   "fe": 2
+  }
+ },
+ {
+  "code": "SUP068",
+  "name": "烤鸡翅",
+  "aliases": [
+   "奥尔良鸡翅"
+  ],
+  "per100g": {
+   "kcal": 230,
+   "protein": 18,
+   "fat": 16,
+   "carbs": 4,
+   "fiber": 0,
+   "sugar": 1,
+   "sodium": 500,
+   "water": 60,
+   "cholesterol": 90,
+   "ca": 15,
+   "fe": 1
+  }
+ },
+ {
+  "code": "SUP069",
+  "name": "关东煮",
+  "aliases": [
+   "煮物"
+  ],
+  "per100g": {
+   "kcal": 90,
+   "protein": 6,
+   "fat": 3,
+   "carbs": 9,
+   "fiber": 0.5,
+   "sugar": 1,
+   "sodium": 600,
+   "water": 78,
+   "cholesterol": 15,
+   "ca": 30,
+   "fe": 0.5
+  }
+ },
+ {
+  "code": "SUP070",
+  "name": "豆腐脑",
+  "aliases": [
+   "豆花"
+  ],
+  "per100g": {
+   "kcal": 47,
+   "protein": 3.8,
+   "fat": 2.5,
+   "carbs": 2.6,
+   "fiber": 0.4,
+   "sugar": 0.3,
+   "sodium": 300,
+   "water": 90,
+   "cholesterol": 0,
+   "ca": 80,
+   "fe": 1
+  }
+ },
+ {
+  "code": "SUP071",
+  "name": "豆浆",
+  "aliases": [
+   "豆奶（现磨）"
+  ],
+  "per100g": {
+   "kcal": 31,
+   "protein": 3,
+   "fat": 1.6,
+   "carbs": 1.2,
+   "fiber": 0.5,
+   "sugar": 0.3,
+   "sodium": 3,
+   "water": 94,
+   "cholesterol": 0,
+   "ca": 10,
+   "fe": 0.5
+  }
+ },
+ {
+  "code": "SUP072",
+  "name": "油条",
+  "aliases": [
+   "炸油条"
+  ],
+  "per100g": {
+   "kcal": 388,
+   "protein": 6.9,
+   "fat": 17.6,
+   "carbs": 51,
+   "fiber": 0.9,
+   "sugar": 1,
+   "sodium": 585,
+   "water": 22,
+   "cholesterol": 0,
+   "ca": 6,
+   "fe": 1
+  }
+ },
+ {
+  "code": "SUP073",
+  "name": "手抓饼",
+  "aliases": [
+   "葱油饼",
+   "煎饼"
+  ],
+  "per100g": {
+   "kcal": 330,
+   "protein": 7,
+   "fat": 16,
+   "carbs": 40,
+   "fiber": 1.5,
+   "sugar": 2,
+   "sodium": 500,
+   "water": 32,
+   "cholesterol": 10,
+   "ca": 20,
+   "fe": 1.5
+  }
+ },
+ {
+  "code": "SUP074",
+  "name": "煎饼果子",
+  "aliases": [],
+  "per100g": {
+   "kcal": 280,
+   "protein": 8,
+   "fat": 12,
+   "carbs": 35,
+   "fiber": 2,
+   "sugar": 2,
+   "sodium": 550,
+   "water": 42,
+   "cholesterol": 60,
+   "ca": 40,
+   "fe": 2
+  }
+ },
+ {
+  "code": "SUP075",
+  "name": "肉夹馍",
+  "aliases": [
+   "腊汁肉夹馍"
+  ],
+  "per100g": {
+   "kcal": 310,
+   "protein": 12,
+   "fat": 13,
+   "carbs": 35,
+   "fiber": 1.5,
+   "sugar": 2,
+   "sodium": 500,
+   "water": 38,
+   "cholesterol": 35,
+   "ca": 20,
+   "fe": 2
+  }
+ },
+ {
+  "code": "SUP076",
+  "name": "汉堡",
+  "aliases": [
+   "汉堡包",
+   "牛肉汉堡"
+  ],
+  "per100g": {
+   "kcal": 295,
+   "protein": 13,
+   "fat": 14,
+   "carbs": 30,
+   "fiber": 2,
+   "sugar": 6,
+   "sodium": 500,
+   "water": 40,
+   "cholesterol": 35,
+   "ca": 80,
+   "fe": 2.5
+  }
+ },
+ {
+  "code": "SUP077",
+  "name": "三明治",
+  "aliases": [
+   "火腿三明治"
+  ],
+  "per100g": {
+   "kcal": 250,
+   "protein": 10,
+   "fat": 12,
+   "carbs": 26,
+   "fiber": 2,
+   "sugar": 5,
+   "sodium": 550,
+   "water": 48,
+   "cholesterol": 25,
+   "ca": 80,
+   "fe": 2
+  }
+ },
+ {
+  "code": "SUP078",
+  "name": "披萨",
+  "aliases": [
+   "比萨"
+  ],
+  "per100g": {
+   "kcal": 268,
+   "protein": 11,
+   "fat": 10,
+   "carbs": 33,
+   "fiber": 2.3,
+   "sugar": 3.6,
+   "sodium": 598,
+   "water": 43,
+   "cholesterol": 18,
+   "ca": 188,
+   "fe": 2.5
+  }
+ },
+ {
+  "code": "SUP079",
+  "name": "意大利面（熟）",
+  "aliases": [
+   "意面",
+   "意粉"
+  ],
+  "per100g": {
+   "kcal": 158,
+   "protein": 5.8,
+   "fat": 0.9,
+   "carbs": 31,
+   "fiber": 1.8,
+   "sugar": 1,
+   "sodium": 6,
+   "water": 61,
+   "cholesterol": 0,
+   "ca": 7,
+   "fe": 1.3
+  }
+ },
+ {
+  "code": "SUP080",
+  "name": "薯条",
+  "aliases": [
+   "炸薯条"
+  ],
+  "per100g": {
+   "kcal": 312,
+   "protein": 3.4,
+   "fat": 15,
+   "carbs": 41,
+   "fiber": 3.8,
+   "sugar": 0.3,
+   "sodium": 210,
+   "water": 38,
+   "cholesterol": 0,
+   "ca": 15,
+   "fe": 0.8
+  }
+ },
+ {
+  "code": "SUP081",
+  "name": "炸鸡",
+  "aliases": [
+   "炸鸡块",
+   "鸡米花"
+  ],
+  "per100g": {
+   "kcal": 279,
+   "protein": 18,
+   "fat": 18,
+   "carbs": 11,
+   "fiber": 0.5,
+   "sugar": 1,
+   "sodium": 600,
+   "water": 50,
+   "cholesterol": 80,
+   "ca": 25,
+   "fe": 1.5
+  }
+ },
+ {
+  "code": "SUP082",
+  "name": "油焖大虾",
+  "aliases": [],
+  "per100g": {
+   "kcal": 160,
+   "protein": 15,
+   "fat": 8,
+   "carbs": 5,
+   "fiber": 0.3,
+   "sugar": 2,
+   "sodium": 500,
+   "water": 68,
+   "cholesterol": 120,
+   "ca": 80,
+   "fe": 1.5
+  }
+ },
+ {
+  "code": "SUP083",
+  "name": "蒸蛋羹",
+  "aliases": [
+   "鸡蛋羹"
+  ],
+  "per100g": {
+   "kcal": 75,
+   "protein": 6.5,
+   "fat": 4.5,
+   "carbs": 1.5,
+   "fiber": 0,
+   "sugar": 0.5,
+   "sodium": 300,
+   "water": 86,
+   "cholesterol": 200,
+   "ca": 30,
+   "fe": 1
+  }
+ },
+ {
+  "code": "SUP084",
+  "name": "煎蛋",
+  "aliases": [
+   "荷包蛋（煎）"
+  ],
+  "per100g": {
+   "kcal": 200,
+   "protein": 13,
+   "fat": 15,
+   "carbs": 1,
+   "fiber": 0,
+   "sugar": 0.4,
+   "sodium": 350,
+   "water": 68,
+   "cholesterol": 420,
+   "ca": 50,
+   "fe": 1.5
+  }
+ },
+ {
+  "code": "SUP085",
+  "name": "煮鸡蛋",
+  "aliases": [
+   "白煮蛋",
+   "水煮蛋"
+  ],
+  "per100g": {
+   "kcal": 147,
+   "protein": 13.1,
+   "fat": 9.5,
+   "carbs": 1.1,
+   "fiber": 0,
+   "sugar": 0.4,
+   "sodium": 140,
+   "water": 75,
+   "cholesterol": 380,
+   "ca": 50,
+   "fe": 1.2
+  }
+ },
+ {
+  "code": "SUP086",
+  "name": "茶叶蛋",
+  "aliases": [
+   "卤蛋"
+  ],
+  "per100g": {
+   "kcal": 155,
+   "protein": 13,
+   "fat": 9.8,
+   "carbs": 2.5,
+   "fiber": 0,
+   "sugar": 0.5,
+   "sodium": 800,
+   "water": 72,
+   "cholesterol": 380,
+   "ca": 55,
+   "fe": 1.4
+  }
+ },
+ {
+  "code": "SUP087",
+  "name": "培根蛋堡",
+  "aliases": [
+   "早餐汉堡"
+  ],
+  "per100g": {
+   "kcal": 270,
+   "protein": 12,
+   "fat": 15,
+   "carbs": 22,
+   "fiber": 1,
+   "sugar": 4,
+   "sodium": 650,
+   "water": 48,
+   "cholesterol": 150,
+   "ca": 60,
+   "fe": 2
+  }
+ },
+ {
+  "code": "SUP088",
+  "name": "榴莲酥",
+  "aliases": [],
+  "per100g": {
+   "kcal": 360,
+   "protein": 4,
+   "fat": 20,
+   "carbs": 42,
+   "fiber": 1.5,
+   "sugar": 18,
+   "sodium": 150,
+   "water": 32,
+   "cholesterol": 20,
+   "ca": 30,
+   "fe": 1
+  }
+ },
+ {
+  "code": "SUP089",
+  "name": "烧麦",
+  "aliases": [
+   "烧卖"
+  ],
+  "per100g": {
+   "kcal": 238,
+   "protein": 7.5,
+   "fat": 9,
+   "carbs": 31,
+   "fiber": 1,
+   "sugar": 1.5,
+   "sodium": 500,
+   "water": 50,
+   "cholesterol": 25,
+   "ca": 20,
+   "fe": 1.5
+  }
+ },
+ {
+  "code": "SUP090",
+  "name": "小笼包",
+  "aliases": [
+   "汤包"
+  ],
+  "per100g": {
+   "kcal": 230,
+   "protein": 8,
+   "fat": 9,
+   "carbs": 28,
+   "fiber": 1,
+   "sugar": 2,
+   "sodium": 550,
+   "water": 52,
+   "cholesterol": 30,
+   "ca": 25,
+   "fe": 1.5
+  }
+ },
+ {
+  "code": "SUP091",
+  "name": "生煎包",
+  "aliases": [
+   "生煎"
+  ],
+  "per100g": {
+   "kcal": 260,
+   "protein": 8,
+   "fat": 12,
+   "carbs": 29,
+   "fiber": 1,
+   "sugar": 2,
+   "sodium": 600,
+   "water": 48,
+   "cholesterol": 30,
+   "ca": 25,
+   "fe": 1.6
+  }
+ },
+ {
+  "code": "SUP092",
+  "name": "馄饨",
+  "aliases": [
+   "云吞",
+   "抄手"
+  ],
+  "per100g": {
+   "kcal": 180,
+   "protein": 7,
+   "fat": 6,
+   "carbs": 24,
+   "fiber": 1,
+   "sugar": 1,
+   "sodium": 550,
+   "water": 62,
+   "cholesterol": 25,
+   "ca": 25,
+   "fe": 1.5
+  }
+ },
+ {
+  "code": "SUP093",
+  "name": "饺子（猪肉馅）",
+  "aliases": [
+   "水饺",
+   "饺子"
+  ],
+  "per100g": {
+   "kcal": 240,
+   "protein": 9,
+   "fat": 10,
+   "carbs": 28,
+   "fiber": 1.2,
+   "sugar": 1.5,
+   "sodium": 500,
+   "water": 51,
+   "cholesterol": 30,
+   "ca": 25,
+   "fe": 1.5
+  }
+ },
+ {
+  "code": "SUP094",
+  "name": "包子（肉馅）",
+  "aliases": [
+   "肉包",
+   "包子"
+  ],
+  "per100g": {
+   "kcal": 250,
+   "protein": 9,
+   "fat": 9,
+   "carbs": 33,
+   "fiber": 1.2,
+   "sugar": 3,
+   "sodium": 500,
+   "water": 46,
+   "cholesterol": 25,
+   "ca": 25,
+   "fe": 1.8
+  }
+ },
+ {
+  "code": "SUP095",
+  "name": "豆沙包",
+  "aliases": [
+   "豆沙包子"
+  ],
+  "per100g": {
+   "kcal": 240,
+   "protein": 6,
+   "fat": 3,
+   "carbs": 48,
+   "fiber": 2,
+   "sugar": 18,
+   "sodium": 200,
+   "water": 40,
+   "cholesterol": 0,
+   "ca": 25,
+   "fe": 1.5
+  }
+ },
+ {
+  "code": "SUP096",
+  "name": "蛋炒饭",
+  "aliases": [
+   "炒饭"
+  ],
+  "per100g": {
+   "kcal": 185,
+   "protein": 5,
+   "fat": 6.5,
+   "carbs": 26,
+   "fiber": 0.5,
+   "sugar": 1,
+   "sodium": 400,
+   "water": 60,
+   "cholesterol": 60,
+   "ca": 20,
+   "fe": 1
+  }
+ },
+ {
+  "code": "SUP097",
+  "name": "皮蛋瘦肉粥",
+  "aliases": [
+   "瘦肉粥"
+  ],
+  "per100g": {
+   "kcal": 70,
+   "protein": 3.5,
+   "fat": 2.5,
+   "carbs": 8.5,
+   "fiber": 0.2,
+   "sugar": 0.3,
+   "sodium": 350,
+   "water": 84,
+   "cholesterol": 30,
+   "ca": 15,
+   "fe": 0.8
+  }
+ },
+ {
+  "code": "SUP098",
+  "name": "白粥",
+  "aliases": [
+   "大米粥",
+   "稀饭"
+  ],
+  "per100g": {
+   "kcal": 46,
+   "protein": 1.1,
+   "fat": 0.3,
+   "carbs": 9.9,
+   "fiber": 0.1,
+   "sugar": 0.3,
+   "sodium": 2,
+   "water": 88,
+   "cholesterol": 0,
+   "ca": 7,
+   "fe": 0.1
+  }
+ },
+ {
+  "code": "SUP099",
+  "name": "麻辣香锅",
+  "aliases": [
+   "干锅"
+  ],
+  "per100g": {
+   "kcal": 200,
+   "protein": 8,
+   "fat": 13,
+   "carbs": 12,
+   "fiber": 1.5,
+   "sugar": 2,
+   "sodium": 700,
+   "water": 62,
+   "cholesterol": 25,
+   "ca": 40,
+   "fe": 1.5
+  }
+ },
+ {
+  "code": "SUP100",
+  "name": "酸菜鱼",
+  "aliases": [
+   "酸汤鱼"
+  ],
+  "per100g": {
+   "kcal": 120,
+   "protein": 10,
+   "fat": 7,
+   "carbs": 4,
+   "fiber": 0.8,
+   "sugar": 1,
+   "sodium": 600,
+   "water": 77,
+   "cholesterol": 30,
+   "ca": 40,
+   "fe": 0.8
+  }
+ },
+ {
+  "code": "SUP101",
+  "name": "孜然",
+  "aliases": [
+   "孜然粉"
+  ],
+  "per100g": {
+   "kcal": 375,
+   "protein": 18,
+   "fat": 22,
+   "carbs": 44,
+   "fiber": 10,
+   "sugar": 3,
+   "sodium": 60,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP102",
+  "name": "辣椒粉",
+  "aliases": [
+   "辣椒面"
+  ],
+  "per100g": {
+   "kcal": 290,
+   "protein": 15,
+   "fat": 8,
+   "carbs": 50,
+   "fiber": 30,
+   "sugar": 5,
+   "sodium": 30,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP103",
+  "name": "黑胡椒",
+  "aliases": [
+   "胡椒"
+  ],
+  "per100g": {
+   "kcal": 251,
+   "protein": 10,
+   "fat": 3.3,
+   "carbs": 64,
+   "fiber": 25,
+   "sugar": 1,
+   "sodium": 20,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP104",
+  "name": "茶叶",
+  "aliases": [
+   "茶"
+  ],
+  "per100g": {
+   "kcal": 0,
+   "protein": 0,
+   "fat": 0,
+   "carbs": 0,
+   "fiber": 0,
+   "sugar": 0,
+   "sodium": 1,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP105",
+  "name": "牛骨汤",
+  "aliases": [
+   "高汤",
+   "骨头汤"
+  ],
+  "per100g": {
+   "kcal": 10,
+   "protein": 1,
+   "fat": 0.5,
+   "carbs": 0.5,
+   "fiber": 0,
+   "sugar": 0,
+   "sodium": 200,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP106",
+  "name": "榨菜",
+  "aliases": [
+   "榨菜丝"
+  ],
+  "per100g": {
+   "kcal": 29,
+   "protein": 2,
+   "fat": 0.3,
+   "carbs": 5,
+   "fiber": 1,
+   "sugar": 0.5,
+   "sodium": 4252,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP107",
+  "name": "毛肚",
+  "aliases": [
+   "牛百叶"
+  ],
+  "per100g": {
+   "kcal": 72,
+   "protein": 14.5,
+   "fat": 1.6,
+   "carbs": 1.6,
+   "fiber": 0,
+   "sugar": 0,
+   "sodium": 60,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP108",
+  "name": "巴沙鱼",
+  "aliases": [
+   "龙利鱼"
+  ],
+  "per100g": {
+   "kcal": 90,
+   "protein": 15,
+   "fat": 3,
+   "carbs": 0,
+   "fiber": 0,
+   "sugar": 0,
+   "sodium": 60,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP109",
+  "name": "小龙虾",
+  "aliases": [
+   "克氏原螯虾",
+   "龙虾"
+  ],
+  "per100g": {
+   "kcal": 90,
+   "protein": 18.9,
+   "fat": 1.1,
+   "carbs": 1,
+   "fiber": 0,
+   "sugar": 0,
+   "sodium": 190,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP110",
+  "name": "鸡翅根",
+  "aliases": [
+   "翅根"
+  ],
+  "per100g": {
+   "kcal": 194,
+   "protein": 17,
+   "fat": 13,
+   "carbs": 2,
+   "fiber": 0,
+   "sugar": 0,
+   "sodium": 80,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP111",
+  "name": "柚子",
+  "aliases": [
+   "西柚"
+  ],
+  "per100g": {
+   "kcal": 42,
+   "protein": 0.8,
+   "fat": 0.2,
+   "carbs": 9.5,
+   "fiber": 0.4,
+   "sugar": 8,
+   "sodium": 3,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP112",
+  "name": "白芝麻",
+  "aliases": [
+   "芝麻",
+   "黑芝麻"
+  ],
+  "per100g": {
+   "kcal": 536,
+   "protein": 18.4,
+   "fat": 39.6,
+   "carbs": 31.5,
+   "fiber": 9.8,
+   "sugar": 1,
+   "sodium": 8,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP113",
+  "name": "梅干菜",
+  "aliases": [
+   "梅菜"
+  ],
+  "per100g": {
+   "kcal": 200,
+   "protein": 9,
+   "fat": 1,
+   "carbs": 40,
+   "fiber": 15,
+   "sugar": 3,
+   "sodium": 3000,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP114",
+  "name": "泡椒",
+  "aliases": [
+   "小米椒",
+   "小米辣"
+  ],
+  "per100g": {
+   "kcal": 62,
+   "protein": 2,
+   "fat": 1,
+   "carbs": 10,
+   "fiber": 3,
+   "sugar": 3,
+   "sodium": 1500,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP115",
+  "name": "桃子",
+  "aliases": [
+   "桃"
+  ],
+  "per100g": {
+   "kcal": 51,
+   "protein": 0.9,
+   "fat": 0.1,
+   "carbs": 12.2,
+   "fiber": 1.3,
+   "sugar": 10,
+   "sodium": 1.7,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP116",
+  "name": "酸豆角",
+  "aliases": [
+   "酸豇豆"
+  ],
+  "per100g": {
+   "kcal": 35,
+   "protein": 2.4,
+   "fat": 0.4,
+   "carbs": 6,
+   "fiber": 1.5,
+   "sugar": 2,
+   "sodium": 1500,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP117",
+  "name": "黄花菜",
+  "aliases": [
+   "金针菜"
+  ],
+  "per100g": {
+   "kcal": 199,
+   "protein": 19.4,
+   "fat": 1.4,
+   "carbs": 34.9,
+   "fiber": 7.7,
+   "sugar": 2,
+   "sodium": 59,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP118",
+  "name": "豆豉",
+  "aliases": [
+   "阳江豆豉"
+  ],
+  "per100g": {
+   "kcal": 254,
+   "protein": 24.1,
+   "fat": 3.5,
+   "carbs": 36.8,
+   "fiber": 5.9,
+   "sugar": 3,
+   "sodium": 2000,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP119",
+  "name": "咖喱酱",
+  "aliases": [
+   "咖喱"
+  ],
+  "per100g": {
+   "kcal": 112,
+   "protein": 5,
+   "fat": 5,
+   "carbs": 14,
+   "fiber": 3,
+   "sugar": 4,
+   "sodium": 600,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP120",
+  "name": "黄油",
+  "aliases": [
+   "牛油"
+  ],
+  "per100g": {
+   "kcal": 888,
+   "protein": 1.4,
+   "fat": 98,
+   "carbs": 0,
+   "fiber": 0,
+   "sugar": 0,
+   "sodium": 40,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP121",
+  "name": "猪油",
+  "aliases": [
+   "猪大油"
+  ],
+  "per100g": {
+   "kcal": 897,
+   "protein": 0,
+   "fat": 99.6,
+   "carbs": 0,
+   "fiber": 0,
+   "sugar": 0,
+   "sodium": 0,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP122",
+  "name": "植物油",
+  "aliases": [
+   "食用油",
+   "油"
+  ],
+  "per100g": {
+   "kcal": 899,
+   "protein": 0,
+   "fat": 99.9,
+   "carbs": 0,
+   "fiber": 0,
+   "sugar": 0,
+   "sodium": 5,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP123",
+  "name": "酵母",
+  "aliases": [
+   "酵母粉"
+  ],
+  "per100g": {
+   "kcal": 320,
+   "protein": 40,
+   "fat": 5,
+   "carbs": 35,
+   "fiber": 20,
+   "sugar": 2,
+   "sodium": 50,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP124",
+  "name": "面筋",
+  "aliases": [
+   "烤面筋"
+  ],
+  "per100g": {
+   "kcal": 140,
+   "protein": 20,
+   "fat": 1,
+   "carbs": 12,
+   "fiber": 1,
+   "sugar": 0.5,
+   "sodium": 100,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP125",
+  "name": "冰淇淋球",
+  "aliases": [
+   "雪球"
+  ],
+  "per100g": {
+   "kcal": 200,
+   "protein": 3,
+   "fat": 10,
+   "carbs": 25,
+   "fiber": 0,
+   "sugar": 22,
+   "sodium": 60,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP126",
+  "name": "燕麦片",
+  "aliases": [
+   "即食燕麦"
+  ],
+  "per100g": {
+   "kcal": 377,
+   "protein": 15,
+   "fat": 6.7,
+   "carbs": 61,
+   "fiber": 8,
+   "sugar": 1,
+   "sodium": 3,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP127",
+  "name": "黑咖啡",
+  "aliases": [],
+  "per100g": {
+   "kcal": 2,
+   "protein": 0.1,
+   "fat": 0,
+   "carbs": 0.3,
+   "fiber": 0,
+   "sugar": 0,
+   "sodium": 5,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ },
+ {
+  "code": "SUP128",
+  "name": "酸菜",
+  "aliases": [],
+  "per100g": {
+   "kcal": 13,
+   "protein": 1.2,
+   "fat": 0.2,
+   "carbs": 2,
+   "fiber": 1.4,
+   "sugar": 0.3,
+   "sodium": 800,
+   "water": 0,
+   "cholesterol": 0,
+   "ca": 0,
+   "fe": 0
+  }
+ }
+]

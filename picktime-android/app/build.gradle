@@ -1,0 +1,63 @@
+plugins {
+    id 'com.android.application'
+}
+
+def keystorePropsFile = rootProject.file("keystore/keystore.properties")
+def keystoreProps = new Properties()
+if (keystorePropsFile.exists()) {
+    keystoreProps.load(new FileInputStream(keystorePropsFile))
+}
+
+def vCode = project.hasProperty("versionCode") ? project.property("versionCode").toString().toInteger() : 1
+def vName = project.hasProperty("versionName") ? project.property("versionName").toString() : "1.0.0"
+def wVer = project.hasProperty("webVersion") ? project.property("webVersion").toString() : "dev"
+
+android {
+    namespace 'store.picktime.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "store.picktime.app"
+        minSdk 23
+        targetSdk 34
+        versionCode vCode
+        versionName vName
+        buildConfigField "String", "WEB_VERSION", "\"${wVer}\""
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    signingConfigs {
+        release {
+            if (keystorePropsFile.exists()) {
+                storeFile rootProject.file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            shrinkResources false
+            signingConfig keystorePropsFile.exists() ? signingConfigs.release : signingConfigs.debug
+        }
+        debug {
+            applicationIdSuffix ".debug"
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+}

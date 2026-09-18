@@ -1,0 +1,25 @@
+# 运行时数据与密钥（不要提交）
+picktime-sms/data/
+picktime-sms/ecosystem.config.js
+food-ai/ecosystem.config.js
+food-ai/logs/
+food-ai/__pycache__/
+food-ai/models/
+food-ai/dataset/
+*.log
+.env
+
+# Android 构建产物与签名
+picktime-android/.gradle/
+picktime-android/build/
+picktime-android/app/build/
+picktime-android/keystore/
+picktime-android/app/src/main/assets/www/
+picktime-android/local.properties
+
+# 安卓安装包（构建产物）
+Picktime/download/
+
+# 系统文件
+.DS_Store
+Thumbs.db

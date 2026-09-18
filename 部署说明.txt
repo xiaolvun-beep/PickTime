@@ -1,0 +1,51 @@
+拾光 PickTime v1.2.7 服务器部署说明
+====================================
+
+一、目标机要求
+  - Ubuntu 22.04 / 24.04（需要系统自带 python3.12）
+  - MySQL 8（sudo apt install -y mysql-server）
+  - nginx（sudo apt install -y nginx）
+  - 无需安装 Node / Python 依赖，压缩包已附带
+
+二、部署步骤
+  1. 把压缩包解压到 /home/ubuntu（必须此路径，环境按该路径配置）：
+       sudo unzip PickTimev1.2.7版本.zip -d /home/ubuntu
+     （若解压后出现同名子目录，请把子目录里的内容移动到 /home/ubuntu）
+
+  2. 执行一键部署：
+       bash /home/ubuntu/deploy.sh
+
+  3. 打开浏览器访问：
+       http://<服务器IP>:8050
+     若已配置域名与证书，可复制 /home/ubuntu/nginx-picktime.store.conf
+     到 /etc/nginx/conf.d/picktime.store.conf 并 reload nginx 启用 443。
+
+三、包含内容
+  - Picktime/            网页前端（含安卓下载页与 /download 安装包）
+  - picktime-sms/        账号服务（5002：登录/记录/API 代理）
+  - food-ai/             食物识别服务（5003：YOLO26 + SAM2 + DepthV2 + AI）
+  - purse-v2.5.3/        本机 U2NET 抠图（5001）与 Node 依赖
+  - yolo-env/            Python 运行环境（已含 torch / ultralytics 等）
+  - .nvm/versions/node/  Node 运行环境（含 pm2）
+  - sam2/                SAM2 模型与权重
+  - Depth-Anything-V2/   深度模型与权重
+  - yolo26n.pt           YOLO26 权重
+  - picktime-db.sql      数据库结构与数据（users / records）
+
+四、数据库
+  deploy.sh 会自动建库建用户并导入 picktime-db.sql。
+  导入的是打包时的数据（当前用户与记录）。如需全新空库：
+    mysql -upicktime -p picktime -e "DELETE FROM records; DELETE FROM users;"
+
+五、常用命令
+  pm2 ls                     查看服务
+  pm2 restart all            重启全部服务
+  pm2 logs food-ai           查看识别服务日志
+  curl http://127.0.0.1:5003/health   识别服务健康检查
+
+六、说明
+  - AI 对话使用服务端 Doubao（火山方舟）Key，配置在
+    /home/ubuntu/food-ai/ecosystem.config.js 的 ARK_API_KEY。
+  - 拍照识别使用服务端 DashScope（Qwen）Key，同一文件 DASHSCOPE_API_KEY。
+  - 短信/邮箱/Google 登录等密钥在 /home/ubuntu/picktime-sms/ecosystem.config.js。
+  - 服务端口：8050 网页、5002 账号、5003 识别、5001 本机抠图。
