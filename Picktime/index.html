@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-visual" />
   <title>PickTime</title>
   <script>if ("scrollRestoration" in history) history.scrollRestoration = "manual";</script>
   <script>
@@ -44,7 +44,7 @@
 
     @font-face {
       font-family: "Onboarding Title";
-      src: url("/fonts/onboarding-title.woff2?v=4") format("woff2");
+      src: url("/fonts/onboarding-title.woff2?v=6") format("woff2");
       font-weight: 400;
       font-style: normal;
       font-display: swap;
@@ -53,6 +53,14 @@
     @font-face {
       font-family: "MaShanZheng";
       src: url("/fonts/mashanzheng.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+    }
+
+    /* 便利贴手写体（完整字库，仅在使用时加载） */
+    @font-face {
+      font-family: "MaShanZheng Note";
+      src: url("/fonts/mashanzheng-full.woff2") format("woff2");
       font-weight: 400;
       font-style: normal;
       font-display: swap;
@@ -442,15 +450,50 @@
       color: var(--color-mist);
     }
 
+    .week-day__ring {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .week-day__ring svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+      overflow: visible;
+      pointer-events: none;
+    }
+
+    .week-day__ring-edge {
+      fill: none;
+      stroke: var(--color-edge);
+      stroke-width: 1.5;
+    }
+
+    .week-day__ring-bar {
+      fill: none;
+      stroke: #9cbb7c;
+      stroke-width: 5.2;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 600ms var(--ease);
+    }
+
     .week-day__num {
+      position: relative;
+      z-index: 1;
       box-sizing: border-box;
-      width: 36px;
-      height: 36px;
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 500;
       color: var(--color-ink);
       background: #ffffff;
@@ -458,9 +501,9 @@
     }
 
     .week-day.is-today .week-day__num {
-      background: var(--color-ink);
-      border-color: var(--color-ink);
-      color: #ffffff;
+      background: #e3e8ee;
+      border-color: #cfd6de;
+      color: var(--color-ink);
     }
 
     .side-timeline {
@@ -570,11 +613,12 @@
 
     .side-timeline__empty {
       white-space: nowrap;
-      font-family: "Picktime Title", "Yuanti SC", "YouYuan", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-family: "Onboarding Title", "Picktime Title", "Yuanti SC", "YouYuan", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
       font-size: 17px;
-      font-weight: 500;
+      font-weight: 400;
+      font-synthesis: none;
       line-height: 1.2;
-      letter-spacing: 0.01em;
+      letter-spacing: 0.02em;
       color: var(--color-mist);
     }
 
@@ -804,7 +848,7 @@
       overflow-x: hidden;
       overflow-anchor: none;
       -webkit-overflow-scrolling: touch;
-      padding: calc(72px + env(safe-area-inset-top)) 0 170px;
+      padding: calc(56px + env(safe-area-inset-top)) 0 170px;
       opacity: 0;
       visibility: hidden;
       transition: opacity 180ms var(--ease), visibility 180ms var(--ease);
@@ -936,9 +980,10 @@
       top: 50%;
       transform: translateY(-50%);
       text-align: center;
-      font-family: "Picktime Title", "Yuanti SC", "YouYuan", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-family: "Onboarding Title", "Picktime Title", "Yuanti SC", "YouYuan", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
       font-size: 17px;
-      font-weight: 500;
+      font-weight: 400;
+      font-synthesis: none;
       letter-spacing: 0.02em;
       color: var(--color-mist);
       pointer-events: none;
@@ -3441,6 +3486,777 @@
       padding: 0 20px;
     }
 
+    .stats-pane > section + section {
+      margin-top: 16px;
+    }
+
+    /* 从左侧滑出的二级页面（内容待加） */
+    .stats-subpage {
+      position: fixed;
+      inset: 0;
+      z-index: 6;
+      background-color: #f1f3f6;
+      transform: translateX(-100%);
+      transition: transform 380ms var(--ease);
+      will-change: transform;
+      pointer-events: none;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    .stats-subpage.is-open {
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+
+    /* 垃圾桶定位槽（独立于二级页面，动画不受大背景层影响；源码样式原样照抄） */
+    .stats-subpage__trash-slot {
+      position: fixed;
+      top: calc(2px + env(safe-area-inset-top));
+      left: 14px;
+      z-index: 7;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 200ms var(--ease), visibility 200ms var(--ease);
+    }
+
+    body.stats-subpage-open .stats-subpage__trash-slot {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* 恢复按钮：在垃圾桶右侧，一键吐出所有被移除的抠图 */
+    .stats-subpage__restore-slot {
+      position: fixed;
+      top: calc(2px + env(safe-area-inset-top));
+      left: 60px;
+      z-index: 7;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 200ms var(--ease), visibility 200ms var(--ease), left 300ms var(--ease);
+    }
+
+    body.stats-subpage-open .stats-subpage__restore-slot {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* 垃圾桶展开时，恢复按钮跟着右移 */
+    .stats-subpage__restore-slot.is-shifted {
+      left: 125px;
+    }
+
+    .restore-btn {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border: none;
+      border-radius: 50%;
+      background-color: #e3e8ee;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.164);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .restore-btn svg {
+      width: 18px;
+      height: 18px;
+      display: block;
+      fill: none;
+      stroke: var(--color-ink);
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: stroke 160ms var(--ease);
+    }
+
+    .restore-btn:active {
+      background-color: rgb(255, 69, 69);
+    }
+
+    .restore-btn:active svg {
+      stroke: #ffffff;
+    }
+
+    /* 扳手按钮：在恢复按钮右侧，垃圾桶展开时一起右移 */
+    .stats-subpage__wrench-slot {
+      position: fixed;
+      top: calc(2px + env(safe-area-inset-top));
+      left: 106px;
+      z-index: 7;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 200ms var(--ease), visibility 200ms var(--ease), left 300ms var(--ease);
+    }
+
+    body.stats-subpage-open .stats-subpage__wrench-slot {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .stats-subpage__wrench-slot.is-shifted {
+      left: 171px;
+    }
+
+    .wrench-btn {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border: none;
+      border-radius: 50%;
+      background-color: #e3e8ee;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.164);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .wrench-btn img {
+      width: 20px;
+      height: 20px;
+      display: block;
+      pointer-events: none;
+    }
+
+    .wrench-btn:active {
+      background-color: #d6dce4;
+    }
+
+    /* 贴纸选择弹窗（照搬 purse 手账） */
+    .sticker-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 820;
+      background: rgba(0, 0, 0, 0.35);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 300ms var(--ease), visibility 300ms var(--ease);
+    }
+
+    .sticker-backdrop.is-open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* 编写便利贴时减淡遮罩，方便看清贴纸 */
+    .sticker-backdrop.is-note-editing {
+      background: rgba(0, 0, 0, 0.12);
+    }
+
+    .sticker-sheet {
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      z-index: 821;
+      width: 100%;
+      max-width: 520px;
+      transform: translate3d(-50%, 100%, 0);
+      background: #ffffff;
+      border-radius: 22px 22px 0 0;
+      padding: 20px 20px max(28px, env(safe-area-inset-bottom));
+      transition: transform 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      max-height: 85dvh;
+      overflow-y: auto;
+      will-change: transform;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .sticker-sheet.is-open {
+      transform: translate3d(-50%, 0, 0);
+    }
+
+    .sticker-sheet__title {
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--color-ink);
+      margin-bottom: 12px;
+    }
+
+    .sticker-sheet__pills {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 2px 0 10px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .sticker-sheet__pills::-webkit-scrollbar {
+      display: none;
+    }
+
+    .sticker-pill {
+      border: none;
+      border-radius: 999px;
+      padding: 7px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+      background: #ececf1;
+      color: #3a3a4a;
+      transition: background 200ms;
+    }
+
+    .sticker-pill.is-active {
+      background: #1a1a2e;
+      color: #ffffff;
+    }
+
+    .sticker-pill.is-disabled {
+      opacity: 0.45;
+    }
+
+    .sticker-sheet__grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-auto-rows: 82px;
+      gap: 24px 10px;
+      max-height: 52vh;
+      overflow-y: auto;
+      padding: 2px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .sticker-cell {
+      position: relative;
+      width: 100%;
+      height: 82px;
+      background: #fff6d5;
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .sticker-cell img {
+      width: 82%;
+      height: 82%;
+      object-fit: contain;
+      display: block;
+      pointer-events: none;
+    }
+
+    .sticker-sheet__grid.is-big {
+      grid-template-columns: 1fr;
+      grid-auto-rows: auto;
+      gap: 64px 0;
+    }
+
+    .sticker-sheet__grid.is-big .sticker-cell {
+      background: transparent;
+    }
+
+    .sticker-sheet__grid.is-big .sticker-cell img {
+      max-height: 340px;
+      width: auto;
+      max-width: 96%;
+      height: auto;
+    }
+
+    /* 页面上的贴纸 */
+    .stats-subpage__sticker {
+      position: absolute;
+      width: 96px;
+      height: 96px;
+      cursor: grab;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+      filter: drop-shadow(0 3px 8px rgba(14, 17, 22, 0.12));
+    }
+
+    .stats-subpage__sticker-img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+      -webkit-user-drag: none;
+    }
+
+    /* 便利贴文字（手写体，位置/字号随贴纸缩放） */
+    .stats-subpage__note-text {
+      position: absolute;
+      overflow: hidden;
+      box-sizing: border-box;
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      text-align: left;
+      line-height: 1.3;
+      font-family: "MaShanZheng Note", "MaShanZheng", "STKaiti", "KaiTi", "楷体", cursive;
+      pointer-events: none;
+    }
+
+    /* 便利贴悬浮输入层（直接在贴纸上写） */
+    .stats-subpage__note-input {
+      position: absolute;
+      z-index: 4;
+      overflow: hidden;
+      outline: none;
+      border: 0;
+      background: transparent;
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      text-align: left;
+      line-height: 1.3;
+      box-sizing: border-box;
+      margin: 0;
+      font-family: "MaShanZheng Note", "MaShanZheng", "STKaiti", "KaiTi", "楷体", cursive;
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    .stats-subpage__note-input:empty:before {
+      content: attr(data-ph);
+      opacity: 0.45;
+      pointer-events: none;
+      white-space: pre-wrap;
+    }
+
+    /* 贴纸操作条（purse 规则：选中后出现） */
+    .stats-sticker-ctl {
+      position: absolute;
+      z-index: 12;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      pointer-events: none;
+    }
+
+    .stats-sticker-ctl__btn {
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      box-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      pointer-events: auto;
+      touch-action: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .stats-sticker-ctl__btn svg {
+      width: 12px;
+      height: 12px;
+      fill: none;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .stats-sticker-ctl__btn.is-del svg { stroke: #ff5f57; }
+    .stats-sticker-ctl__btn.is-ok svg { stroke: #28c76f; }
+    .stats-sticker-ctl__btn.is-rot svg { stroke: #4a4a5a; stroke-width: 2.4; }
+    .stats-sticker-ctl__btn.is-edit svg { stroke: #2e4a66; stroke-width: 2.1; }
+
+    /* 便利贴编写时的悬浮完成按钮 */
+
+    .stats-subpage__sticker.is-dragging {
+      cursor: grabbing;
+      z-index: 11;
+    }
+
+    /* 便利贴编写模式：放大并居中，带过渡 */
+    .stats-subpage__sticker.is-note-editing {
+      z-index: 30;
+      transition: left 260ms var(--ease), top 260ms var(--ease), width 260ms var(--ease), height 260ms var(--ease), transform 260ms var(--ease);
+      filter: drop-shadow(0 12px 28px rgba(14, 17, 22, 0.25));
+    }
+
+    /* 贴纸设置弹窗 */
+    .sticker-settings__row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 14px 0;
+    }
+
+    .sticker-settings__label {
+      width: 40px;
+      flex-shrink: 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-mist);
+    }
+
+    .sticker-settings__range {
+      flex: 1;
+      height: 26px;
+      accent-color: #1a1a2e;
+    }
+
+    .sticker-settings__value {
+      width: 52px;
+      flex-shrink: 0;
+      text-align: right;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-ink);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .sticker-settings__actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .sticker-settings__btn {
+      flex: 1;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 0;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .sticker-settings__btn--del {
+      background: #ffe9e8;
+      color: #ff5f57;
+    }
+
+    .sticker-settings__btn--ok {
+      background: #1a1a2e;
+      color: #ffffff;
+    }
+
+    /* 美纹纸裁剪弹窗（照搬 purse 手账） */
+    #tapeCropSheet,
+    #tapeCropSheet * {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .tape-crop__help-btn {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 1px solid #d0d0d8;
+      background: #fff;
+      color: #8a8a96;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tape-crop__help {
+      display: none;
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      background: #ffffff;
+      border-radius: inherit;
+      padding: 20px;
+      overflow-y: auto;
+      box-sizing: border-box;
+    }
+
+    .tape-crop__help-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--color-ink);
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .tape-crop__help-body {
+      font-size: 14px;
+      color: #3a3a4a;
+      line-height: 1.9;
+    }
+
+    .tape-crop__help-body b {
+      color: var(--color-ink);
+    }
+
+    .tape-crop__actions {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .tape-crop__btn {
+      flex: 1;
+      border: none;
+      border-radius: 14px;
+      background: #f1f0fb;
+      color: #4a3fa8;
+      padding: 10px 0;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      touch-action: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .tape-crop__btn svg {
+      width: 22px;
+      height: 22px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .tape-crop__btn--del {
+      background: #fdecec;
+      color: #ff5f57;
+    }
+
+    .button {
+      /* 固定 140px 宽，展开只动 clip-path：不触发布局，动画更顺滑 */
+      width: 140px;
+      height: 50px;
+      border-radius: 25px;
+      background-color: #e3e8ee;
+      border: none;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.164);
+      cursor: pointer;
+      overflow: hidden;
+      position: relative;
+      transform: translateZ(0) scale(0.72);
+      transform-origin: top left;
+      clip-path: inset(0px 90px 0px 0px round 25px);
+      transition: clip-path 300ms ease, background-color 300ms ease;
+      will-change: clip-path;
+    }
+
+    /* 图标：固定最终尺寸，用 scale 缩放，避免逐帧重栅格化 SVG（视觉与源码一致） */
+    .svgIcon {
+      width: 50px;
+      /* 旧版图标在 50px 按钮里被 UA padding 压成 38px：0.2736 = 0.36 × 38/50，保持视觉不变 */
+      transform: translateX(-45px) scale(0.2736);
+      transition: transform 300ms ease;
+      will-change: transform;
+    }
+
+    .svgIcon path {
+      fill: var(--color-ink);
+    }
+
+    .button.is-open .svgIcon path {
+      fill: #ffffff;
+    }
+
+    @media (hover: hover) {
+      .button:hover .svgIcon path {
+        fill: #ffffff;
+      }
+    }
+
+    .button.is-open {
+      clip-path: inset(0px 0px 0px 0px round 25px);
+      background-color: rgb(255, 69, 69);
+      align-items: center;
+    }
+
+    .button.is-open .svgIcon {
+      transform: translateY(60%) scale(1);
+    }
+
+    /* hover 只在真正支持悬停的设备（鼠标）生效，避免手机点一下后 hover 粘住关不掉 */
+    @media (hover: hover) {
+      .button:hover {
+        clip-path: inset(0px 0px 0px 0px round 25px);
+        background-color: rgb(255, 69, 69);
+        align-items: center;
+      }
+
+      .button:hover .svgIcon {
+        transform: translateY(60%) scale(1);
+      }
+
+      .button:hover::before {
+        font-size: 13px;
+        opacity: 1;
+        transform: translateY(30px) scale(1);
+        transition-duration: .3s;
+      }
+    }
+
+    /* Delete 文字：固定字号，用 scale 放大，避免 font-size 逐帧重排（视觉与源码一致） */
+    .button::before {
+      position: absolute;
+      top: -20px;
+      content: "Delete";
+      color: white;
+      transition-duration: .3s;
+      font-size: 13px;
+      opacity: 0;
+      transform: translateY(0) scale(0.15);
+      will-change: transform;
+    }
+
+    .button.is-open::before {
+      font-size: 13px;
+      opacity: 1;
+      transform: translateY(30px) scale(1);
+      transition-duration: .3s;
+    }
+
+    /* 删除模式：抠图红圈高亮，点击即删除 */
+    .stats-subpage.is-deleting .stats-subpage__item {
+      cursor: pointer;
+    }
+
+    .stats-subpage.is-deleting .stats-subpage__item-img {
+      filter: drop-shadow(0 0 6px rgba(255, 69, 69, 0.95));
+    }
+
+
+
+    /* 被吸进垃圾桶的抠图克隆 */
+    .stats-subpage__suck {
+      position: fixed;
+      z-index: 9999;
+      object-fit: contain;
+      pointer-events: none;
+      will-change: transform, opacity;
+    }
+
+    .stats-subpage__track {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      transition: transform 320ms var(--ease);
+      will-change: transform;
+    }
+
+    .stats-subpage__sheet {
+      position: relative;
+      flex: 0 0 100%;
+      min-width: 0;
+      padding: calc(12px + env(safe-area-inset-top)) 10px calc(96px + env(safe-area-inset-bottom));
+      background-color: #f1f3f6;
+      background-image: url("/images/11.png");
+      background-repeat: no-repeat;
+      /* 纸张整体下移 20px */
+      background-position: center calc(50% + 20px);
+      background-size: cover;
+      background-origin: content-box;
+    }
+
+    .stats-subpage__canvas {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .stats-subpage__item {
+      position: absolute;
+      width: 150px;
+      cursor: grab;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+      transform: rotate(var(--rot, 0deg));
+    }
+
+    .stats-subpage__item-img {
+      display: block;
+      width: 150px;
+      height: 150px;
+      object-fit: contain;
+      pointer-events: none;
+      -webkit-user-drag: none;
+      filter: drop-shadow(0 4px 10px rgba(14, 17, 22, 0.12));
+    }
+
+    .stats-subpage__kcal {
+      position: absolute;
+      right: 2px;
+      top: 100%;
+      transform: translateY(calc(-100% - 2px));
+      font-family: "Picktime Title", "Yuanti SC", "YouYuan", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-style: italic;
+      font-size: 17px;
+      font-weight: 600;
+      font-synthesis: style;
+      letter-spacing: 0.02em;
+      color: #7d9b5f;
+      text-shadow:
+        2.5px 0 0 #ffffff,
+        -2.5px 0 0 #ffffff,
+        0 2.5px 0 #ffffff,
+        0 -2.5px 0 #ffffff,
+        2px 2px 0 #ffffff,
+        -2px -2px 0 #ffffff,
+        2px -2px 0 #ffffff,
+        -2px 2px 0 #ffffff;
+      font-variant-numeric: tabular-nums;
+      pointer-events: none;
+    }
+
+    .stats-subpage__item.is-dragging {
+      cursor: grabbing;
+      z-index: 10;
+    }
+
+    /* 吐出动画期间先藏住真实元素，等分身飞到位再显示 */
+    .stats-subpage__item.is-suck-hidden {
+      opacity: 0;
+    }
+
+    .stats-subpage__item.is-dragging .stats-subpage__item-img {
+      filter: drop-shadow(0 10px 18px rgba(14, 17, 22, 0.2));
+    }
+
+    .stats-subpage__page {
+      position: absolute;
+      left: 0;
+      right: 0;
+      /* 页码单独上移，纸张位置不变 */
+      bottom: calc(78px + env(safe-area-inset-bottom));
+      text-align: center;
+      font-family: "Picktime Title", "Yuanti SC", "YouYuan", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: var(--color-mist);
+      pointer-events: none;
+    }
+
+
+
     body.stats-page2 .stats-track {
       transform: translateX(-100%);
     }
@@ -3647,13 +4463,120 @@
     }
 
     .heatmap-card {
-      margin-top: 16px;
       background: var(--color-cloud);
       border-radius: 20px;
       padding: 16px 14px 14px;
       box-shadow:
         0 2px 6px rgba(14, 17, 22, 0.04),
         0 8px 28px rgba(14, 17, 22, 0.09);
+    }
+
+    /* 预留空框（内容待加） */
+    .heatmap-card--placeholder {
+      position: relative;
+      height: 160px;
+      overflow: hidden;
+      cursor: pointer;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    /* 无记录时的空状态：引导页标题同款字体，整框垂直居中 */
+    .stats-placeholder__empty {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-family: "Onboarding Title", "Picktime Title", "Yuanti SC", "YouYuan", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 18px;
+      font-weight: 400;
+      font-synthesis: none;
+      line-height: 1.35;
+      letter-spacing: 0.02em;
+      color: var(--color-mist);
+      pointer-events: none;
+    }
+
+    #statsDateSheet .wheel {
+      width: 96px;
+    }
+
+    .stats-placeholder__date {
+      display: inline-block;
+      font-family: "Picktime Title", "Yuanti SC", "YouYuan", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: var(--color-ink);
+      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .stats-placeholder__date:active {
+      opacity: 0.6;
+    }
+
+    .stats-placeholder__pics {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 2px;
+      /* 左右出血到卡片边线：滑动时贴到框框边线才被裁掉 */
+      margin: 4px -14px 0;
+      padding: 0 14px;
+      height: 102px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+    }
+
+    .stats-placeholder__pics::-webkit-scrollbar {
+      display: none;
+    }
+
+    .stats-placeholder__cell {
+      position: relative;
+      flex: 0 0 auto;
+      width: 88px;
+      height: 88px;
+    }
+
+    .stats-placeholder__pic {
+      display: block;
+      width: 88px;
+      height: 88px;
+      object-fit: contain;
+      pointer-events: none;
+    }
+
+    /* 右下角卡路里（同滑动页抠图：斜体 + 白描边） */
+    .stats-placeholder__kcal {
+      position: absolute;
+      right: 2px;
+      bottom: 2px;
+      font-family: "Picktime Title", "Yuanti SC", "YouYuan", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-style: italic;
+      font-size: 12px;
+      font-weight: 600;
+      font-synthesis: style;
+      letter-spacing: 0.02em;
+      color: #7d9b5f;
+      text-shadow:
+        1.5px 0 0 #ffffff,
+        -1.5px 0 0 #ffffff,
+        0 1.5px 0 #ffffff,
+        0 -1.5px 0 #ffffff,
+        1px 1px 0 #ffffff,
+        -1px -1px 0 #ffffff,
+        1px -1px 0 #ffffff,
+        -1px 1px 0 #ffffff;
+      font-variant-numeric: tabular-nums;
+      pointer-events: none;
     }
 
     .heatmap-head {
@@ -3839,7 +4762,6 @@
     }
 
     .radar-card {
-      margin-top: 16px;
       background: var(--color-cloud);
       border-radius: 20px;
       padding: 16px 14px 10px;
@@ -6151,7 +7073,7 @@
       </div>
     </div>
     <div class="menu-footer">
-      <div class="menu-footer__version">v1.2.7</div>
+      <div class="menu-footer__version">v1.3.2</div>
       <div class="menu-footer__copyright">© PickTime版权所有</div>
     </div>
   </aside>
@@ -6595,8 +7517,8 @@
       <div class="about-logo-wrap">
         <img class="about-logo" src="/icons/apple-touch-icon.png" alt="拾光" />
       </div>
-      <p class="about-meta"><strong>版本：</strong>v1.2.7</p>
-      <p class="about-meta"><strong>更新日期：</strong>2026.09.18</p>
+      <p class="about-meta"><strong>版本：</strong>v1.3.2</p>
+      <p class="about-meta"><strong>更新日期：</strong>2026.09.19</p>
 
       <h4>产品简介</h4>
       <p>拾光（PickTime）是一款专注于饮食记录与健康参考的应用，支持拍照记录饮食、智能抠图、AI 热量与营养分析、体脂率参考、饮食时间线与数据统计，帮助你用照片记录每一餐，也记录生活的温度。</p>
@@ -6744,6 +7666,17 @@
   </template>
   <template id="docChangelogTpl">
     <h1>拾光更新日志</h1>
+    <h4>v1.3.2 <span class="doc-version-date">2026.09.19</span></h4>
+    <p><strong>手账页体验升级</strong></p>
+    <p>美纹纸贴纸新增「美纹纸裁剪」：支持旋转 60°（长按连续旋转）、一键水平、删除，并可调整长度与粗细，附带使用说明；手账页纸张与页码位置微调，删除与恢复抠图的动画更顺滑，删除模式下点选抠图会直接吸进垃圾桶并带触感反馈。</p>
+    <p><strong>统计页优化</strong></p>
+    <p>日历下方框框没有记录时显示「今日暂无记录」；框框里的抠图支持左右滑动查看，右下角显示热量（与滑动页同款斜体描边），图片统一高度；进入手账页后，日历、框框与手账页的数据保持一致。</p>
+    <p><strong>贴纸选择优化</strong></p>
+    <p>贴纸弹窗改为按需加载，打开与切换分类明显更快；「便利贴」分类暂未开放，点击会提示。</p>
+    <p><strong>触感反馈</strong></p>
+    <p>日历左右切换、手账页左上角按钮（垃圾桶 / 恢复 / 扳手）、日期滚轮每滑过一格、日期弹窗的取消 / 确定、滑动页删除按钮与抠图上的叉叉，均新增 iOS 与安卓触感反馈；「通用设置 → 震动反馈」可一键关闭。</p>
+    <p><strong>修复已知问题</strong></p>
+    <p>修复注销账号后本机缓存未清空、可能看到上一个账号数据的问题；修复模拟账号日历与框框、手账页数据不一致、恢复动画不播放、演示抠图边缘出现竖线等问题；优化删除按钮展开动画，减少卡顿。</p>
     <h4>v1.2.7 <span class="doc-version-date">2026.09.18</span></h4>
     <p><strong>AI 助手升级</strong></p>
     <p>询问 AI 接入 Doubao Seed 2.1 Pro 模型，图片识别与营养核对更准确；支持直接发食物图片重新识别、告诉我吃了多少克、上传营养成分表换算，确认后自动回填食物名称、热量与六项营养。</p>
@@ -7077,6 +8010,8 @@
           "拍营养成分表": "Snap nutrition label",
           "发送": "Send",
           "v1.2.7 更新": "v1.2.7 Update",
+          "v1.3.2 更新": "v1.3.2 Update",
+          "新版本 v1.3.2 已发布：手账页新增美纹纸裁剪，删除/恢复动画更顺滑；统计页框框支持滑动看图与显示热量；贴纸弹窗打开更快；新增多处触感反馈，并修复注销账号数据残留等问题。可在「菜单 → 更新日志」查看详情。": "Version v1.3.2 is out: washi-tape cropping on the scrapbook page, smoother delete/restore animations, swipeable calorie cards on the stats page, a faster sticker picker, more haptic feedback, and fixes for leftover data after account deletion. See Menu \u2192 Changelog for details.",
           "新版本 v1.2.7 已发布：AI 助手升级 Doubao Seed 2.1 Pro，识别更准、回复更快，并修复添加详情页拖动、AI 气泡文字偏移等已知问题。可在「菜单 → 更新日志」查看详情。": "Version v1.2.7 is out: the AI assistant now runs on Doubao Seed 2.1 Pro for more accurate recognition and faster replies, plus fixes for add-sheet dragging and AI bubble text alignment. See Menu \u2192 Changelog for details.",
           "AI 助手升级": "AI assistant upgraded",
           "询问 AI 接入 Doubao Seed 2.1 Pro 模型，图片识别与营养核对更准确；支持直接发食物图片重新识别、告诉我吃了多少克、上传营养成分表换算，确认后自动回填食物名称、热量与六项营养。": "Ask AI now runs on Doubao Seed 2.1 Pro for more accurate image recognition and nutrition checks. You can send a food photo for a fresh analysis, tell it how many grams you ate, or upload a nutrition label for conversion; after you confirm, the food name, calories and six nutrients are filled in automatically.",
@@ -7113,6 +8048,8 @@
           "暂无消息": "No messages",
           "暂无饮食记录": "No food records yet",
           "今天暂无饮食记录": "No food records today",
+          "今日暂无记录": "No food records today",
+          "此功能暂未开放": "This feature is not available yet",
           "已保存": "Saved",
           "云端同步失败，请检查网络后重试": "Cloud sync failed. Check your network and try again.",
           "存储空间不足，请删除部分记录后重试": "Not enough storage. Delete some records and try again.",
@@ -7525,6 +8462,8 @@
           "拍营养成分表": "栄養成分表示を撮影",
           "发送": "送信",
           "v1.2.7 更新": "v1.2.7 アップデート",
+          "v1.3.2 更新": "v1.3.2 アップデート",
+          "新版本 v1.3.2 已发布：手账页新增美纹纸裁剪，删除/恢复动画更顺滑；统计页框框支持滑动看图与显示热量；贴纸弹窗打开更快；新增多处触感反馈，并修复注销账号数据残留等问题。可在「菜单 → 更新日志」查看详情。": "v1.3.2 を公開しました：手帳ページにマスキングテープのトリミングを追加、削除/復元アニメーションを改善、統計ページのカードは左右スワイプとカロリー表示に対応、ステッカー選択が高速化、触感フィードバックを追加し、アカウント削除後のデータ残留などを修正しました。詳しくは「メニュー → 更新履歴」をご覧ください。",
           "新版本 v1.2.7 已发布：AI 助手升级 Doubao Seed 2.1 Pro，识别更准、回复更快，并修复添加详情页拖动、AI 气泡文字偏移等已知问题。可在「菜单 → 更新日志」查看详情。": "v1.2.7 を公開しました：AIアシスタントが Doubao Seed 2.1 Pro になり、認識精度と応答速度が向上。追加詳細ページの左右ドラッグやAI吹き出しの文字位置など既知の問題も修正しました。詳しくは「メニュー → 更新履歴」をご覧ください。",
           "AI 助手升级": "AIアシスタントをアップグレード",
           "询问 AI 接入 Doubao Seed 2.1 Pro 模型，图片识别与营养核对更准确；支持直接发食物图片重新识别、告诉我吃了多少克、上传营养成分表换算，确认后自动回填食物名称、热量与六项营养。": "「AIに質問」が Doubao Seed 2.1 Pro に対応し、画像認識と栄養確認がより正確になりました。料理写真の再認識、グラム数の入力、栄養成分表示のアップロード換算に対応し、確認後に料理名・カロリー・6項目の栄養を自動入力します。",
@@ -7561,6 +8500,8 @@
           "暂无消息": "メッセージはありません",
           "暂无饮食记录": "食事記録はまだありません",
           "今天暂无饮食记录": "今日の食事記録はまだありません",
+          "今日暂无记录": "今日の食事記録はまだありません",
+          "此功能暂未开放": "この機能はまだご利用いただけません",
           "已保存": "保存しました",
           "云端同步失败，请检查网络后重试": "クラウド同期に失敗しました。ネットワークを確認して再試行してください。",
           "存储空间不足，请删除部分记录后重试": "ストレージが不足しています。記録を削除して再試行してください。",
@@ -7973,6 +8914,8 @@
           "拍营养成分表": "영양성분표 촬영",
           "发送": "보내기",
           "v1.2.7 更新": "v1.2.7 업데이트",
+          "v1.3.2 更新": "v1.3.2 업데이트",
+          "新版本 v1.3.2 已发布：手账页新增美纹纸裁剪，删除/恢复动画更顺滑；统计页框框支持滑动看图与显示热量；贴纸弹窗打开更快；新增多处触感反馈，并修复注销账号数据残留等问题。可在「菜单 → 更新日志」查看详情。": "v1.3.2이 출시되었습니다: 다이어리 페이지에 마스킹 테이프 자르기 추가, 삭제/복원 애니메이션 개선, 통계 페이지 카드 좌우 스와이프 및 칼로리 표시, 스티커 선택 속도 개선, 다양한 햅틱 피드백 추가, 계정 삭제 후 데이터 잔존 문제 수정. 자세한 내용은 '메뉴 → 업데이트 내역'에서 확인하세요.",
           "新版本 v1.2.7 已发布：AI 助手升级 Doubao Seed 2.1 Pro，识别更准、回复更快，并修复添加详情页拖动、AI 气泡文字偏移等已知问题。可在「菜单 → 更新日志」查看详情。": "v1.2.7이 출시되었습니다: AI 어시스턴트가 Doubao Seed 2.1 Pro로 업그레이드되어 인식이 더 정확하고 응답이 빨라졌습니다. 추가 상세 페이지 좌우 드래그, AI 말풍선 텍스트 위치 등 알려진 문제도 수정했습니다. 자세한 내용은 '메뉴 → 업데이트 내역'에서 확인하세요.",
           "AI 助手升级": "AI 어시스턴트 업그레이드",
           "询问 AI 接入 Doubao Seed 2.1 Pro 模型，图片识别与营养核对更准确；支持直接发食物图片重新识别、告诉我吃了多少克、上传营养成分表换算，确认后自动回填食物名称、热量与六项营养。": "「AI에게 묻기」가 Doubao Seed 2.1 Pro로 업그레이드되어 이미지 인식과 영양 확인이 더 정확해졌습니다. 음식 사진 재인식, 그램 입력, 영양성분표 업로드 환산을 지원하며, 확인 후 음식명·칼로리·6가지 영양을 자동 입력합니다.",
@@ -8009,6 +8952,8 @@
           "暂无消息": "메시지가 없습니다",
           "暂无饮食记录": "아직 식사 기록이 없습니다",
           "今天暂无饮食记录": "오늘은 식사 기록이 없습니다",
+          "今日暂无记录": "오늘은 식사 기록이 없습니다",
+          "此功能暂未开放": "이 기능은 아직 사용할 수 없습니다",
           "已保存": "저장되었습니다",
           "云端同步失败，请检查网络后重试": "클라우드 동기화에 실패했습니다. 네트워크를 확인한 후 다시 시도하세요.",
           "存储空间不足，请删除部分记录后重试": "저장 공간이 부족합니다. 일부 기록을 삭제한 후 다시 시도하세요.",
@@ -8756,9 +9701,9 @@
       function notifUpdateMessage() {
         return {
           id: "m" + Date.now(),
-          tag: "v1.2.7",
-          title: "v1.2.7 更新",
-          content: "新版本 v1.2.7 已发布：AI 助手升级 Doubao Seed 2.1 Pro，识别更准、回复更快，并修复添加详情页拖动、AI 气泡文字偏移等已知问题。可在「菜单 → 更新日志」查看详情。",
+          tag: "v1.3.2",
+          title: "v1.3.2 更新",
+          content: "新版本 v1.3.2 已发布：手账页新增美纹纸裁剪，删除/恢复动画更顺滑；统计页框框支持滑动看图与显示热量；贴纸弹窗打开更快；新增多处触感反馈，并修复注销账号数据残留等问题。可在「菜单 → 更新日志」查看详情。",
           time: Date.now(),
           read: false
         };
@@ -8772,7 +9717,7 @@
             if (Array.isArray(list)) {
               var hasUpdate = false;
               for (var i = 0; i < list.length; i++) {
-                if (list[i] && list[i].tag === "v1.2.7") hasUpdate = true;
+                if (list[i] && list[i].tag === "v1.3.2") hasUpdate = true;
               }
               if (!hasUpdate) {
                 list.unshift(notifUpdateMessage());
@@ -9315,9 +10260,17 @@
       function confirmAction() {
         if (confirmKind === "logout") {
           clearAuthSession();
-          try { localStorage.clear(); } catch (e) {}
-          try { sessionStorage.clear(); } catch (e) {}
-          window.location.reload();
+          var finishLogout = function () {
+            try { localStorage.clear(); } catch (e) {}
+            try { sessionStorage.clear(); } catch (e) {}
+            window.location.reload();
+          };
+          // 先清空本机记录（含 IndexedDB）再刷新，避免下一个账号/模拟账号看到上一个账号的数据
+          if (window.__picktimeClearRecordsAsync) {
+            window.__picktimeClearRecordsAsync().then(finishLogout).catch(finishLogout);
+          } else {
+            finishLogout();
+          }
           return;
         }
         try { localStorage.removeItem("picktime-messages"); } catch (e) {}
@@ -10677,6 +11630,13 @@
           </div>
           <div class="calendar-grid" id="calGrid"></div>
         </section>
+        <section class="heatmap-card heatmap-card--placeholder" id="statsPlaceholderCard">
+          <span class="stats-placeholder__date" id="statsPlaceholderDate"></span>
+          <div class="stats-placeholder__pics" id="statsPlaceholderPics"></div>
+          <div class="stats-placeholder__empty" id="statsPlaceholderEmpty">今日暂无记录</div>
+        </section>
+      </div>
+      <div class="stats-pane" id="statsPane2">
         <section class="heatmap-card" aria-label="活跃热力图">
           <header class="heatmap-head">
             <span class="heatmap-head__label" id="heatLabel">近6个月</span>
@@ -10685,8 +11645,6 @@
           <div class="heatmap-months" id="heatMonths" aria-hidden="true"></div>
           <div class="heatmap-grid" id="heatGrid"></div>
         </section>
-      </div>
-      <div class="stats-pane" id="statsPane2">
         <section class="trend-card" aria-label="近7天热量趋势">
           <header class="trend-head">
             <div class="trend-head__main">
@@ -10711,6 +11669,98 @@
     </div>
   </main>
 
+  <div class="stats-subpage" id="statsSubpage" aria-hidden="true">
+    <div class="stats-subpage__track" id="statsSubpageTrack"></div>
+  </div>
+  <div class="stats-subpage__trash-slot" id="statsSubpageTrashSlot" aria-hidden="true">
+    <button class="button">
+      <svg viewBox="0 0 448 512" class="svgIcon"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"></path></svg>
+    </button>
+  </div>
+  <div class="stats-subpage__restore-slot" id="statsSubpageRestoreSlot" aria-hidden="true">
+    <button class="restore-btn" type="button" aria-label="恢复">
+      <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+    </button>
+  </div>
+  <div class="stats-subpage__wrench-slot" id="statsSubpageWrenchSlot" aria-hidden="true">
+    <button class="wrench-btn" id="statsSubpageWrenchBtn" type="button" aria-label="选择贴纸">
+      <img src="/images/wrench.png" alt="" />
+    </button>
+  </div>
+
+  <div class="sticker-backdrop" id="stickerBackdrop" aria-hidden="true"></div>
+  <div class="sticker-sheet" id="stickerSheet" role="dialog" aria-modal="true" aria-label="选择贴纸">
+    <div class="sticker-sheet__title">选择贴纸</div>
+    <div class="sticker-sheet__pills" id="stickerPills"></div>
+    <div class="sticker-sheet__grid" id="stickerGrid"></div>
+  </div>
+
+  <div class="sticker-backdrop" id="stickerSettingsBackdrop" aria-hidden="true"></div>
+  <div class="sticker-sheet" id="stickerSettingsSheet" role="dialog" aria-modal="true" aria-label="贴纸设置">
+    <div class="sticker-sheet__title" id="stickerSettingsTitle">贴纸设置</div>
+    <div class="sticker-settings__row">
+      <span class="sticker-settings__label">大小</span>
+      <input class="sticker-settings__range" id="stickerSizeRange" type="range" min="30" max="600" value="100" />
+      <span class="sticker-settings__value" id="stickerSizeValue">1.0x</span>
+    </div>
+    <div class="sticker-settings__row">
+      <span class="sticker-settings__label">旋转</span>
+      <input class="sticker-settings__range" id="stickerRotateRange" type="range" min="0" max="359" value="0" />
+      <span class="sticker-settings__value" id="stickerRotateValue">0°</span>
+    </div>
+    <div class="sticker-settings__actions">
+      <button class="sticker-settings__btn sticker-settings__btn--del" id="stickerDeleteBtn" type="button">删除</button>
+      <button class="sticker-settings__btn sticker-settings__btn--ok" id="stickerDoneBtn" type="button">完成</button>
+    </div>
+  </div>
+
+  <div class="sticker-backdrop" id="tapeCropBackdrop" aria-hidden="true"></div>
+  <div class="sticker-sheet" id="tapeCropSheet" role="dialog" aria-modal="true" aria-label="美纹纸裁剪">
+    <div class="sticker-sheet__title" style="position:relative">美纹纸裁剪
+      <button class="tape-crop__help-btn" id="tapeCropHelpBtn" type="button" aria-label="使用说明">?</button>
+    </div>
+    <div class="tape-crop__help" id="tapeCropHelp">
+      <div class="tape-crop__help-title">使用说明</div>
+      <div class="tape-crop__help-body">
+        <div><b>旋转60°</b>：单击一次旋转 60 度，长按可连续旋转</div>
+        <div><b>一键水平</b>：将斜着的贴纸直接拉平（水平方向）</div>
+        <div><b>删除</b>：移除当前这张贴纸</div>
+        <div><b>长度滑块</b>：左端最长，往右滑动逐渐缩短长度</div>
+        <div><b>高度滑块</b>：左端最细，往右滑动逐渐加粗</div>
+        <div><b>确定</b>：应用所有修改并保存；<b>取消</b>：放弃本次修改</div>
+      </div>
+      <button class="sticker-settings__btn sticker-settings__btn--ok" id="tapeCropHelpOk" type="button" style="margin-top:16px;width:100%">知道了</button>
+    </div>
+    <div class="tape-crop__actions">
+      <button class="tape-crop__btn" id="tapeCropRotateBtn" type="button">
+        <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        <span>旋转60°</span>
+      </button>
+      <button class="tape-crop__btn" id="tapeCropLevelBtn" type="button">
+        <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><circle cx="12" cy="12" r="6"/></svg>
+        <span>一键水平</span>
+      </button>
+      <button class="tape-crop__btn tape-crop__btn--del" id="tapeCropDeleteBtn" type="button">
+        <svg viewBox="0 0 24 24" style="stroke-width:3"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+        <span>删除</span>
+      </button>
+    </div>
+    <div class="sticker-settings__row">
+      <span class="sticker-settings__label">长</span>
+      <input class="sticker-settings__range" id="tapeCropSlider" type="range" min="0" max="100" value="0" />
+      <span class="sticker-settings__label" style="width:auto;text-align:right">短</span>
+    </div>
+    <div class="sticker-settings__row">
+      <span class="sticker-settings__label">细</span>
+      <input class="sticker-settings__range" id="tapeCropHSlider" type="range" min="8" max="60" value="12" />
+      <span class="sticker-settings__label" style="width:auto;text-align:right">粗</span>
+    </div>
+    <div class="sticker-settings__actions">
+      <button class="sticker-settings__btn" id="tapeCropCancelBtn" type="button" style="background:#ececf1;color:#3a3a4a">取消</button>
+      <button class="sticker-settings__btn sticker-settings__btn--ok" id="tapeCropConfirmBtn" type="button">确定</button>
+    </div>
+  </div>
+
   <main class="week-page" id="weekPage">
     <button class="week-camera" id="weekCamera" type="button" aria-label="相机">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
@@ -10719,7 +11769,7 @@
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
     </button>
     <div class="food-carousel" id="foodCarousel" aria-label="料理图片"></div>
-    <div class="week-empty" id="weekEmpty">暂无饮食记录</div>
+    <div class="week-empty" id="weekEmpty">今日暂无记录</div>
   </main>
 
   <main class="me-page" id="mePage">
@@ -10824,6 +11874,20 @@
       <div class="wheel" id="dateYearWheel" aria-label="年份"></div>
       <div class="wheel" id="dateMonthWheel" aria-label="月份"></div>
       <div class="wheel" id="dateDayWheel" aria-label="日期"></div>
+      <div class="wheel-highlight" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <div class="sheet-mask" id="statsDateMask" aria-hidden="true"></div>
+  <div class="time-sheet" id="statsDateSheet" role="dialog" aria-modal="true" aria-label="选择日期">
+    <header class="time-sheet__head">
+      <button class="time-sheet__btn" id="statsDateCancel" type="button">取消</button>
+      <span class="time-sheet__title">选择日期</span>
+      <button class="time-sheet__btn time-sheet__btn--primary" id="statsDateOk" type="button">确定</button>
+    </header>
+    <div class="time-sheet__body">
+      <div class="wheel" id="statsMonthWheel" aria-label="月份"></div>
+      <div class="wheel" id="statsDayWheel" aria-label="日期"></div>
       <div class="wheel-highlight" aria-hidden="true"></div>
     </div>
   </div>
@@ -11344,7 +12408,8 @@
       }
 
       function hasRecords() {
-        return getRecords().length > 0;
+        // 未登录（模拟账号）不展示本机缓存记录，避免继承上一个账号的数据
+        return isLoggedInUser() && getRecords().length > 0;
       }
 
       function dateKeyOf(date) {
@@ -11530,9 +12595,15 @@
           try {
             localStorage.setItem(RECORDS_KEY, JSON.stringify(next));
           } catch (e) {}
+          updateWeekRings();
+          renderStatsPlaceholderPics();
+          renderStatsSubpageItems();
           return;
         }
         idbApplyDiff(prev, next).catch(function () {});
+        updateWeekRings();
+        renderStatsPlaceholderPics();
+        renderStatsSubpageItems();
       }
 
       function clearCachedRecords() {
@@ -11542,6 +12613,9 @@
           localStorage.removeItem(RECORDS_KEY);
         } catch (e) {}
         if (recordsStorageMode !== "local") idbApplyDiff(prev, []).catch(function () {});
+        updateWeekRings();
+        renderStatsPlaceholderPics();
+        renderStatsSubpageItems();
       }
 
       function uploadRecordToServer(record) {
@@ -11786,6 +12860,17 @@
         clearCachedRecords();
         if (window.__picktimeApplyDemoMode) window.__picktimeApplyDemoMode();
       };
+      // 清空本机记录（含 IndexedDB），返回 Promise，供注销账号时等待完成
+      window.__picktimeClearRecordsAsync = function () {
+        var prev = recordsCache || [];
+        recordsCache = [];
+        try { localStorage.removeItem(RECORDS_KEY); } catch (e) {}
+        var p = recordsStorageMode !== "local" ? idbApplyDiff(prev, []) : Promise.resolve();
+        updateWeekRings();
+        renderStatsPlaceholderPics();
+        renderStatsSubpageItems();
+        return Promise.resolve(p).catch(function () {});
+      };
       window.__picktimeDeleteAllRecords = function () {
         if (!isLoggedInUser()) return Promise.resolve(false);
         return recordsFetch("/api/records", { method: "DELETE" }).then(function (res) {
@@ -11827,8 +12912,1994 @@
         dateEl.textContent = i18nDate(today);
       }
 
+      var statsPlaceholderDate = document.getElementById("statsPlaceholderDate");
+      var statsPlaceholderPics = document.getElementById("statsPlaceholderPics");
+      var statsPlaceholderEmpty = document.getElementById("statsPlaceholderEmpty");
+      var statsPickedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+      // 用记录 id 生成稳定随机值，避免每次渲染跳动
+      function statsHash(seed) {
+        var s = String(seed == null ? "" : seed);
+        var h = 2166136261;
+        for (var i = 0; i < s.length; i++) {
+          h ^= s.charCodeAt(i);
+          h = Math.imul(h, 16777619) >>> 0;
+        }
+        return h;
+      }
+
+      // 模拟账号（未登录）：日历里的演示抠图
+      function statsDemoPics() {
+        if (isLoggedInUser() || !calPicsByDay || !statsPickedDate) return [];
+        return calPicsByDay[dateKeyOf(statsPickedDate)] || [];
+      }
+
+      // 手账页条目：真实记录；模拟账号没有记录时用演示抠图凑
+      function statsSubpageRecords() {
+        var list = recordsOnDate(statsPickedDate);
+        if (list.length || isLoggedInUser() || !calPicsByDay) return list;
+        var demoKey = statsStickerDateKey();
+        var demoPics = calPicsByDay[demoKey] || [];
+        var demoList = [];
+        for (var dpi = 0; dpi < demoPics.length; dpi++) {
+          demoList.push({
+            id: "demo-" + demoKey + "-" + dpi,
+            image: demoPics[dpi],
+            kcal: 150 + (statsHash(demoPics[dpi]) % 400)
+          });
+        }
+        return demoList;
+      }
+
+      function renderStatsPlaceholderPics() {
+        if (!statsPlaceholderPics || !statsPickedDate) return;
+        var dayRecords = recordsOnDate(statsPickedDate);
+        var html = "";
+        var count = 0;
+        for (var i = 0; i < dayRecords.length && count < 12; i++) {
+          var rec = dayRecords[i];
+          if (!rec || !rec.image) continue;
+          html += '<div class="stats-placeholder__cell">' +
+            '<img class="stats-placeholder__pic" src="' + rec.image + '" alt="" loading="lazy">' +
+            '<span class="stats-placeholder__kcal">' + Math.round(Number(rec.kcal) || 0) + 'Kcal</span>' +
+          '</div>';
+          count++;
+        }
+        if (!count) {
+          var demoPics = statsDemoPics();
+          for (var di = 0; di < demoPics.length && count < 12; di++) {
+            var demoKcal = 150 + (statsHash(demoPics[di]) % 400);
+            html += '<div class="stats-placeholder__cell">' +
+              '<img class="stats-placeholder__pic" src="' + demoPics[di] + '" alt="" loading="lazy">' +
+              '<span class="stats-placeholder__kcal">' + demoKcal + 'Kcal</span>' +
+            '</div>';
+            count++;
+          }
+        }
+        statsPlaceholderPics.innerHTML = html;
+        if (statsPlaceholderEmpty) {
+          statsPlaceholderEmpty.textContent = i18nT("今日暂无记录");
+          statsPlaceholderEmpty.style.display = count ? "none" : "flex";
+        }
+      }
+
+      if (statsPlaceholderDate) statsPlaceholderDate.textContent = i18nDate(statsPickedDate);
+      renderStatsPlaceholderPics();
+
+      // 从左侧滑出的二级页面（内容待加）
+      var statsSubpage = document.getElementById("statsSubpage");
+      var statsSubpageTrack = document.getElementById("statsSubpageTrack");
+      var STATS_SUBPAGE_POS_KEY = "picktime-subpage-pos";
+      var STATS_SUBPAGE_PER_PAGE = 4;
+      var statsSubpagePos = null;
+      var statsSubpagePageIndex = 0;
+
+      function statsSubpagePageCount() {
+        return statsSubpageTrack ? Math.max(1, statsSubpageTrack.children.length) : 1;
+      }
+
+      function goStatsSubpagePage(index) {
+        if (!statsSubpageTrack) return;
+        var max = statsSubpagePageCount() - 1;
+        statsSubpagePageIndex = Math.max(0, Math.min(max, index));
+        statsSubpageTrack.style.transform = "translateX(" + (-statsSubpagePageIndex * 100) + "%)";
+      }
+
+      // 删除模式：点垃圾桶打开，点一张吸一张；再点垃圾桶关闭
+      var statsSubpageDeleteMode = false;
+
+      // iOS：给每张抠图盖一个原生触感开关，真实点击才有触感（程序触发无效）
+      function statsAttachDeleteHaptic(el) {
+        if (!isIOSPlatform() || !el || el._delHaptic) return;
+        el._delHaptic = true;
+        attachIOSSwitchHaptic(el, function () {
+          if (!statsSubpageDeleteMode) return;
+          var id = el.getAttribute("data-id") || "";
+          if (id) removeStatsSubpageItem(id, el);
+        }, true);
+      }
+
+      function statsDetachDeleteHaptic(el) {
+        if (!el || !el._delHaptic) return;
+        el._delHaptic = false;
+        var sw = el.querySelector("input[switch]");
+        if (sw) sw.remove();
+      }
+
+      function setStatsSubpageDeleteMode(on) {
+        statsSubpageDeleteMode = !!on;
+        if (statsSubpage) statsSubpage.classList.toggle("is-deleting", statsSubpageDeleteMode);
+        var slot = document.getElementById("statsSubpageTrashSlot");
+        var trashBtn = slot ? slot.querySelector(".button") : null;
+        if (trashBtn) trashBtn.classList.toggle("is-open", statsSubpageDeleteMode);
+        var restoreSlot = document.getElementById("statsSubpageRestoreSlot");
+        if (restoreSlot) restoreSlot.classList.toggle("is-shifted", statsSubpageDeleteMode);
+        var wrenchSlot = document.getElementById("statsSubpageWrenchSlot");
+        if (wrenchSlot) wrenchSlot.classList.toggle("is-shifted", statsSubpageDeleteMode);
+        if (statsSubpage) {
+          var items = statsSubpage.querySelectorAll(".stats-subpage__item");
+          for (var di = 0; di < items.length; di++) {
+            if (statsSubpageDeleteMode) statsAttachDeleteHaptic(items[di]);
+            else statsDetachDeleteHaptic(items[di]);
+          }
+        }
+      }
+
+      var statsSubpageTrashSlot = document.getElementById("statsSubpageTrashSlot");
+      if (statsSubpageTrashSlot) {
+        var statsSubpageTrashBtn = statsSubpageTrashSlot.querySelector(".button");
+        if (statsSubpageTrashBtn) {
+          statsSubpageTrashBtn.addEventListener("click", function () {
+            vibrateTap(8);
+            setStatsSubpageDeleteMode(!statsSubpageDeleteMode);
+          });
+        }
+      }
+
+      // 从垃圾桶位置把恢复的抠图「吐」回各自位置
+      function playStatsSubpageSpit(ids) {
+        if (!statsSubpage || !statsSubpageTrashBtn || !ids || !ids.length) return;
+        var br = statsSubpageTrashBtn.getBoundingClientRect();
+        var cx = br.left + br.width / 2;
+        var cy = br.top + br.height / 2;
+        var dayRecords = statsSubpageRecords();
+        var srcById = {};
+        for (var i = 0; i < dayRecords.length; i++) srcById[String(dayRecords[i].id)] = dayRecords[i].image;
+        var count = 0;
+        for (var k = 0; k < ids.length; k++) {
+          var id = ids[k];
+          var el = statsSubpage.querySelector('.stats-subpage__item[data-id="' + id + '"]');
+          if (!el) continue;
+          var imgEl = el.querySelector(".stats-subpage__item-img");
+          if (!imgEl) continue;
+          var rect = imgEl.getBoundingClientRect();
+          if (!rect.width || !rect.height) continue;
+          var rawSrc = srcById[id] || imgEl.currentSrc || imgEl.src || "";
+          if (!rawSrc) continue;
+          // 先藏住真实元素，等分身飞到位再显示
+          el.classList.add("is-suck-hidden");
+          var clone = document.createElement("img");
+          clone.className = "stats-subpage__suck";
+          clone.style.left = rect.left + "px";
+          clone.style.top = rect.top + "px";
+          clone.style.width = rect.width + "px";
+          clone.style.height = rect.height + "px";
+          document.body.appendChild(clone);
+          (function (cloneEl, recId, recSrc) {
+            getStatsCleanCutout(recId, recSrc).then(function (clean) {
+              cloneEl.src = clean;
+            });
+          })(clone, id, rawSrc);
+          var dx = cx - (rect.left + rect.width / 2);
+          var dy = cy - (rect.top + rect.height / 2);
+          (function (cloneEl, targetEl, ddx, ddy, delay) {
+            var anim = cloneEl.animate([
+              { transform: "translate(" + ddx.toFixed(1) + "px, " + ddy.toFixed(1) + "px) scale(0.04)", opacity: 0.7 },
+              { transform: "translate(" + (ddx * 0.28).toFixed(1) + "px, " + (ddy * 0.28 - 24).toFixed(1) + "px) scale(0.7)", opacity: 1, offset: 0.6 },
+              { transform: "translate(0px, 0px) scale(1)", opacity: 1 }
+            ], { duration: 520, delay: delay, easing: "cubic-bezier(0.34, 1.4, 0.64, 1)", fill: "backwards" });
+            anim.onfinish = function () {
+              cloneEl.remove();
+              if (targetEl && targetEl.classList) targetEl.classList.remove("is-suck-hidden");
+            };
+          })(clone, el, dx, dy, count * 80);
+          count++;
+        }
+      }
+
+      function restoreAllStatsSubpageRemoved() {
+        var store = loadStatsSubpagePos();
+        var restored = [];
+        var currentPage = Math.max(0, statsSubpagePageIndex);
+        for (var id in store) {
+          if (!Object.prototype.hasOwnProperty.call(store, id)) continue;
+          if (store[id] && store[id].removed) {
+            store[id].removed = false;
+            // 吐到用户当前所在的页
+            store[id].page = currentPage;
+            restored.push(id);
+          }
+        }
+        if (!restored.length) {
+          if (window.__picktimeToast) window.__picktimeToast(i18nT("没有可恢复的抠图"));
+          return;
+        }
+        saveStatsSubpagePos();
+        if (isLoggedInUser()) {
+          for (var i = 0; i < restored.length; i++) {
+            (function (rid) {
+              var e = store[rid] || {};
+              recordsFetch("/api/positions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  recordId: rid,
+                  leftPct: typeof e.leftPct === "number" ? e.leftPct : 0,
+                  topPct: typeof e.topPct === "number" ? e.topPct : 0,
+                  page: typeof e.page === "number" ? e.page : 0,
+                  removed: false,
+                  scale: typeof e.scale === "number" ? e.scale : 1,
+                  rotate: typeof e.rotate === "number" ? e.rotate : 0
+                })
+              }).catch(function () {});
+            })(restored[i]);
+          }
+        }
+        renderStatsSubpageItems();
+        playStatsSubpageSpit(restored);
+      }
+
+      var statsSubpageRestoreSlot = document.getElementById("statsSubpageRestoreSlot");
+      if (statsSubpageRestoreSlot) {
+        var statsSubpageRestoreBtn = statsSubpageRestoreSlot.querySelector(".restore-btn");
+        if (statsSubpageRestoreBtn) {
+          statsSubpageRestoreBtn.addEventListener("click", function () {
+            vibrateTap(8);
+            var icon = statsSubpageRestoreBtn.querySelector("svg");
+            if (icon && icon.animate) {
+              icon.animate([
+                { transform: "rotate(0deg)" },
+                { transform: "rotate(-360deg)" }
+              ], { duration: 520, easing: "ease-out" });
+            }
+            restoreAllStatsSubpageRemoved();
+          });
+        }
+      }
+
+      // ===== 贴纸：分类与素材（照搬 purse 手账） =====
+      var STATS_STICKER_KEY = "picktime-subpage-stickers";
+      var statsStickerStore = null;
+      var STICKER_CATEGORIES = { "甜点": [], "日系": [], "古早": [], "青瓷": [], "天气": [], "心情": [], "海岛": [], "中西餐": [], "料理": [], "果蔬": [], "海鲜": [], "饮品": [], "酱汁": [], "美纹": [], "便利贴": [] };
+      (function () {
+        function pad(n) { return n < 10 ? "00" + n : (n < 100 ? "0" + n : String(n)); }
+        function fill(cat, dir, count) {
+          for (var i = 1; i <= count; i++) STICKER_CATEGORIES[cat].push("/images/stickers-small/" + dir + "/" + pad(i) + ".webp");
+        }
+        fill("甜点", "food", 151);
+        fill("日系", "hanxi", 107);
+        fill("古早", "guzhao", 68);
+        fill("青瓷", "qingci", 102);
+        fill("天气", "天气", 48);
+        fill("心情", "心情", 60);
+        fill("海岛", "海岛", 94);
+        fill("中西餐", "中西餐", 125);
+        fill("料理", "料理", 50);
+        fill("果蔬", "果蔬", 83);
+        fill("海鲜", "海鲜", 25);
+        fill("饮品", "饮品", 35);
+        fill("酱汁", "酱汁", 30);
+        fill("美纹", "meiwen", 63);
+        fill("便利贴", "便利贴", 32);
+      })();
+      var stickerActiveCat = "甜点";
+
+      function loadStatsStickers() {
+        if (statsStickerStore) return statsStickerStore;
+        statsStickerStore = {};
+        try {
+          var raw = localStorage.getItem(STATS_STICKER_KEY);
+          if (raw) statsStickerStore = JSON.parse(raw) || {};
+        } catch (e) {
+          statsStickerStore = {};
+        }
+        return statsStickerStore;
+      }
+
+      function saveStatsStickers() {
+        try { localStorage.setItem(STATS_STICKER_KEY, JSON.stringify(statsStickerStore || {})); } catch (e) {}
+      }
+
+      function statsStickerDateKey() {
+        return statsPickedDate ? dateKeyOf(statsPickedDate) : "";
+      }
+
+      // 页面独立存在：按日期记录页数，滑到底会继续追加空白页
+      var STATS_SUBPAGE_PAGES_KEY = "picktime-subpage-pages";
+      var statsSubpagePagesStore = null;
+
+      function loadStatsSubpagePages() {
+        if (statsSubpagePagesStore) return statsSubpagePagesStore;
+        statsSubpagePagesStore = {};
+        try {
+          var raw = localStorage.getItem(STATS_SUBPAGE_PAGES_KEY);
+          if (raw) statsSubpagePagesStore = JSON.parse(raw) || {};
+        } catch (e) {
+          statsSubpagePagesStore = {};
+        }
+        return statsSubpagePagesStore;
+      }
+
+      function saveStatsSubpagePages() {
+        try { localStorage.setItem(STATS_SUBPAGE_PAGES_KEY, JSON.stringify(statsSubpagePagesStore || {})); } catch (e) {}
+      }
+
+      function renderStickerPills() {
+        var wrap = document.getElementById("stickerPills");
+        if (!wrap) return;
+        wrap.innerHTML = "";
+        Object.keys(STICKER_CATEGORIES).forEach(function (cat) {
+          var p = document.createElement("button");
+          p.type = "button";
+          p.className = "sticker-pill" + (cat === stickerActiveCat ? " is-active" : "") + (cat === "便利贴" ? " is-disabled" : "");
+          p.textContent = cat;
+          p.addEventListener("click", function () {
+            // 便利贴暂未开放
+            if (cat === "便利贴") {
+              if (window.__picktimeToast) window.__picktimeToast(i18nT("此功能暂未开放"));
+              return;
+            }
+            stickerActiveCat = cat;
+            renderStickerPills();
+            renderStickerGrid();
+          });
+          wrap.appendChild(p);
+        });
+      }
+
+      var stickerGridObserver = null;
+
+      function renderStickerGrid() {
+        var grid = document.getElementById("stickerGrid");
+        if (!grid) return;
+        grid.innerHTML = "";
+        var big = stickerActiveCat === "美纹";
+        grid.classList.toggle("is-big", big);
+        var list = STICKER_CATEGORIES[stickerActiveCat] || [];
+        if (stickerGridObserver) {
+          stickerGridObserver.disconnect();
+          stickerGridObserver = null;
+        }
+        // 只加载可视区域附近（约一屏多）的贴纸，避免一次请求上百张
+        if (window.IntersectionObserver) {
+          stickerGridObserver = new IntersectionObserver(function (entries) {
+            for (var ei = 0; ei < entries.length; ei++) {
+              if (!entries[ei].isIntersecting) continue;
+              var c = entries[ei].target;
+              var im = c.querySelector("img");
+              var s = im && im.getAttribute("data-src");
+              if (s) {
+                im.src = s;
+                im.removeAttribute("data-src");
+              }
+              stickerGridObserver.unobserve(c);
+            }
+          }, { root: grid, rootMargin: "180px 0px" });
+        }
+        for (var i = 0; i < list.length; i++) {
+          var cell = document.createElement("div");
+          cell.className = "sticker-cell";
+          var img = document.createElement("img");
+          img.alt = "";
+          if (stickerGridObserver) {
+            img.setAttribute("data-src", list[i]);
+            stickerGridObserver.observe(cell);
+          } else {
+            img.src = list[i];
+            img.loading = "lazy";
+          }
+          cell.appendChild(img);
+          (function (src) {
+            cell.addEventListener("click", function () { pickStatsSticker(src); });
+          })(list[i]);
+          grid.appendChild(cell);
+        }
+      }
+
+      function openStickerPicker() {
+        var bd = document.getElementById("stickerBackdrop");
+        var sh = document.getElementById("stickerSheet");
+        if (!bd || !sh) return;
+        bd.classList.add("is-open");
+        renderStickerPills();
+        renderStickerGrid();
+        requestAnimationFrame(function () { sh.classList.add("is-open"); });
+      }
+
+      function closeStickerPicker() {
+        var bd = document.getElementById("stickerBackdrop");
+        var sh = document.getElementById("stickerSheet");
+        if (!bd || !sh) return;
+        bd.classList.remove("is-open");
+        sh.classList.remove("is-open");
+      }
+
+      function pickStatsSticker(src) {
+        var key = statsStickerDateKey();
+        if (!key) return;
+        var store = loadStatsStickers();
+        if (!store[key]) store[key] = [];
+        var st = {
+          id: "st" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
+          src: src,
+          page: Math.max(0, statsSubpagePageIndex),
+          leftPct: 50,
+          topPct: 50
+        };
+        // 美纹纸：默认按固定粗细显示，可点击裁剪
+        if (statsIsTapeSrc(src)) st.h = STATS_TAPE_H;
+        store[key].push(st);
+        saveStatsStickers();
+        closeStickerPicker();
+        renderStatsSubpageItems();
+      }
+
+      var statsSettingsTarget = null;
+      var STATS_STICKER_BASE = 96;
+      var STATS_ITEM_BASE = 150;
+      var STATS_TAPE_H = 12;
+
+      // 美纹纸（照搬 purse：长度裁剪 + 粗细）
+      function statsIsTapeSrc(src) {
+        return !!src && /\/meiwen\//.test(String(src));
+      }
+
+      function statsTapeCropOf(sticker) {
+        if (sticker && typeof sticker.crop === "number") return Math.max(0.1, Math.min(1, sticker.crop));
+        return 1;
+      }
+
+      function statsTapeSize(sticker, scale) {
+        var h = (Number(sticker && sticker.h) || STATS_TAPE_H) * (scale || 1);
+        var ar = Number(sticker && sticker.ar) || 0;
+        var imgW = ar ? h * ar : h;
+        return { w: imgW * statsTapeCropOf(sticker), h: h, imgW: imgW, ar: ar };
+      }
+
+      function applyStatsStickerStyle(el, sticker) {
+        var scale = Number(sticker.scale) || 1;
+        if (statsIsTapeSrc(sticker.src)) {
+          var size = statsTapeSize(sticker, scale);
+          el.style.overflow = "hidden";
+          el.style.width = size.w + "px";
+          el.style.height = size.h + "px";
+          el.style.transform = "rotate(" + (Number(sticker.rotate) || 0) + "deg)";
+          var tapeImg = el.querySelector(".stats-subpage__sticker-img");
+          if (tapeImg) {
+            tapeImg.style.position = "absolute";
+            tapeImg.style.top = "0";
+            tapeImg.style.left = "0";
+            tapeImg.style.width = "auto";
+            tapeImg.style.height = "100%";
+            tapeImg.style.maxWidth = "none";
+            tapeImg.style.objectFit = "fill";
+            tapeImg.style.transform = size.ar ? "translateX(" + (-(size.imgW - size.w) / 2) + "px)" : "none";
+          }
+          return;
+        }
+        el.style.width = (STATS_STICKER_BASE * scale) + "px";
+        el.style.height = (STATS_STICKER_BASE * scale) + "px";
+        el.style.transform = "rotate(" + (Number(sticker.rotate) || 0) + "deg)";
+      }
+
+      // ===== 便利贴写字（照搬 purse：分析可写区域 + 手写体，文字在弹窗输入） =====
+      var statsNoteCache = {};
+
+      function statsIsNoteSrc(src) {
+        return !!src && /便利贴/.test(String(src));
+      }
+
+      function statsNoteGeometry(sticker) {
+        var w = STATS_STICKER_BASE * (Number(sticker.scale) || 1);
+        var h = w;
+        var b = sticker._body || { l: 0.06, t: 0.06, r: 0.94, b: 0.94 };
+        var m = Math.min(w, h);
+        var px = m * 0.05;
+        var py = m * 0.05;
+        var L = Math.max(1, b.l * w + px);
+        var T = Math.max(1, b.t * h + py);
+        var R = Math.min(w - 1, b.r * w - px);
+        var B = Math.min(h - 1, b.b * h - py);
+        var font = Math.max(4, Math.min((B - T) * 0.075, (R - L) * 0.13));
+        return {
+          left: L,
+          top: T,
+          width: Math.max(4, R - L),
+          height: Math.max(4, B - T),
+          font: font,
+          color: sticker._dark ? "rgba(255,255,255,.94)" : "rgba(30,38,56,.9)"
+        };
+      }
+
+      function statsNoteMeasure(sticker, imgEl) {
+        if (sticker._body && sticker._measured) return;
+        var cached = statsNoteCache[sticker.src];
+        if (cached) {
+          sticker._body = cached.body;
+          sticker._dark = cached.dark;
+          sticker._measured = true;
+          return;
+        }
+        var fallback = { l: 0.06, t: 0.06, r: 0.94, b: 0.94 };
+        var nw = imgEl && imgEl.naturalWidth;
+        var nh = imgEl && imgEl.naturalHeight;
+        if (!nw || !nh) {
+          // 图片未加载完：先用回退值，但不锁定，加载完成后重新测量
+          sticker._body = fallback;
+          sticker._dark = false;
+          return;
+        }
+        try {
+          var sc = Math.min(1, 48 / Math.max(nw, nh));
+          var w = Math.max(1, Math.round(nw * sc));
+          var h = Math.max(1, Math.round(nh * sc));
+          var cv = document.createElement("canvas");
+          cv.width = w;
+          cv.height = h;
+          var g = cv.getContext("2d");
+          g.drawImage(imgEl, 0, 0, w, h);
+          var d = g.getImageData(0, 0, w, h).data;
+          var l = w, t = h, r = -1, b = -1, lum = 0, n = 0;
+          for (var y = 0; y < h; y++) {
+            for (var x = 0; x < w; x++) {
+              var i = (y * w + x) * 4;
+              if (d[i + 3] < 48) continue;
+              if (x < l) l = x;
+              if (x > r) r = x;
+              if (y < t) t = y;
+              if (y > b) b = y;
+              lum += (0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]) / 255;
+              n++;
+            }
+          }
+          sticker._body = (r > l && b > t) ? { l: l / w, t: t / h, r: (r + 1) / w, b: (b + 1) / h } : fallback;
+          sticker._dark = n ? (lum / n < 0.42) : false;
+          sticker._measured = true;
+          statsNoteCache[sticker.src] = { body: sticker._body, dark: sticker._dark };
+        } catch (e) {
+          sticker._body = fallback;
+          sticker._dark = false;
+          sticker._measured = true;
+        }
+      }
+
+      // 便利贴编写模式：贴纸放大并居中到可视区（键盘弹出也不会被顶出去）
+      var statsNoteEdit = null;
+
+      function statsNoteCenterInView() {
+        if (!statsNoteEdit) return;
+        var el = statsNoteEdit.el;
+        var canvasEl = el.parentNode;
+        if (!canvasEl) return;
+        var canvasRect = canvasEl.getBoundingClientRect();
+        var vv = window.visualViewport;
+        var vx = vv ? vv.offsetLeft : 0;
+        var vy = vv ? vv.offsetTop : 0;
+        var vw = vv ? vv.width : window.innerWidth;
+        var vh = vv ? vv.height : window.innerHeight;
+        var bottom = vy + vh;
+        // 避开设置弹窗：在弹窗上方的可视区里居中
+        var sheetEl = document.getElementById("stickerSettingsSheet");
+        if (sheetEl) {
+          var sheetRect = sheetEl.getBoundingClientRect();
+          if (sheetRect.top > vy + 120 && sheetRect.top < bottom) bottom = sheetRect.top;
+        }
+        var cx = vx + vw / 2 - canvasRect.left;
+        var cy = (vy + bottom) / 2 - canvasRect.top;
+        var size = el.offsetWidth;
+        var left = cx - size / 2;
+        var top = cy - size / 2;
+        el.style.left = Math.max(0, Math.min(Math.max(0, canvasRect.width - size), left)) + "px";
+        el.style.top = Math.max(0, Math.min(Math.max(0, canvasRect.height - size), top)) + "px";
+        // 操作条与完成按钮跟随贴纸
+        var ctlEl = document.querySelector(".stats-sticker-ctl");
+        if (ctlEl) positionStatsStickerCtl(el, ctlEl);
+      }
+
+      // 防止键盘把整页顶上去：锁住滚动位置
+      function statsNoteLockScroll() {
+        if (!statsNoteEdit) return;
+        var y = statsNoteEdit.savedScrollY || 0;
+        if ((window.scrollY || window.pageYOffset || 0) !== y) window.scrollTo(0, y);
+      }
+
+      // 键盘弹出时把设置弹窗抬到键盘上方，并保持贴纸居中可见
+      function statsNoteSyncKeyboard() {
+        var sheetEl = document.getElementById("stickerSettingsSheet");
+        var vv = window.visualViewport;
+        var overlap = 0;
+        if (vv && statsNoteEdit) {
+          overlap = Math.max(0, (window.innerHeight || 0) - (vv.height + vv.offsetTop));
+        }
+        if (sheetEl) sheetEl.style.bottom = overlap > 2 ? overlap + "px" : "";
+        statsNoteCenterInView();
+      }
+
+      function statsNoteBeginEdit(el, sticker) {
+        if (!el || !sticker) return;
+        if (statsNoteEdit && statsNoteEdit.el === el) return;
+        statsNoteEndEdit();
+        statsNoteEdit = {
+          el: el,
+          sticker: sticker,
+          savedScale: Number(sticker.scale) || 1,
+          savedLeft: el.style.left,
+          savedTop: el.style.top,
+          savedScrollY: window.scrollY || window.pageYOffset || 0,
+          savedHeight: window.innerHeight
+        };
+        // 锁住页面高度，键盘弹出时页面不被压缩/顶起
+        if (statsSubpage && statsNoteEdit.savedHeight) {
+          statsSubpage.style.height = statsNoteEdit.savedHeight + "px";
+        }
+        window.addEventListener("scroll", statsNoteLockScroll, true);
+        el.classList.add("is-note-editing");
+        var noteBd = document.getElementById("stickerSettingsBackdrop");
+        if (noteBd) noteBd.classList.add("is-note-editing");
+        sticker.scale = Math.max(Number(sticker.scale) || 1, 2.2);
+        applyStatsStickerStyle(el, sticker);
+        statsNoteMeasure(sticker, el.querySelector(".stats-subpage__sticker-img"));
+        statsNoteLayout(el, sticker);
+        var txt = el.querySelector(".stats-subpage__note-text");
+        if (txt) txt.style.display = "none";
+        var ta = el.querySelector(".stats-subpage__note-input");
+        if (!ta) {
+          ta = document.createElement("div");
+          ta.className = "stats-subpage__note-input";
+          ta.setAttribute("contenteditable", "true");
+          ta.spellcheck = false;
+          ta.setAttribute("data-ph", "✎ 写点什么…");
+          ta.addEventListener("input", function () {
+            if (statsNoteEdit && statsNoteEdit.sticker) statsNoteEdit.sticker.noteText = ta.innerText || "";
+          });
+          ta.addEventListener("blur", function () {
+            setTimeout(function () {
+              if (statsNoteEdit && statsNoteEdit.el === el) statsNoteEndEdit();
+            }, 60);
+          });
+          el.appendChild(ta);
+        }
+        var g = statsNoteGeometry(sticker);
+        var pad = Math.max(2, g.width * 0.06);
+        ta.style.left = g.left + "px";
+        ta.style.top = g.top + "px";
+        ta.style.width = g.width + "px";
+        ta.style.height = g.height + "px";
+        ta.style.padding = (pad * 0.9) + "px " + pad + "px " + pad + "px";
+        ta.style.fontSize = g.font + "px";
+        ta.style.color = g.color;
+        ta.style.display = "block";
+        ta.textContent = sticker.noteText || "";
+        statsNoteSyncKeyboard();
+        if (window.visualViewport) {
+          window.visualViewport.addEventListener("resize", statsNoteSyncKeyboard);
+          window.visualViewport.addEventListener("scroll", statsNoteSyncKeyboard);
+        }
+        try {
+          ta.focus();
+          var sel = window.getSelection();
+          var range = document.createRange();
+          range.selectNodeContents(ta);
+          range.collapse(false);
+          sel.removeAllRanges();
+          sel.addRange(range);
+        } catch (e) {}
+        // 过渡结束后校正操作条位置（放大/居中动画期间 offset 是过渡中的值）
+        setTimeout(function () {
+          if (statsNoteEdit && statsNoteEdit.el === el) {
+            var ctlEl2 = document.querySelector(".stats-sticker-ctl");
+            if (ctlEl2) positionStatsStickerCtl(el, ctlEl2);
+          }
+        }, 320);
+      }
+
+      function statsNoteEndEdit() {
+        if (!statsNoteEdit) return;
+        var st = statsNoteEdit;
+        statsNoteEdit = null;
+        window.removeEventListener("scroll", statsNoteLockScroll, true);
+        if (statsSubpage) statsSubpage.style.height = "";
+        if (window.visualViewport) {
+          window.visualViewport.removeEventListener("resize", statsNoteSyncKeyboard);
+          window.visualViewport.removeEventListener("scroll", statsNoteSyncKeyboard);
+        }
+        var noteBd = document.getElementById("stickerSettingsBackdrop");
+        if (noteBd) noteBd.classList.remove("is-note-editing");
+        var el = st.el;
+        var ta = el.querySelector(".stats-subpage__note-input");
+        if (ta) {
+          st.sticker.noteText = ta.innerText || "";
+          ta.remove();
+        }
+        var txt = el.querySelector(".stats-subpage__note-text");
+        if (txt) txt.style.display = "";
+        el.classList.remove("is-note-editing");
+        st.sticker.scale = st.savedScale;
+        applyStatsStickerStyle(el, st.sticker);
+        statsNoteLayout(el, st.sticker);
+        if (st.savedLeft) el.style.left = st.savedLeft;
+        if (st.savedTop) el.style.top = st.savedTop;
+        saveStatsStickers();
+        // 编辑结束：如果贴纸仍处于选中态，恢复操作条
+        if (statsStickerSelectedId === st.sticker.id) showStatsStickerCtl(el, st.sticker);
+      }
+
+      function statsNoteLayout(el, sticker) {
+        if (!el || !sticker) return;
+        var txt = el.querySelector(".stats-subpage__note-text");
+        if (!txt) return;
+        var imgEl = el.querySelector(".stats-subpage__sticker-img");
+        statsNoteMeasure(sticker, imgEl);
+        var g = statsNoteGeometry(sticker);
+        var pad = Math.max(2, g.width * 0.06);
+        txt.style.left = g.left + "px";
+        txt.style.top = g.top + "px";
+        txt.style.width = g.width + "px";
+        txt.style.height = g.height + "px";
+        txt.style.padding = (pad * 0.9) + "px " + pad + "px " + pad + "px";
+        txt.style.fontSize = g.font + "px";
+        txt.style.color = g.color;
+        txt.textContent = sticker.noteText || "";
+      }
+
+      function applyStatsItemStyle(el, entry) {
+        var scale = Number(entry && entry.scale) || 1;
+        var rot = (entry && typeof entry.rotate === "number") ? entry.rotate : null;
+        var id = el.getAttribute("data-id") || "";
+        if (rot === null) rot = (statsHash(id) % 15) - 7;
+        var size = STATS_ITEM_BASE * scale;
+        el.style.width = size + "px";
+        var img = el.querySelector(".stats-subpage__item-img");
+        if (img) {
+          img.style.width = size + "px";
+          img.style.height = size + "px";
+        }
+        el.style.setProperty("--rot", rot + "deg");
+      }
+
+      function saveStatsSettingsTarget() {
+        if (!statsSettingsTarget) return;
+        var t = statsSettingsTarget;
+        if (t.type === "sticker") {
+          saveStatsStickers();
+          return;
+        }
+        saveStatsSubpagePos();
+        if (isLoggedInUser() && t.id) {
+          var entry = t.obj || {};
+          recordsFetch("/api/positions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              recordId: t.id,
+              leftPct: typeof entry.leftPct === "number" ? entry.leftPct : 0,
+              topPct: typeof entry.topPct === "number" ? entry.topPct : 0,
+              page: typeof entry.page === "number" ? entry.page : 0,
+              removed: !!entry.removed,
+              scale: typeof entry.scale === "number" ? entry.scale : 1,
+              rotate: typeof entry.rotate === "number" ? entry.rotate : 0
+            })
+          }).catch(function () {});
+        }
+      }
+
+      function openStatsSettings(el, obj, type, id) {
+        var bd = document.getElementById("stickerSettingsBackdrop");
+        var sh = document.getElementById("stickerSettingsSheet");
+        if (!bd || !sh) return;
+        statsSettingsTarget = { el: el, obj: obj, type: type, id: id };
+        var titleEl = document.getElementById("stickerSettingsTitle");
+        if (titleEl) titleEl.textContent = type === "sticker" ? i18nT("贴纸设置") : i18nT("抠图设置");
+        var sizeRange = document.getElementById("stickerSizeRange");
+        var rotRange = document.getElementById("stickerRotateRange");
+        var sizeVal = document.getElementById("stickerSizeValue");
+        var rotVal = document.getElementById("stickerRotateValue");
+        var scale = Number(obj && obj.scale) || 1;
+        var rot;
+        if (obj && typeof obj.rotate === "number") rot = obj.rotate;
+        else rot = (statsHash(id || "") % 15) - 7;
+        rot = ((Math.round(rot) % 360) + 360) % 360;
+        if (sizeRange) sizeRange.value = String(Math.round(scale * 100));
+        if (sizeVal) sizeVal.textContent = scale.toFixed(1) + "x";
+        if (rotRange) rotRange.value = String(rot);
+        if (rotVal) rotVal.textContent = rot + "\u00b0";
+        bd.classList.add("is-open");
+        requestAnimationFrame(function () { sh.classList.add("is-open"); });
+      }
+
+      function closeStatsSettings() {
+        // 即使便利贴收尾出错也要保证弹窗能关掉
+        try { statsNoteEndEdit(); } catch (e) {}
+        var bd = document.getElementById("stickerSettingsBackdrop");
+        var sh = document.getElementById("stickerSettingsSheet");
+        if (bd) bd.classList.remove("is-open");
+        if (sh) sh.classList.remove("is-open");
+        statsSettingsTarget = null;
+      }
+
+      var stickerSizeRangeEl = document.getElementById("stickerSizeRange");
+      if (stickerSizeRangeEl) {
+        stickerSizeRangeEl.addEventListener("input", function () {
+          if (!statsSettingsTarget) return;
+          var scale = Math.max(0.3, Math.min(6, Number(stickerSizeRangeEl.value) / 100));
+          statsSettingsTarget.obj.scale = scale;
+          if (statsSettingsTarget.type === "sticker") {
+            applyStatsStickerStyle(statsSettingsTarget.el, statsSettingsTarget.obj);
+            if (statsIsNoteSrc(statsSettingsTarget.obj.src)) statsNoteLayout(statsSettingsTarget.el, statsSettingsTarget.obj);
+          } else {
+            applyStatsItemStyle(statsSettingsTarget.el, statsSettingsTarget.obj);
+          }
+          var sv = document.getElementById("stickerSizeValue");
+          if (sv) sv.textContent = scale.toFixed(1) + "x";
+        });
+        stickerSizeRangeEl.addEventListener("change", saveStatsSettingsTarget);
+      }
+
+      var stickerRotateRangeEl = document.getElementById("stickerRotateRange");
+      if (stickerRotateRangeEl) {
+        stickerRotateRangeEl.addEventListener("input", function () {
+          if (!statsSettingsTarget) return;
+          var rot = ((Number(stickerRotateRangeEl.value) || 0) % 360 + 360) % 360;
+          statsSettingsTarget.obj.rotate = rot;
+          if (statsSettingsTarget.type === "sticker") applyStatsStickerStyle(statsSettingsTarget.el, statsSettingsTarget.obj);
+          else applyStatsItemStyle(statsSettingsTarget.el, statsSettingsTarget.obj);
+          var rv = document.getElementById("stickerRotateValue");
+          if (rv) rv.textContent = rot + "\u00b0";
+        });
+        stickerRotateRangeEl.addEventListener("change", saveStatsSettingsTarget);
+      }
+
+      var stickerDeleteBtnEl = document.getElementById("stickerDeleteBtn");
+      if (stickerDeleteBtnEl) {
+        stickerDeleteBtnEl.addEventListener("click", function () {
+          if (statsSettingsTarget) {
+            if (statsSettingsTarget.type === "sticker") {
+              deleteStatsSticker(statsSettingsTarget.id);
+            } else {
+              removeStatsSubpageItem(statsSettingsTarget.id, statsSettingsTarget.el);
+            }
+          }
+          closeStatsSettings();
+        });
+      }
+
+      var stickerDoneBtnEl = document.getElementById("stickerDoneBtn");
+      if (stickerDoneBtnEl) {
+        stickerDoneBtnEl.addEventListener("click", function () {
+          saveStatsSettingsTarget();
+          closeStatsSettings();
+        });
+      }
+
+      var stickerSettingsBackdropEl = document.getElementById("stickerSettingsBackdrop");
+      if (stickerSettingsBackdropEl) {
+        stickerSettingsBackdropEl.addEventListener("click", closeStatsSettings);
+        // 触屏上 click 偶发不触发，pointerup 兜底（目标必须是遮罩本身）
+        stickerSettingsBackdropEl.addEventListener("pointerup", function (e) {
+          if (e.target === stickerSettingsBackdropEl) closeStatsSettings();
+        });
+      }
+
+      // ===== 美纹纸裁剪弹窗（照搬 purse：旋转60°/一键水平/删除/长度/粗细）=====
+      var statsCropTarget = null;
+
+      function openTapeCrop(el, sticker) {
+        var bd = document.getElementById("tapeCropBackdrop");
+        var sh = document.getElementById("tapeCropSheet");
+        if (!bd || !sh) return;
+        statsCropTarget = {
+          el: el,
+          sticker: sticker,
+          origCrop: statsTapeCropOf(sticker),
+          origH: Number(sticker.h) || STATS_TAPE_H,
+          origRotate: Number(sticker.rotate) || 0
+        };
+        var slider = document.getElementById("tapeCropSlider");
+        if (slider) slider.value = String(Math.round((1 - statsTapeCropOf(sticker)) / 0.9 * 100));
+        var hSlider = document.getElementById("tapeCropHSlider");
+        if (hSlider) hSlider.value = String(Number(sticker.h) || STATS_TAPE_H);
+        var help = document.getElementById("tapeCropHelp");
+        if (help) help.style.display = "none";
+        bd.classList.add("is-open");
+        requestAnimationFrame(function () { sh.classList.add("is-open"); });
+      }
+
+      function closeTapeCrop() {
+        var bd = document.getElementById("tapeCropBackdrop");
+        var sh = document.getElementById("tapeCropSheet");
+        if (bd) bd.classList.remove("is-open");
+        if (sh) sh.classList.remove("is-open");
+        statsCropTarget = null;
+      }
+
+      function cancelTapeCrop() {
+        if (statsCropTarget) {
+          var t = statsCropTarget;
+          t.sticker.crop = t.origCrop;
+          t.sticker.h = t.origH;
+          t.sticker.rotate = t.origRotate;
+          applyStatsStickerStyle(t.el, t.sticker);
+          statsCropTarget = null;
+        }
+        closeTapeCrop();
+      }
+
+      function confirmTapeCrop() {
+        if (statsCropTarget) {
+          saveStatsStickers();
+          statsCropTarget = null;
+        }
+        closeTapeCrop();
+      }
+
+      var tapeRotateHoldT = null;
+      var tapeRotateHeld = false;
+      var tapeRotateSuppress = false;
+
+      function tapeCropRotate() {
+        if (tapeRotateSuppress) { tapeRotateSuppress = false; return; }
+        if (!statsCropTarget) return;
+        statsCropTarget.sticker.rotate = ((Number(statsCropTarget.sticker.rotate) || 0) + 60) % 360;
+        applyStatsStickerStyle(statsCropTarget.el, statsCropTarget.sticker);
+      }
+
+      function tapeRotateHoldStart(e) {
+        e.stopPropagation();
+        tapeRotateHeld = false;
+        tapeRotateSuppress = false;
+        if (tapeRotateHoldT) { clearTimeout(tapeRotateHoldT); tapeRotateHoldT = null; }
+        tapeRotateHoldT = setTimeout(function () {
+          tapeRotateHoldT = null;
+          tapeRotateHeld = true;
+          var last = performance.now();
+          (function tick(now) {
+            if (!statsCropTarget) { tapeRotateHoldT = null; return; }
+            var dt = Math.min(50, now - last);
+            last = now;
+            statsCropTarget.sticker.rotate = ((Number(statsCropTarget.sticker.rotate) || 0) + dt * 0.2) % 360;
+            applyStatsStickerStyle(statsCropTarget.el, statsCropTarget.sticker);
+            tapeRotateHoldT = requestAnimationFrame(tick);
+          })(performance.now());
+        }, 400);
+      }
+
+      function tapeRotateHoldEnd() {
+        if (tapeRotateHoldT) { clearTimeout(tapeRotateHoldT); cancelAnimationFrame(tapeRotateHoldT); tapeRotateHoldT = null; }
+        if (tapeRotateHeld) {
+          tapeRotateHeld = false;
+          tapeRotateSuppress = true;
+        }
+      }
+
+      function tapeCropLevel() {
+        if (!statsCropTarget) return;
+        var r = ((Number(statsCropTarget.sticker.rotate) || 0) % 360 + 360) % 360;
+        var d0 = Math.min(r, 360 - r);
+        var d180 = Math.abs(r - 180);
+        statsCropTarget.sticker.rotate = d0 <= d180 ? 0 : 180;
+        applyStatsStickerStyle(statsCropTarget.el, statsCropTarget.sticker);
+      }
+
+      function tapeCropDelete() {
+        if (!statsCropTarget) return;
+        var id = statsCropTarget.sticker.id;
+        statsCropTarget = null;
+        deleteStatsSticker(id);
+        closeTapeCrop();
+      }
+
+      function toggleTapeCropHelp() {
+        var h = document.getElementById("tapeCropHelp");
+        if (!h) return;
+        h.style.display = h.style.display === "block" ? "none" : "block";
+      }
+
+      (function () {
+        document.addEventListener("contextmenu", function (e) {
+          if (e.target && e.target.closest && e.target.closest("#tapeCropSheet")) e.preventDefault();
+        });
+        var rotBtn = document.getElementById("tapeCropRotateBtn");
+        if (rotBtn) {
+          rotBtn.addEventListener("click", tapeCropRotate);
+          rotBtn.addEventListener("pointerdown", tapeRotateHoldStart);
+          rotBtn.addEventListener("pointerup", tapeRotateHoldEnd);
+          rotBtn.addEventListener("pointercancel", tapeRotateHoldEnd);
+          rotBtn.addEventListener("pointerleave", tapeRotateHoldEnd);
+        }
+        var levelBtn = document.getElementById("tapeCropLevelBtn");
+        if (levelBtn) levelBtn.addEventListener("click", tapeCropLevel);
+        var delBtn = document.getElementById("tapeCropDeleteBtn");
+        if (delBtn) delBtn.addEventListener("click", tapeCropDelete);
+        var helpBtn = document.getElementById("tapeCropHelpBtn");
+        if (helpBtn) helpBtn.addEventListener("click", toggleTapeCropHelp);
+        var helpOk = document.getElementById("tapeCropHelpOk");
+        if (helpOk) helpOk.addEventListener("click", toggleTapeCropHelp);
+        var cancelBtn = document.getElementById("tapeCropCancelBtn");
+        if (cancelBtn) cancelBtn.addEventListener("click", cancelTapeCrop);
+        var confirmBtn = document.getElementById("tapeCropConfirmBtn");
+        if (confirmBtn) confirmBtn.addEventListener("click", confirmTapeCrop);
+        var bd = document.getElementById("tapeCropBackdrop");
+        if (bd) bd.addEventListener("click", cancelTapeCrop);
+        var slider = document.getElementById("tapeCropSlider");
+        if (slider) {
+          slider.addEventListener("input", function () {
+            if (!statsCropTarget) return;
+            var v = parseFloat(this.value) || 0;
+            statsCropTarget.sticker.crop = 1 - v / 100 * 0.9;
+            applyStatsStickerStyle(statsCropTarget.el, statsCropTarget.sticker);
+          });
+        }
+        var hSlider = document.getElementById("tapeCropHSlider");
+        if (hSlider) {
+          hSlider.addEventListener("input", function () {
+            if (!statsCropTarget) return;
+            var v = parseFloat(this.value) || STATS_TAPE_H;
+            var st = statsCropTarget.sticker;
+            var newCrop = Math.max(0.1, Math.min(1, ((Number(st.h) || STATS_TAPE_H) * statsTapeCropOf(st)) / v));
+            st.h = v;
+            st.crop = newCrop;
+            applyStatsStickerStyle(statsCropTarget.el, st);
+            var lenSlider = document.getElementById("tapeCropSlider");
+            if (lenSlider) lenSlider.value = String(Math.round((1 - newCrop) / 0.9 * 100));
+          });
+        }
+      })();
+
+      function deleteStatsSticker(id) {
+        var key = statsStickerDateKey();
+        var store = loadStatsStickers();
+        var list = store[key] || [];
+        var next = [];
+        for (var i = 0; i < list.length; i++) {
+          if (list[i].id !== id) next.push(list[i]);
+        }
+        store[key] = next;
+        saveStatsStickers();
+        renderStatsSubpageItems();
+      }
+
+      // ===== 贴纸选中与操作条（purse 规则）=====
+      var statsStickerSelectedId = null;
+
+      function removeStatsStickerCtl() {
+        var els = document.querySelectorAll(".stats-sticker-ctl");
+        for (var i = 0; i < els.length; i++) els[i].remove();
+      }
+
+      function positionStatsStickerCtl(el, ctl) {
+        if (!el || !ctl || !el.parentNode) return;
+        var canvas = el.parentNode;
+        var cw = canvas.clientWidth;
+        var ch = canvas.clientHeight;
+        var w = ctl.offsetWidth || 96;
+        var h = ctl.offsetHeight || 26;
+        var x = el.offsetLeft + el.offsetWidth / 2 - w / 2;
+        x = Math.max(4, Math.min(cw - w - 4, x));
+        var y = el.offsetTop - h - 8;
+        if (y < 4) y = el.offsetTop + el.offsetHeight + 8;
+        y = Math.max(4, Math.min(ch - h - 4, y));
+        ctl.style.left = Math.round(x) + "px";
+        ctl.style.top = Math.round(y) + "px";
+      }
+
+      function showStatsStickerCtl(el, sticker) {
+        removeStatsStickerCtl();
+        var canvas = el.parentNode;
+        if (!canvas) return;
+        var ctl = document.createElement("div");
+        ctl.className = "stats-sticker-ctl";
+        var mkBtn = function (svg, cls, act) {
+          var b = document.createElement("button");
+          b.type = "button";
+          b.className = "stats-sticker-ctl__btn" + (cls ? " " + cls : "");
+          b.innerHTML = svg;
+          b.addEventListener("pointerdown", function (e) { e.preventDefault(); e.stopPropagation(); });
+          b.addEventListener("click", function (e) { e.stopPropagation(); act(); });
+          return b;
+        };
+        // 删除
+        ctl.appendChild(mkBtn('<svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>', "is-del", function () {
+          statsStickerSelectedId = null;
+          removeStatsStickerCtl();
+          deleteStatsSticker(sticker.id);
+        }));
+        // 完成（结束写字并取消选中）
+        ctl.appendChild(mkBtn('<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>', "is-ok", function () {
+          statsNoteEndEdit();
+          statsStickerSelectedId = null;
+          removeStatsStickerCtl();
+        }));
+        // 旋转（点一下 60°，长按连续）
+        var rot = mkBtn('<svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>', "is-rot", function () {
+          sticker.rotate = ((Number(sticker.rotate) || 0) + 60) % 360;
+          applyStatsStickerStyle(el, sticker);
+          if (statsIsNoteSrc(sticker.src)) statsNoteLayout(el, sticker);
+          saveStatsStickers();
+          positionStatsStickerCtl(el, ctl);
+        });
+        var rotTimer = null;
+        var rotRaf = null;
+        rot.addEventListener("pointerdown", function (e) {
+          e.stopPropagation();
+          if (rotTimer) clearTimeout(rotTimer);
+          rotTimer = setTimeout(function () {
+            rotTimer = null;
+            var last = performance.now();
+            (function tick(now) {
+              var dt = Math.min(50, now - last);
+              last = now;
+              sticker.rotate = ((Number(sticker.rotate) || 0) + dt * 0.2) % 360;
+              applyStatsStickerStyle(el, sticker);
+              if (statsIsNoteSrc(sticker.src)) statsNoteLayout(el, sticker);
+              positionStatsStickerCtl(el, ctl);
+              rotRaf = requestAnimationFrame(tick);
+            })(performance.now());
+          }, 400);
+        });
+        var rotRelease = function () {
+          if (rotTimer) { clearTimeout(rotTimer); rotTimer = null; }
+          if (rotRaf) { cancelAnimationFrame(rotRaf); rotRaf = null; saveStatsStickers(); }
+        };
+        rot.addEventListener("pointerup", rotRelease);
+        rot.addEventListener("pointercancel", rotRelease);
+        rot.addEventListener("pointerleave", rotRelease);
+        ctl.appendChild(rot);
+        // 便利贴：写字
+        if (statsIsNoteSrc(sticker.src)) {
+          ctl.appendChild(mkBtn('<svg viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>', "is-edit", function () {
+            statsNoteBeginEdit(el, sticker);
+          }));
+        }
+        canvas.appendChild(ctl);
+        positionStatsStickerCtl(el, ctl);
+      }
+
+      function bindStatsStickerGestures(el, sticker) {
+        var pointers = {};
+        var startDist = 0;
+        var startScale = 1;
+        var startX = 0;
+        var startY = 0;
+        var startLeft = 0;
+        var startTop = 0;
+        var longPressTimer = null;
+        var longPressed = false;
+        var isNote = statsIsNoteSrc(sticker.src);
+
+        function count() { return Object.keys(pointers).length; }
+        function isSelected() { return statsStickerSelectedId === sticker.id; }
+
+        el.addEventListener("pointerdown", function (event) {
+          if (event.target && event.target.closest && (event.target.closest(".stats-sticker-ctl") || event.target.closest(".stats-subpage__note-input"))) return;
+          // 只有便利贴用「先选中再操作」的悬浮规则；其它贴纸保持原交互（直接拖动/点击弹设置）
+          if (isNote && !isSelected()) {
+            pointers[event.pointerId] = { x: event.clientX, y: event.clientY, sx: event.clientX, sy: event.clientY, moved: false };
+            longPressed = false;
+            clearTimeout(longPressTimer);
+            longPressTimer = setTimeout(function () {
+              longPressTimer = null;
+              longPressed = true;
+              delete pointers[event.pointerId];
+              openStatsSettings(el, sticker, "sticker", sticker.id);
+            }, 600);
+            return;
+          }
+          event.preventDefault();
+          event.stopPropagation();
+          try { el.setPointerCapture(event.pointerId); } catch (e) {}
+          pointers[event.pointerId] = { x: event.clientX, y: event.clientY, sx: event.clientX, sy: event.clientY, moved: false };
+          if (count() === 1) {
+            startX = event.clientX;
+            startY = event.clientY;
+            startLeft = el.offsetLeft;
+            startTop = el.offsetTop;
+            el.classList.add("is-dragging");
+          } else if (count() === 2) {
+            var pts = Object.keys(pointers).map(function (k) { return pointers[k]; });
+            startDist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+            startScale = Number(sticker.scale) || 1;
+          }
+        });
+
+        el.addEventListener("pointermove", function (event) {
+          var p = pointers[event.pointerId];
+          if (!p) return;
+          p.x = event.clientX;
+          p.y = event.clientY;
+          if (Math.abs(p.x - p.sx) > 8 || Math.abs(p.y - p.sy) > 8) {
+            p.moved = true;
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+          }
+          // 便利贴需要先选中才能拖动；其它贴纸直接拖动
+          if (isNote && !isSelected()) return;
+          event.preventDefault();
+          event.stopPropagation();
+          var canvasEl = el.parentNode;
+          if (!canvasEl) return;
+          var canvasRect = canvasEl.getBoundingClientRect();
+          if (count() >= 2) {
+            var pts = Object.keys(pointers).map(function (k) { return pointers[k]; });
+            var d = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+            if (startDist > 0) {
+              var newScale = Math.min(6, Math.max(0.3, startScale * d / startDist));
+              var oldW = el.offsetWidth;
+              var oldH = el.offsetHeight;
+              sticker.scale = newScale;
+              applyStatsStickerStyle(el, sticker);
+              var newW = el.offsetWidth;
+              var newH = el.offsetHeight;
+              var pos2 = statsSubpageClampPos(
+                el.offsetLeft - (newW - oldW) / 2,
+                el.offsetTop - (newH - oldH) / 2,
+                newW, newH, canvasRect.width, canvasRect.height
+              );
+              el.style.left = pos2.x + "px";
+              el.style.top = pos2.y + "px";
+              if (statsIsNoteSrc(sticker.src)) statsNoteLayout(el, sticker);
+            }
+          } else if (count() === 1) {
+            var pos = statsSubpageClampPos(
+              startLeft + (event.clientX - startX),
+              startTop + (event.clientY - startY),
+              el.offsetWidth, el.offsetHeight,
+              canvasRect.width, canvasRect.height
+            );
+            el.style.left = pos.x + "px";
+            el.style.top = pos.y + "px";
+          }
+          var ctlEl = document.querySelector(".stats-sticker-ctl");
+          if (ctlEl) positionStatsStickerCtl(el, ctlEl);
+        });
+
+        var endPointer = function (event) {
+          var p = pointers[event.pointerId];
+          if (!p) return;
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
+          var wasTap = !p.moved && !longPressed && count() === 1 && event.type !== "pointercancel";
+          delete pointers[event.pointerId];
+          if (isNote && !isSelected()) {
+            if (wasTap) {
+              // 便利贴（purse 规则）：轻点 = 选中，出现操作条，点 ✏️ 才写字
+              statsStickerSelectedId = sticker.id;
+              showStatsStickerCtl(el, sticker);
+            }
+            return;
+          }
+          if (count() === 0) {
+            el.classList.remove("is-dragging");
+            var canvasEl = el.parentNode;
+            if (canvasEl) {
+              var canvasRect = canvasEl.getBoundingClientRect();
+              if (canvasRect.width > 0 && canvasRect.height > 0) {
+                sticker.leftPct = Math.max(0, Math.min(100, (el.offsetLeft / canvasRect.width) * 100));
+                sticker.topPct = Math.max(0, Math.min(100, (el.offsetTop / canvasRect.height) * 100));
+              }
+            }
+            saveStatsStickers();
+          }
+          if (count() < 2) startDist = 0;
+          // 普通贴纸：轻点打开设置弹窗；美纹纸：轻点打开裁剪弹窗
+          if (wasTap && !isNote) {
+            if (statsIsTapeSrc(sticker.src)) openTapeCrop(el, sticker);
+            else openStatsSettings(el, sticker, "sticker", sticker.id);
+          }
+        };
+        el.addEventListener("pointerup", endPointer);
+        el.addEventListener("pointercancel", endPointer);
+      }
+
+      var statsSubpageWrenchBtn = document.getElementById("statsSubpageWrenchBtn");
+      if (statsSubpageWrenchBtn) {
+        statsSubpageWrenchBtn.addEventListener("click", function () {
+          vibrateTap(8);
+          openStickerPicker();
+        });
+      }
+      var stickerBackdropEl = document.getElementById("stickerBackdrop");
+      if (stickerBackdropEl) {
+        stickerBackdropEl.addEventListener("click", closeStickerPicker);
+      }
+
+      function openStatsSubpage() {
+        if (!statsSubpage) return;
+        renderStatsSubpageItems();
+        syncStatsSubpagePosFromServer();
+        setStatsSubpageDeleteMode(false);
+        statsSubpage.classList.add("is-open");
+        statsSubpage.setAttribute("aria-hidden", "false");
+        document.body.classList.add("stats-subpage-open");
+      }
+
+      function closeStatsSubpage() {
+        if (!statsSubpage) return;
+        setStatsSubpageDeleteMode(false);
+        closeStickerPicker();
+        closeStatsSettings();
+        closeTapeCrop();
+        statsSubpage.classList.remove("is-open");
+        statsSubpage.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("stats-subpage-open");
+      }
+
+      function loadStatsSubpagePos() {
+        if (statsSubpagePos) return statsSubpagePos;
+        statsSubpagePos = {};
+        try {
+          var raw = localStorage.getItem(STATS_SUBPAGE_POS_KEY);
+          if (raw) statsSubpagePos = JSON.parse(raw) || {};
+        } catch (e) {
+          statsSubpagePos = {};
+        }
+        return statsSubpagePos;
+      }
+
+      function saveStatsSubpagePos() {
+        try {
+          localStorage.setItem(STATS_SUBPAGE_POS_KEY, JSON.stringify(statsSubpagePos || {}));
+        } catch (e) {}
+      }
+
+      var statsSubpageSyncing = false;
+
+      // 登录用户从服务器拉取摆放位置（百分比），合并后重渲染
+      function syncStatsSubpagePosFromServer() {
+        if (!isLoggedInUser() || statsSubpageSyncing) return;
+        statsSubpageSyncing = true;
+        recordsFetch("/api/positions").then(function (res) {
+          return res.json();
+        }).then(function (data) {
+          statsSubpageSyncing = false;
+          if (!data || !data.ok || !data.positions) return;
+          var store = loadStatsSubpagePos();
+          var changed = false;
+          for (var pid in data.positions) {
+            if (!Object.prototype.hasOwnProperty.call(data.positions, pid)) continue;
+            var p = data.positions[pid] || {};
+            var lp = Number(p.leftPct);
+            var tp = Number(p.topPct);
+            if (!isFinite(lp) || !isFinite(tp)) continue;
+            var pg = Number(p.page);
+            if (!isFinite(pg) || pg < 0) pg = 0;
+            var sc = Number(p.scale);
+            if (!isFinite(sc) || sc <= 0) sc = 1;
+            var rt = Number(p.rotate);
+            if (!isFinite(rt)) rt = 0;
+            store[pid] = { leftPct: lp, topPct: tp, page: Math.floor(pg), removed: !!p.removed, scale: sc, rotate: rt };
+            changed = true;
+          }
+          if (changed) {
+            saveStatsSubpagePos();
+            renderStatsSubpageItems();
+          }
+        }).catch(function () {
+          statsSubpageSyncing = false;
+        });
+      }
+
+      function statsSubpageClampPos(x, y, w, h, canvasW, canvasH) {
+        var maxX = Math.max(0, canvasW - w);
+        var maxY = Math.max(0, canvasH - h);
+        return {
+          x: Math.max(0, Math.min(maxX, x)),
+          y: Math.max(0, Math.min(maxY, y))
+        };
+      }
+
+      // 抠图被吸进垃圾桶的动画：先建分身（趁元素还在），再统一播放
+      function createStatsSubpageSuck(sourceImg) {
+        var slot = document.getElementById("statsSubpageTrashSlot");
+        var btn = slot ? slot.querySelector(".button") : null;
+        var rect = sourceImg ? sourceImg.getBoundingClientRect() : null;
+        if (!rect || !rect.width || !rect.height || !btn) return null;
+        var clone = document.createElement("img");
+        clone.src = sourceImg.currentSrc || sourceImg.src;
+        clone.className = "stats-subpage__suck";
+        clone.style.left = rect.left + "px";
+        clone.style.top = rect.top + "px";
+        clone.style.width = rect.width + "px";
+        clone.style.height = rect.height + "px";
+        document.body.appendChild(clone);
+        var br = btn.getBoundingClientRect();
+        clone.setAttribute("data-dx", ((br.left + br.width / 2) - (rect.left + rect.width / 2)).toFixed(1));
+        clone.setAttribute("data-dy", ((br.top + br.height / 2) - (rect.top + rect.height / 2)).toFixed(1));
+        return clone;
+      }
+
+      function runStatsSubpageSuck(clone, delay, onDone) {
+        var slot = document.getElementById("statsSubpageTrashSlot");
+        setTimeout(function () {
+          if (!clone || !clone.parentNode) {
+            if (onDone) onDone();
+            return;
+          }
+          var targetX = Number(clone.getAttribute("data-dx")) || 0;
+          var targetY = Number(clone.getAttribute("data-dy")) || 0;
+          var anim = clone.animate([
+            { transform: "translate(0px, 0px) scale(1) rotate(0deg)", opacity: 1, offset: 0 },
+            { transform: "translate(" + (targetX * 0.55).toFixed(1) + "px, " + (targetY * 0.55 - 30).toFixed(1) + "px) scale(0.62) rotate(-8deg)", opacity: 1, offset: 0.55 },
+            { transform: "translate(" + targetX.toFixed(1) + "px, " + targetY.toFixed(1) + "px) scale(0.04) rotate(-16deg)", opacity: 0.85, offset: 1 }
+          ], { duration: 520, easing: "cubic-bezier(0.5, 0, 0.85, 0.4)", fill: "forwards" });
+          anim.onfinish = function () {
+            clone.remove();
+            if (slot) {
+              slot.animate([
+                { transform: "scale(1)" },
+                { transform: "scale(0.9)" },
+                { transform: "scale(1)" }
+              ], { duration: 220, easing: "ease-out" });
+            }
+            if (onDone) onDone();
+          };
+        }, delay || 0);
+      }
+
+      function removeStatsSubpageItem(id, itemEl) {
+        var imgEl = itemEl ? itemEl.querySelector(".stats-subpage__item-img") : null;
+        var clone = imgEl ? createStatsSubpageSuck(imgEl) : null;
+        if (clone) {
+          runStatsSubpageSuck(clone, 0, function () {
+            if (window.__picktimeToast) window.__picktimeToast(i18nT("已移除"));
+          });
+        }
+        // 仅从本页移除：记录保留，首页/日历/统计都不受影响
+        var store = loadStatsSubpagePos();
+        var entry = store[id] || {};
+        entry.removed = true;
+        store[id] = entry;
+        saveStatsSubpagePos();
+        if (isLoggedInUser()) {
+          recordsFetch("/api/positions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              recordId: id,
+              leftPct: typeof entry.leftPct === "number" ? entry.leftPct : 0,
+              topPct: typeof entry.topPct === "number" ? entry.topPct : 0,
+              page: typeof entry.page === "number" ? entry.page : 0,
+              removed: true,
+              scale: typeof entry.scale === "number" ? entry.scale : 1,
+              rotate: typeof entry.rotate === "number" ? entry.rotate : 0
+            })
+          }).catch(function () {});
+        }
+        renderStatsSubpageItems();
+      }
+
+      function makeStatsSubpageDraggable(item) {
+        item.addEventListener("pointerdown", function (event) {
+          var canvasEl = item.parentNode;
+          if (!canvasEl) return;
+          var id = item.getAttribute("data-id") || "";
+          if (statsSubpageDeleteMode) {
+            // iOS：让真实点击先触发原生触感，再由开关 click 删除，这里不拦截
+            if (isIOSPlatform() && event.target && event.target.closest && event.target.closest("input[switch]")) return;
+            event.preventDefault();
+            event.stopPropagation();
+            if (id) {
+              hapticFeedback(8);
+              removeStatsSubpageItem(id, item);
+            }
+            return;
+          }
+          event.preventDefault();
+          event.stopPropagation();
+          var canvasRect = canvasEl.getBoundingClientRect();
+          var startX = event.clientX;
+          var startY = event.clientY;
+          var startLeft = item.offsetLeft;
+          var startTop = item.offsetTop;
+          var moved = false;
+          try { item.setPointerCapture(event.pointerId); } catch (e) {}
+          item.classList.add("is-dragging");
+
+          var onMove = function (ev) {
+            if (Math.abs(ev.clientX - startX) > 6 || Math.abs(ev.clientY - startY) > 6) moved = true;
+            var pos = statsSubpageClampPos(
+              startLeft + (ev.clientX - startX),
+              startTop + (ev.clientY - startY),
+              item.offsetWidth,
+              item.offsetHeight,
+              canvasRect.width,
+              canvasRect.height
+            );
+            item.style.left = pos.x + "px";
+            item.style.top = pos.y + "px";
+          };
+          var onUp = function (ev) {
+            item.classList.remove("is-dragging");
+            item.removeEventListener("pointermove", onMove);
+            item.removeEventListener("pointerup", onUp);
+            item.removeEventListener("pointercancel", onUp);
+            // 系统手势/滚动导致的 pointercancel 不算轻点，避免误弹设置
+            if (ev && ev.type === "pointercancel") return;
+            if (!id) return;
+            if (!moved) {
+              // 轻点：打开贴纸/抠图设置
+              var storeTap = loadStatsSubpagePos();
+              var entryTap = storeTap[id] || (storeTap[id] = {});
+              openStatsSettings(item, entryTap, "item", id);
+              return;
+            }
+            var leftPct = canvasRect.width > 0 ? (item.offsetLeft / canvasRect.width) * 100 : 0;
+            var topPct = canvasRect.height > 0 ? (item.offsetTop / canvasRect.height) * 100 : 0;
+            leftPct = Math.max(0, Math.min(100, leftPct));
+            topPct = Math.max(0, Math.min(100, topPct));
+            var store = loadStatsSubpagePos();
+            var prevSaved = store[id] || {};
+            store[id] = {
+              leftPct: leftPct,
+              topPct: topPct,
+              page: typeof prevSaved.page === "number" ? prevSaved.page : 0,
+              removed: !!prevSaved.removed,
+              scale: typeof prevSaved.scale === "number" ? prevSaved.scale : 1,
+              rotate: typeof prevSaved.rotate === "number" ? prevSaved.rotate : 0
+            };
+            saveStatsSubpagePos();
+            if (isLoggedInUser()) {
+              recordsFetch("/api/positions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  recordId: id,
+                  leftPct: leftPct,
+                  topPct: topPct,
+                  page: store[id].page || 0,
+                  removed: !!store[id].removed,
+                  scale: store[id].scale,
+                  rotate: store[id].rotate
+                })
+              }).catch(function () {});
+            }
+          };
+          item.addEventListener("pointermove", onMove);
+          item.addEventListener("pointerup", onUp);
+          item.addEventListener("pointercancel", onUp);
+        });
+      }
+
+      var statsCleanCutoutCache = {};
+
+      // 去掉烘焙的黄色荧光，并加宽白色描边
+      function processStatsCutout(src) {
+        return new Promise(function (resolve) {
+          var img = new Image();
+          img.onload = function () {
+            try {
+              var maxSide = 640;
+              var w = img.naturalWidth || img.width;
+              var h = img.naturalHeight || img.height;
+              if (!w || !h) { resolve(src); return; }
+              var scale = Math.min(1, maxSide / Math.max(w, h));
+              var iw = Math.max(1, Math.round(w * scale));
+              var ih = Math.max(1, Math.round(h * scale));
+              var canvas = document.createElement("canvas");
+              canvas.width = iw;
+              canvas.height = ih;
+              var ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0, iw, ih);
+              var imageData = ctx.getImageData(0, 0, iw, ih);
+              var d = imageData.data;
+              var total = iw * ih;
+              var isYellow = new Uint8Array(total);
+              for (var i = 0; i < total; i++) {
+                var o = i * 4;
+                if (d[o + 3] > 0 && d[o] > 170 && d[o + 2] < 170 && (d[o] - d[o + 2]) > 70) isYellow[i] = 1;
+              }
+              var reachable = new Uint8Array(total);
+              var stack = [];
+              var push = function (x, y) {
+                if (x < 0 || y < 0 || x >= iw || y >= ih) return;
+                var idx = y * iw + x;
+                if (reachable[idx]) return;
+                if (d[idx * 4 + 3] === 0 || isYellow[idx]) {
+                  reachable[idx] = 1;
+                  stack.push(idx);
+                }
+              };
+              for (var bx = 0; bx < iw; bx++) { push(bx, 0); push(bx, ih - 1); }
+              for (var by = 0; by < ih; by++) { push(0, by); push(iw - 1, by); }
+              while (stack.length) {
+                var idx2 = stack.pop();
+                var px = idx2 % iw;
+                var py = (idx2 - px) / iw;
+                push(px + 1, py); push(px - 1, py); push(px, py + 1); push(px, py - 1);
+              }
+              for (var i2 = 0; i2 < total; i2++) {
+                if (reachable[i2] && isYellow[i2]) d[i2 * 4 + 3] = 0;
+              }
+              ctx.putImageData(imageData, 0, 0);
+
+              var sil = document.createElement("canvas");
+              sil.width = iw;
+              sil.height = ih;
+              var sctx = sil.getContext("2d");
+              sctx.drawImage(canvas, 0, 0);
+              sctx.globalCompositeOperation = "source-in";
+              sctx.fillStyle = "#ffffff";
+              sctx.fillRect(0, 0, iw, ih);
+
+              // 输出画布四周留出描边宽度 + 余量，避免白边/删除红晕被画布边缘裁成竖线
+              var outline = 7;
+              var pad = outline + 4;
+              var out = document.createElement("canvas");
+              out.width = iw + pad * 2;
+              out.height = ih + pad * 2;
+              var octx = out.getContext("2d");
+              var steps = 28;
+              for (var si = 0; si < steps; si++) {
+                var ang = (si / steps) * Math.PI * 2;
+                octx.drawImage(sil, pad + Math.cos(ang) * outline, pad + Math.sin(ang) * outline);
+              }
+              octx.drawImage(canvas, pad, pad);
+              resolve(out.toDataURL("image/png"));
+            } catch (e) {
+              resolve(src);
+            }
+          };
+          img.onerror = function () { resolve(src); };
+          img.src = src;
+        });
+      }
+
+      function getStatsCleanCutout(id, src) {
+        if (statsCleanCutoutCache[id]) return Promise.resolve(statsCleanCutoutCache[id]);
+        return processStatsCutout(src).then(function (clean) {
+          statsCleanCutoutCache[id] = clean;
+          return clean;
+        });
+      }
+
+      function renderStatsSubpageItems() {
+        if (!statsSubpageTrack || !statsPickedDate) return;
+        var dayRecords = statsSubpageRecords();
+        var store = loadStatsSubpagePos();
+        var itemW = 150;
+        var itemH = 170;
+        var items = [];
+        for (var i = 0; i < dayRecords.length && items.length < 60; i++) {
+          var rec = dayRecords[i];
+          if (!rec || !rec.image) continue;
+          // 已从本页移除的抠图不再显示（仅影响这个页面，记录本身保留）
+          if (store[String(rec.id)] && store[String(rec.id)].removed) continue;
+          items.push(rec);
+        }
+        // 稳定分页：每张图记住自己的页码，删除其它图不会导致换页/挪位
+        var perPage = STATS_SUBPAGE_PER_PAGE;
+        var pageItems = [];
+        var posChanged = false;
+        var newPageIds = [];
+        for (var a = 0; a < items.length; a++) {
+          var recA = items[a];
+          var idA = String(recA.id || ("rec-" + a));
+          var savedA = store[idA];
+          var pageNo = (savedA && typeof savedA.page === "number" && isFinite(savedA.page)) ? Math.max(0, Math.floor(savedA.page)) : -1;
+          // 已保存的页码优先（即使该页已超过每页数量，也不强制换页）
+          if (pageNo < 0) {
+            pageNo = 0;
+            while (pageItems[pageNo] && pageItems[pageNo].length >= perPage) pageNo++;
+          }
+          if (!pageItems[pageNo]) pageItems[pageNo] = [];
+          pageItems[pageNo].push({ rec: recA, id: idA });
+          if (!savedA || savedA.page !== pageNo) {
+            if (!store[idA]) store[idA] = {};
+            store[idA].page = pageNo;
+            posChanged = true;
+            newPageIds.push(idA);
+          }
+        }
+        // 页面不依赖内容存在：内容页数 + 用户滑出来的页数，取大者
+        var pagesStore = loadStatsSubpagePages();
+        var storedPageCount = Math.max(0, Math.floor(Number(pagesStore[statsStickerDateKey()]) || 0));
+        var pageCount = Math.max(1, pageItems.length, storedPageCount);
+
+        var trackHtml = "";
+        for (var p = 0; p < pageCount; p++) {
+          trackHtml += '<div class="stats-subpage__sheet">' +
+            '<div class="stats-subpage__canvas"></div>' +
+            '<span class="stats-subpage__page">-' + (p + 1) + '-</span>' +
+          "</div>";
+        }
+        statsSubpageTrack.innerHTML = trackHtml;
+
+        for (var p2 = 0; p2 < pageCount; p2++) {
+          var sheet = statsSubpageTrack.children[p2];
+          var canvas = sheet ? sheet.querySelector(".stats-subpage__canvas") : null;
+          if (!canvas) continue;
+          var canvasW = canvas.clientWidth;
+          var canvasH = canvas.clientHeight;
+          var pageList = pageItems[p2] || [];
+          for (var j = 0; j < pageList.length; j++) {
+            var rec2 = pageList[j].rec;
+            var id = pageList[j].id;
+            var item = document.createElement("div");
+            item.className = "stats-subpage__item";
+            item.setAttribute("data-id", id);
+            var img = document.createElement("img");
+            img.className = "stats-subpage__item-img";
+            img.alt = "";
+            var kcalEl = document.createElement("span");
+            kcalEl.className = "stats-subpage__kcal";
+            kcalEl.textContent = Math.round(Number(rec2.kcal) || 0) + "Kcal";
+            item.appendChild(img);
+            item.appendChild(kcalEl);
+            (function (imgEl, recId, recSrc) {
+              getStatsCleanCutout(recId, recSrc).then(function (clean) {
+                imgEl.src = clean;
+              });
+            })(img, id, rec2.image);
+            var saved = store[id];
+            var x;
+            var y;
+            if (saved && typeof saved.leftPct === "number" && typeof saved.topPct === "number") {
+              x = canvasW * saved.leftPct / 100;
+              y = canvasH * saved.topPct / 100;
+            } else if (saved && typeof saved.left === "number" && typeof saved.top === "number") {
+              x = saved.left;
+              y = saved.top;
+            } else {
+              var h = statsHash(id);
+              var local = j;
+              var col = local % 2;
+              var row = Math.floor(local / 2) % 2;
+              x = canvasW * (18 + col * 32 + (h % 9)) / 100;
+              y = canvasH * (20 + row * 38 + (Math.floor(h / 7) % 9)) / 100;
+              // 默认位置也落库，避免同步到其它设备时跑到左上角
+              if (!store[id]) store[id] = {};
+              store[id].leftPct = canvasW > 0 ? (x / canvasW) * 100 : 0;
+              store[id].topPct = canvasH > 0 ? (y / canvasH) * 100 : 0;
+              if (typeof store[id].page !== "number") store[id].page = p2;
+              posChanged = true;
+              if (newPageIds.indexOf(id) === -1) newPageIds.push(id);
+            }
+            applyStatsItemStyle(item, saved);
+            var itemScale = Number(saved && saved.scale) || 1;
+            var itemSize = itemW * itemScale;
+            var pos = statsSubpageClampPos(x, y, itemSize, itemSize, canvasW, canvasH);
+            item.style.left = pos.x + "px";
+            item.style.top = pos.y + "px";
+            makeStatsSubpageDraggable(item);
+            canvas.appendChild(item);
+            if (statsSubpageDeleteMode) statsAttachDeleteHaptic(item);
+          }
+          // 本页贴纸
+          var dayStickers = loadStatsStickers()[statsStickerDateKey()] || [];
+          for (var ski = 0; ski < dayStickers.length; ski++) {
+            var stk = dayStickers[ski];
+            if ((Number(stk.page) || 0) !== p2) continue;
+            var stkEl = document.createElement("div");
+            stkEl.className = "stats-subpage__sticker";
+            stkEl.setAttribute("data-id", stk.id || "");
+            var stkImg = document.createElement("img");
+            stkImg.className = "stats-subpage__sticker-img";
+            stkImg.src = stk.src;
+            stkImg.alt = "";
+            stkEl.appendChild(stkImg);
+            if (statsIsNoteSrc(stk.src)) {
+              var noteTxtEl = document.createElement("div");
+              noteTxtEl.className = "stats-subpage__note-text";
+              stkEl.appendChild(noteTxtEl);
+              (function (hostEl, stickerObj, imgNode) {
+                var relayout = function () { statsNoteLayout(hostEl, stickerObj); };
+                if (imgNode.complete) relayout();
+                imgNode.addEventListener("load", relayout);
+              })(stkEl, stk, stkImg);
+            }
+            applyStatsStickerStyle(stkEl, stk);
+            var stkScale = Number(stk.scale) || 1;
+            var stkX = canvasW * (Number(stk.leftPct) || 0) / 100;
+            var stkY = canvasH * (Number(stk.topPct) || 0) / 100;
+            var stkBoxW = STATS_STICKER_BASE * stkScale;
+            var stkBoxH = stkBoxW;
+            if (statsIsTapeSrc(stk.src)) {
+              var tapeSize = statsTapeSize(stk, stkScale);
+              stkBoxW = tapeSize.w;
+              stkBoxH = tapeSize.h;
+            }
+            var stkPos = statsSubpageClampPos(stkX, stkY, stkBoxW, stkBoxH, canvasW, canvasH);
+            stkEl.style.left = stkPos.x + "px";
+            stkEl.style.top = stkPos.y + "px";
+            bindStatsStickerGestures(stkEl, stk);
+            canvas.appendChild(stkEl);
+            if (statsIsTapeSrc(stk.src)) {
+              var tapeImgEl = stkEl.querySelector(".stats-subpage__sticker-img");
+              var syncTape = function () {
+                var hadAr = !!stk.ar;
+                if (!hadAr && tapeImgEl.naturalWidth && tapeImgEl.naturalHeight) {
+                  stk.ar = tapeImgEl.naturalWidth / tapeImgEl.naturalHeight;
+                }
+                applyStatsStickerStyle(stkEl, stk);
+                var tapeCanvas = stkEl.parentNode;
+                if (tapeCanvas && stkEl.offsetWidth && stkEl.offsetHeight) {
+                  var posT = statsSubpageClampPos(stkEl.offsetLeft, stkEl.offsetTop, stkEl.offsetWidth, stkEl.offsetHeight, tapeCanvas.clientWidth, tapeCanvas.clientHeight);
+                  stkEl.style.left = posT.x + "px";
+                  stkEl.style.top = posT.y + "px";
+                }
+                if (!hadAr && stk.ar) saveStatsStickers();
+              };
+              if (tapeImgEl.complete && tapeImgEl.naturalWidth) syncTape();
+              else tapeImgEl.addEventListener("load", syncTape);
+            }
+          }
+        }
+
+        statsStickerSelectedId = null;
+        removeStatsStickerCtl();
+        if (posChanged) saveStatsSubpagePos();
+        // 新分配页码/位置的记录同步到服务器
+        if (newPageIds.length && isLoggedInUser()) {
+          for (var npi = 0; npi < newPageIds.length; npi++) {
+            (function (nid) {
+              var nSaved = store[nid] || {};
+              recordsFetch("/api/positions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  recordId: nid,
+                  leftPct: typeof nSaved.leftPct === "number" ? nSaved.leftPct : 0,
+                  topPct: typeof nSaved.topPct === "number" ? nSaved.topPct : 0,
+                  page: typeof nSaved.page === "number" ? nSaved.page : 0,
+                  removed: !!nSaved.removed,
+                  scale: typeof nSaved.scale === "number" ? nSaved.scale : 1,
+                  rotate: typeof nSaved.rotate === "number" ? nSaved.rotate : 0
+                })
+              }).catch(function () {});
+            })(newPageIds[npi]);
+          }
+        }
+
+        goStatsSubpagePage(statsSubpagePageIndex);
+      }
+
+      // 左右滑动切换页面
+      var statsSubpageSwipe = null;
+
+      if (statsSubpage && statsSubpageTrack) {
+        statsSubpage.addEventListener("pointerdown", function (event) {
+          if (!statsSubpage.classList.contains("is-open")) return;
+          if (event.target && event.target.closest && (event.target.closest(".stats-subpage__item") || event.target.closest(".stats-subpage__sticker") || event.target.closest(".button"))) return;
+          statsSubpageSwipe = { id: event.pointerId, x: event.clientX, y: event.clientY, dx: 0, locked: false };
+          try { statsSubpage.setPointerCapture(event.pointerId); } catch (e) {}
+        });
+        statsSubpage.addEventListener("pointermove", function (event) {
+          if (!statsSubpageSwipe || event.pointerId !== statsSubpageSwipe.id) return;
+          var dx = event.clientX - statsSubpageSwipe.x;
+          var dy = event.clientY - statsSubpageSwipe.y;
+          if (!statsSubpageSwipe.locked) {
+            if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+            if (Math.abs(dy) > Math.abs(dx)) {
+              statsSubpageSwipe = null;
+              return;
+            }
+            statsSubpageSwipe.locked = true;
+          }
+          statsSubpageSwipe.dx = dx;
+          var width = statsSubpage.clientWidth || 1;
+          var pct = -statsSubpagePageIndex * 100 + (dx / width) * 100;
+          statsSubpageTrack.style.transition = "none";
+          statsSubpageTrack.style.transform = "translateX(" + pct + "%)";
+        });
+        var endStatsSubpageSwipe = function (event) {
+          if (!statsSubpageSwipe || event.pointerId !== statsSubpageSwipe.id) return;
+          var dx = statsSubpageSwipe.dx;
+          var wasLocked = statsSubpageSwipe.locked;
+          statsSubpageSwipe = null;
+          statsSubpageTrack.style.transition = "";
+          if (Math.abs(dx) > 40) {
+            // 在最后一页继续左滑：追加一张空白页
+            if (dx < 0 && statsSubpagePageIndex >= statsSubpagePageCount() - 1) {
+              var pagesStore = loadStatsSubpagePages();
+              var pageKey = statsStickerDateKey();
+              var nextCount = statsSubpagePageCount() + 1;
+              if (pageKey && nextCount <= 50) {
+                pagesStore[pageKey] = nextCount;
+                saveStatsSubpagePages();
+                renderStatsSubpageItems();
+                goStatsSubpagePage(nextCount - 1);
+                return;
+              }
+            }
+            goStatsSubpagePage(statsSubpagePageIndex + (dx < 0 ? 1 : -1));
+          } else {
+            goStatsSubpagePage(statsSubpagePageIndex);
+            // 删除模式下点空白处：收起垃圾桶
+            if (!wasLocked && statsSubpageDeleteMode) setStatsSubpageDeleteMode(false);
+            // 点空白处取消贴纸选中
+            if (!wasLocked && statsStickerSelectedId) {
+              statsStickerSelectedId = null;
+              removeStatsStickerCtl();
+            }
+          }
+        };
+        statsSubpage.addEventListener("pointerup", endStatsSubpageSwipe);
+        statsSubpage.addEventListener("pointercancel", endStatsSubpageSwipe);
+      }
+
+      document.addEventListener("keydown", function (event) {
+        if (event.key !== "Escape") return;
+        var sh = document.getElementById("stickerSheet");
+        if (sh && sh.classList.contains("is-open")) {
+          closeStickerPicker();
+          return;
+        }
+        var setSh = document.getElementById("stickerSettingsSheet");
+        if (setSh && setSh.classList.contains("is-open")) {
+          closeStatsSettings();
+          return;
+        }
+        var cropSh = document.getElementById("tapeCropSheet");
+        if (cropSh && cropSh.classList.contains("is-open")) {
+          cancelTapeCrop();
+          return;
+        }
+        if (statsSubpage && statsSubpage.classList.contains("is-open")) closeStatsSubpage();
+      });
+
+      var mealBarStops = [
+        { p: 0, c: [168, 196, 138] },
+        { p: 0.7, c: [78, 143, 63] },
+        { p: 0.85, c: [232, 163, 61] },
+        { p: 1, c: [224, 87, 74] }
+      ];
+
+      var mealBarColor = function (p) {
+        p = Math.max(0, Math.min(1, p));
+        for (var i = 0; i < mealBarStops.length - 1; i++) {
+          var a = mealBarStops[i];
+          var b = mealBarStops[i + 1];
+          if (p <= b.p) {
+            var t = (p - a.p) / (b.p - a.p);
+            return "rgb(" + Math.round(a.c[0] + (b.c[0] - a.c[0]) * t) + "," +
+              Math.round(a.c[1] + (b.c[1] - a.c[1]) * t) + "," +
+              Math.round(a.c[2] + (b.c[2] - a.c[2]) * t) + ")";
+          }
+        }
+        return "rgb(224,87,74)";
+      };
+
       var weekDayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
       var weekStripMonday = null;
+
+      // 每日摄入热量上限（kcal），外圈进度按此计算
+      var DAILY_KCAL_TARGET = 2000;
+      var WEEK_RING_RADIUS = 16.4;
+      var WEEK_RING_CIRCUM = 2 * Math.PI * WEEK_RING_RADIUS;
+
+      function weekDayKcal(date) {
+        var dayRecords = recordsOnDate(date);
+        var total = 0;
+        for (var i = 0; i < dayRecords.length; i++) total += Number(dayRecords[i].kcal) || 0;
+        return total;
+      }
+
+      function weekRingState(total) {
+        var p = Math.max(0, Math.min(1, total / DAILY_KCAL_TARGET));
+        return { offset: WEEK_RING_CIRCUM * (1 - p) };
+      }
+
+      function updateWeekRings() {
+        if (!weekStrip || !weekStripMonday) return;
+        var dayEls = weekStrip.querySelectorAll(".week-day");
+        for (var i = 0; i < dayEls.length; i++) {
+          var d = new Date(weekStripMonday.getFullYear(), weekStripMonday.getMonth(), weekStripMonday.getDate() + i);
+          var ring = weekRingState(weekDayKcal(d));
+          var bar = dayEls[i].querySelector(".week-day__ring-bar");
+          if (!bar) continue;
+          bar.style.strokeDasharray = WEEK_RING_CIRCUM.toFixed(2);
+          bar.style.strokeDashoffset = ring.offset.toFixed(2);
+        }
+      }
 
       function renderWeekStrip(base) {
         if (!weekStrip) return;
@@ -11839,9 +14910,16 @@
         for (var i = 0; i < 7; i++) {
           var d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
           var isActive = d.getFullYear() === base.getFullYear() && d.getMonth() === base.getMonth() && d.getDate() === base.getDate();
+          var ring = weekRingState(weekDayKcal(d));
           stripHtml += '<div class="week-day' + (isActive ? " is-today" : "") + '">' +
             '<span class="week-day__name">' + weekDayNames[i] + "</span>" +
-            '<span class="week-day__num">' + d.getDate() + "</span>" +
+            '<span class="week-day__ring">' +
+              '<svg viewBox="0 0 40 40" aria-hidden="true">' +
+                '<circle class="week-day__ring-edge" cx="20" cy="20" r="19.5"></circle>' +
+                '<circle class="week-day__ring-bar" cx="20" cy="20" r="' + WEEK_RING_RADIUS + '" stroke-dasharray="' + WEEK_RING_CIRCUM.toFixed(2) + '" stroke-dashoffset="' + ring.offset.toFixed(2) + '"></circle>' +
+              "</svg>" +
+              '<span class="week-day__num">' + d.getDate() + "</span>" +
+            "</span>" +
           "</div>";
         }
         weekStrip.innerHTML = stripHtml;
@@ -11997,6 +15075,7 @@
           startHeatDance();
           dropCalendarPics();
         } else {
+          closeStatsSubpage();
           stopHeatDance();
           calDropId = (calDropId || 0) + 1;
           var flying = document.querySelectorAll(".calendar-cell__fly");
@@ -12067,6 +15146,24 @@
 
       window.__picktimeAttachHaptic = attachIOSSwitchHaptic;
 
+      // 日历左右切换 + 手账页左上角三个按钮：iOS 原生触感
+      (function () {
+        var hapticEls = [
+          document.getElementById("calPrev"),
+          document.getElementById("calNext"),
+          document.getElementById("statsSubpageWrenchBtn")
+        ];
+        var trashSlot = document.getElementById("statsSubpageTrashSlot");
+        var trashBtn = trashSlot ? trashSlot.querySelector(".button") : null;
+        if (trashBtn) hapticEls.push(trashBtn);
+        var restoreSlot = document.getElementById("statsSubpageRestoreSlot");
+        var restoreBtn = restoreSlot ? restoreSlot.querySelector(".restore-btn") : null;
+        if (restoreBtn) hapticEls.push(restoreBtn);
+        for (var hi = 0; hi < hapticEls.length; hi++) {
+          if (hapticEls[hi]) attachIOSSwitchHaptic(hapticEls[hi]);
+        }
+      })();
+
       var iosHapticInput = null;
       var iosHapticLabel = null;
       function iosSwitchHapticTap() {
@@ -12095,10 +15192,23 @@
         iosHapticLabel.click();
       }
 
-      function calendarDropHaptic() {
+      // 通用触感：Android/支持 Vibration API 的浏览器直接震动；iOS 走原生 switch 触感兜底
+      function hapticFeedback(ms) {
         if (!hapticEnabled()) return;
-        if (navigator.vibrate) { navigator.vibrate(8); return; }
+        if (navigator.vibrate) { navigator.vibrate(ms || 8); return; }
         iosSwitchHapticTap();
+      }
+
+      // 滚轮每滚过一格轻震一次（首次/程序化定位不震）
+      function wheelTickHaptic(el, idx) {
+        if (!el || el._wheelIdx === idx) return;
+        var first = typeof el._wheelIdx !== "number";
+        el._wheelIdx = idx;
+        if (!first) hapticFeedback(5);
+      }
+
+      function calendarDropHaptic() {
+        hapticFeedback(8);
       }
 
       var navLabels = tabs.querySelectorAll(".cir-tabs__t");
@@ -12662,6 +15772,7 @@
           for (var i = 0; i < el.children.length; i++) {
             el.children[i].classList.toggle("is-active", i === idx);
           }
+          wheelTickHaptic(el, idx);
         };
         var bindWheel = function (el) {
           el.addEventListener("scroll", function () { updateWheel(el); }, { passive: true });
@@ -12676,6 +15787,8 @@
         bindWheel(monthWheel);
 
         var openTimeSheet = function () {
+          yearWheel._wheelIdx = undefined;
+          monthWheel._wheelIdx = undefined;
           yearWheel.scrollTop = (radarYear - yearStart) * wheelItemH;
           monthWheel.scrollTop = (radarMonth - 1) * wheelItemH;
           updateWheel(yearWheel);
@@ -12696,8 +15809,12 @@
 
         radarDate.addEventListener("click", openTimeSheet);
         sheetMask.addEventListener("click", function () { closeTimeSheet(false); });
-        sheetCancel.addEventListener("click", function () { closeTimeSheet(false); });
-        sheetOk.addEventListener("click", function () { closeTimeSheet(true); });
+        sheetCancel.addEventListener("click", function () { vibrateTap(8); closeTimeSheet(false); });
+        sheetOk.addEventListener("click", function () { vibrateTap(8); closeTimeSheet(true); });
+        if (window.__picktimeAttachHaptic) {
+          window.__picktimeAttachHaptic(sheetCancel);
+          window.__picktimeAttachHaptic(sheetOk);
+        }
         document.addEventListener("keydown", function (event) {
           if (event.key === "Escape" && timeSheet.classList.contains("is-open")) closeTimeSheet(false);
         });
@@ -12734,6 +15851,7 @@
           for (var i = 0; i < el.children.length; i++) {
             el.children[i].classList.toggle("is-active", i === idx);
           }
+          wheelTickHaptic(el, idx);
         };
         var dateDaysInMonth = function (y, m) {
           return new Date(y, m, 0).getDate();
@@ -12744,6 +15862,7 @@
           var days = dateDaysInMonth(y, m);
           dateBuildWheel(dateDayWheel, 1, days, "日");
           var day = Math.min(Math.max(1, keepDay || 1), days);
+          dateDayWheel._wheelIdx = undefined;
           dateDayWheel.scrollTop = (day - 1) * dateItemH;
           dateUpdateWheel(dateDayWheel);
         };
@@ -12768,6 +15887,8 @@
         dateBindWheel(dateDayWheel);
 
         var openDateSheet = function () {
+          dateYearWheel._wheelIdx = undefined;
+          dateMonthWheel._wheelIdx = undefined;
           dateYearWheel.scrollTop = (selectedDate.getFullYear() - dateYearStart) * dateItemH;
           dateMonthWheel.scrollTop = selectedDate.getMonth() * dateItemH;
           dateUpdateWheel(dateYearWheel);
@@ -12789,10 +15910,111 @@
 
         homeDateEl.addEventListener("click", openDateSheet);
         dateMask.addEventListener("click", function () { closeDateSheet(false); });
-        dateCancel.addEventListener("click", function () { closeDateSheet(false); });
-        dateOk.addEventListener("click", function () { closeDateSheet(true); });
+        dateCancel.addEventListener("click", function () { vibrateTap(8); closeDateSheet(false); });
+        dateOk.addEventListener("click", function () { vibrateTap(8); closeDateSheet(true); });
+        if (window.__picktimeAttachHaptic) {
+          window.__picktimeAttachHaptic(dateCancel);
+          window.__picktimeAttachHaptic(dateOk);
+        }
         document.addEventListener("keydown", function (event) {
           if (event.key === "Escape" && dateSheet.classList.contains("is-open")) closeDateSheet(false);
+        });
+      }
+
+      var statsPlaceholderCard = document.getElementById("statsPlaceholderCard");
+      var statsDateMask = document.getElementById("statsDateMask");
+      var statsDateSheet = document.getElementById("statsDateSheet");
+      var statsMonthWheel = document.getElementById("statsMonthWheel");
+      var statsDayWheel = document.getElementById("statsDayWheel");
+      var statsDateCancel = document.getElementById("statsDateCancel");
+      var statsDateOk = document.getElementById("statsDateOk");
+
+      if (statsPlaceholderDate && statsDateMask && statsDateSheet && statsMonthWheel && statsDayWheel) {
+        var statsItemH = 44;
+
+        var statsBuildWheel = function (el, from, to, suffix) {
+          var html = "";
+          for (var v = from; v <= to; v++) {
+            html += '<div class="wheel-item" data-value="' + v + '">' + v + suffix + "</div>";
+          }
+          el.innerHTML = html;
+        };
+        var statsWheelIndex = function (el) {
+          var max = el.children.length - 1;
+          return Math.max(0, Math.min(max, Math.round(el.scrollTop / statsItemH)));
+        };
+        var statsUpdateWheel = function (el) {
+          var idx = statsWheelIndex(el);
+          for (var i = 0; i < el.children.length; i++) {
+            el.children[i].classList.toggle("is-active", i === idx);
+          }
+          wheelTickHaptic(el, idx);
+        };
+        var statsDaysInMonth = function (y, m) {
+          return new Date(y, m, 0).getDate();
+        };
+        var statsRebuildDays = function (keepDay) {
+          var m = statsWheelIndex(statsMonthWheel) + 1;
+          var days = statsDaysInMonth(statsPickedDate.getFullYear(), m);
+          statsBuildWheel(statsDayWheel, 1, days, "日");
+          var day = Math.min(Math.max(1, keepDay || 1), days);
+          statsDayWheel._wheelIdx = undefined;
+          statsDayWheel.scrollTop = (day - 1) * statsItemH;
+          statsUpdateWheel(statsDayWheel);
+        };
+        var statsBindWheel = function (el) {
+          el.addEventListener("scroll", function () {
+            statsUpdateWheel(el);
+            if (el === statsMonthWheel) statsRebuildDays(statsWheelIndex(statsDayWheel) + 1);
+          }, { passive: true });
+          el.addEventListener("click", function (event) {
+            var item = event.target.closest(".wheel-item");
+            if (!item) return;
+            var idx = Array.prototype.indexOf.call(el.children, item);
+            el.scrollTo({ top: idx * statsItemH, behavior: "smooth" });
+          });
+        };
+
+        statsBuildWheel(statsMonthWheel, 1, 12, "月");
+        statsBuildWheel(statsDayWheel, 1, 31, "日");
+        statsBindWheel(statsMonthWheel);
+        statsBindWheel(statsDayWheel);
+
+        var openStatsDateSheet = function () {
+          statsMonthWheel._wheelIdx = undefined;
+          statsMonthWheel.scrollTop = statsPickedDate.getMonth() * statsItemH;
+          statsUpdateWheel(statsMonthWheel);
+          statsRebuildDays(statsPickedDate.getDate());
+          statsDateMask.classList.add("is-open");
+          statsDateSheet.classList.add("is-open");
+        };
+        var closeStatsDateSheet = function (apply) {
+          if (apply) {
+            var m = statsWheelIndex(statsMonthWheel) + 1;
+            var d = statsWheelIndex(statsDayWheel) + 1;
+            statsPickedDate = new Date(statsPickedDate.getFullYear(), m - 1, d);
+            statsPlaceholderDate.textContent = i18nDate(statsPickedDate);
+            renderStatsPlaceholderPics();
+            renderStatsSubpageItems();
+          }
+          statsDateMask.classList.remove("is-open");
+          statsDateSheet.classList.remove("is-open");
+        };
+
+        statsPlaceholderDate.addEventListener("click", function (event) {
+          event.stopPropagation();
+          openStatsDateSheet();
+        });
+        statsPlaceholderCard.addEventListener("click", openStatsSubpage);
+        statsDateMask.addEventListener("click", function () { closeStatsDateSheet(false); });
+        statsDateCancel.addEventListener("click", function () { vibrateTap(8); closeStatsDateSheet(false); });
+        statsDateOk.addEventListener("click", function () { vibrateTap(8); closeStatsDateSheet(true); });
+        if (window.__picktimeAttachHaptic) {
+          window.__picktimeAttachHaptic(statsDateCancel);
+          window.__picktimeAttachHaptic(statsDateOk);
+        }
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape" && statsDateSheet.classList.contains("is-open")) closeStatsDateSheet(false);
         });
       }
 
@@ -12804,7 +16026,7 @@
       var calDropId = 0;
       var calPicsByDay = {};
 
-      function dropCalendarPics() {
+      function dropCalendarPics(animate) {
         if (!calGrid) return;
         calDropId = (calDropId || 0) + 1;
         var clearFlies = document.querySelectorAll(".calendar-cell__fly");
@@ -12845,11 +16067,13 @@
           }
         } else if (!isLoggedInUser() && typeof westNames !== "undefined" && westNames.length) {
           var cells = calGrid.querySelectorAll(".calendar-cell");
+          var demoTodayKey = dateKeyOf(new Date());
           for (var i = 0; i < cells.length; i++) {
             var cell = cells[i];
             var numEl = cell.querySelector(".calendar-cell__num");
             if (!numEl) continue;
-            if (Math.random() < 0.45) {
+            // 今天一定有演示抠图，保证日历下方框框/手账页也有内容
+            if (Math.random() < 0.45 || cell.getAttribute("data-date") === demoTodayKey) {
               var roll = Math.random();
               var count = roll < 0.7 ? 1 : (roll < 0.9 ? 2 : 3);
               var srcs = [];
@@ -12874,7 +16098,33 @@
             }
           }
         }
+        // 模拟账号：日历抠图随机分配完后，同步下方框框
+        renderStatsPlaceholderPics();
         if (!items.length) return;
+        // animate === false：直接静态更新（不播放掉落动画）
+        if (animate === false) {
+          for (var qi = 0; qi < items.length; qi++) {
+            var qItem = items[qi];
+            var qCell = qItem.cell;
+            var qPic = qCell.querySelector(".calendar-cell__pic");
+            if (!qPic) {
+              qPic = document.createElement("img");
+              qPic.className = "calendar-cell__pic";
+              qCell.appendChild(qPic);
+            }
+            qPic.src = qItem.src;
+            if (qItem.count > 1) {
+              var qBadge = qCell.querySelector(".calendar-cell__badge");
+              if (!qBadge) {
+                qBadge = document.createElement("span");
+                qBadge.className = "calendar-cell__badge";
+                qCell.appendChild(qBadge);
+              }
+              qBadge.textContent = qItem.count;
+            }
+          }
+          return;
+        }
         var myId = ++calDropId;
         for (var si = items.length - 1; si > 0; si--) {
           var sj = Math.floor(Math.random() * (si + 1));
@@ -12975,11 +16225,13 @@
         };
 
         calPrev.addEventListener("click", function () {
+          vibrateTap(8);
           calView.setMonth(calView.getMonth() - 1);
           renderCalendar();
         });
 
         calNext.addEventListener("click", function () {
+          vibrateTap(8);
           calView.setMonth(calView.getMonth() + 1);
           renderCalendar();
         });
@@ -13262,28 +16514,6 @@
         attachIOSSwitchHaptic(homeSwitch);
       }
 
-      var mealBarStops = [
-        { p: 0, c: [168, 196, 138] },
-        { p: 0.7, c: [78, 143, 63] },
-        { p: 0.85, c: [232, 163, 61] },
-        { p: 1, c: [224, 87, 74] }
-      ];
-
-      var mealBarColor = function (p) {
-        p = Math.max(0, Math.min(1, p));
-        for (var i = 0; i < mealBarStops.length - 1; i++) {
-          var a = mealBarStops[i];
-          var b = mealBarStops[i + 1];
-          if (p <= b.p) {
-            var t = (p - a.p) / (b.p - a.p);
-            return "rgb(" + Math.round(a.c[0] + (b.c[0] - a.c[0]) * t) + "," +
-              Math.round(a.c[1] + (b.c[1] - a.c[1]) * t) + "," +
-              Math.round(a.c[2] + (b.c[2] - a.c[2]) * t) + ")";
-          }
-        }
-        return "rgb(224,87,74)";
-      };
-
       var mealCards = document.querySelectorAll(".meal-card");
       var mealCardState = [];
       for (var mc = 0; mc < mealCards.length; mc++) {
@@ -13521,6 +16751,16 @@
           }
           requestFoodTranslations(carouselNames);
           foodCarousel.innerHTML = recordFoodHtml;
+          // iOS：给每张抠图左上角的删除叉叉挂原生触感层（真实点击才有触感）
+          if (isIOSPlatform()) {
+            var delBtns = foodCarousel.querySelectorAll(".food-carousel__delete");
+            for (var dbi = 0; dbi < delBtns.length; dbi++) {
+              if (!delBtns[dbi]._haptic) {
+                delBtns[dbi]._haptic = true;
+                attachIOSSwitchHaptic(delBtns[dbi]);
+              }
+            }
+          }
           foodCarousel.scrollLeft = 0;
           updateFoodScale();
           return;
@@ -13569,6 +16809,7 @@
           if (!delBtn) return;
           event.preventDefault();
           event.stopPropagation();
+          vibrateTap(8);
           deleteRecordById(delBtn.getAttribute("data-id"));
         });
         window.addEventListener("resize", updateFoodScale);
@@ -13576,8 +16817,10 @@
 
       if (weekDelete) {
         weekDelete.addEventListener("click", function () {
+          vibrateTap(8);
           setWeekDeleteMode(!weekDeleteMode);
         });
+        if (window.__picktimeAttachHaptic) window.__picktimeAttachHaptic(weekDelete);
       }
 
       window.__picktimeRerender = function () {
@@ -13589,19 +16832,23 @@
         if (dateEl) dateEl.textContent = i18nDate(base);
         renderTimeline(base);
         renderFoodCarousel();
+        updateWeekRings();
       };
 
       window.__picktimeApplyDemoMode = function () {
         var base = typeof selectedDate !== "undefined" && selectedDate ? selectedDate : today;
         if (dateEl) dateEl.textContent = i18nDate(base);
+        if (statsPlaceholderDate) statsPlaceholderDate.textContent = i18nDate(statsPickedDate);
+        renderStatsPlaceholderPics();
         renderTimeline(base);
         applyMealCardMode();
         renderFoodCarousel();
+        updateWeekRings();
         renderHeatmap();
         renderTrend();
         renderRadar();
         if (window.__picktimeRerenderRegion) window.__picktimeRerenderRegion();
-        if (document.body.classList.contains("is-stats")) dropCalendarPics();
+        if (document.body.classList.contains("is-stats")) dropCalendarPics(window.__picktimeSkipCalDrop ? false : undefined);
       };
       var weekCamera = document.getElementById("weekCamera");
       var cameraOverlay = document.getElementById("cameraOverlay");

@@ -294,6 +294,49 @@ async function initDb() {
       'KEY idx_records_user_date (user_id, date_key)' +
       ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
     );
+    await pool.query(
+      'CREATE TABLE IF NOT EXISTS cutout_positions (' +
+      'user_id VARCHAR(40) NOT NULL,' +
+      'record_id VARCHAR(64) NOT NULL,' +
+      'pos_x DECIMAL(6,2) NOT NULL DEFAULT 0,' +
+      'pos_y DECIMAL(6,2) NOT NULL DEFAULT 0,' +
+      'page_no INT NOT NULL DEFAULT 0,' +
+      'updated_at BIGINT NOT NULL,' +
+      'PRIMARY KEY (user_id, record_id)' +
+      ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+    );
+    try {
+      await pool.query('ALTER TABLE cutout_positions ADD COLUMN page_no INT NOT NULL DEFAULT 0');
+      console.log('[数据库] cutout_positions 表已新增 page_no 列');
+    } catch (e) {
+      if (!e || e.code !== 'ER_DUP_FIELDNAME') {
+        console.error('[数据库] 添加 page_no 列失败:', e && e.message);
+      }
+    }
+    try {
+      await pool.query('ALTER TABLE cutout_positions ADD COLUMN removed TINYINT(1) NOT NULL DEFAULT 0');
+      console.log('[数据库] cutout_positions 表已新增 removed 列');
+    } catch (e) {
+      if (!e || e.code !== 'ER_DUP_FIELDNAME') {
+        console.error('[数据库] 添加 removed 列失败:', e && e.message);
+      }
+    }
+    try {
+      await pool.query('ALTER TABLE cutout_positions ADD COLUMN scale DECIMAL(5,2) NOT NULL DEFAULT 1');
+      console.log('[数据库] cutout_positions 表已新增 scale 列');
+    } catch (e) {
+      if (!e || e.code !== 'ER_DUP_FIELDNAME') {
+        console.error('[数据库] 添加 scale 列失败:', e && e.message);
+      }
+    }
+    try {
+      await pool.query('ALTER TABLE cutout_positions ADD COLUMN rotate INT NOT NULL DEFAULT 0');
+      console.log('[数据库] cutout_positions 表已新增 rotate 列');
+    } catch (e) {
+      if (!e || e.code !== 'ER_DUP_FIELDNAME') {
+        console.error('[数据库] 添加 rotate 列失败:', e && e.message);
+      }
+    }
     dbReady = true;
     const [rows] = await pool.query('SELECT * FROM users');
     if (rows.length > 0) {
@@ -1069,6 +1112,64 @@ app.delete('/api/records', requireAuth, async (req, res) => {
   } catch (e) {
     console.error('[记录] 清空失败:', e.message);
     res.status(500).json({ error: '清空记录失败，请稍后再试' });
+  }
+});
+
+// ===== 抠图摆放位置（统计二级页，按用户存 MySQL）=====
+app.get('/api/positions', requireAuth, async (req, res) => {
+  if (!dbReady || !pool) return res.status(503).json({ error: '数据库暂不可用，请稍后再试' });
+  try {
+    const [rows] = await pool.query(
+      'SELECT record_id, pos_x, pos_y, page_no, removed, scale, rotate FROM cutout_positions WHERE user_id = ?',
+      [req.user.id]
+    );
+    const positions = {};
+    for (const r of rows) {
+      positions[r.record_id] = {
+        leftPct: Number(r.pos_x) || 0,
+        topPct: Number(r.pos_y) || 0,
+        page: Number(r.page_no) || 0,
+        removed: !!Number(r.removed),
+        scale: Number(r.scale) || 1,
+        rotate: Number(r.rotate) || 0,
+      };
+    }
+    res.json({ ok: true, positions: positions });
+  } catch (e) {
+    console.error('[摆放位置] 读取失败:', e.message);
+    res.status(503).json({ error: '读取失败，请稍后再试' });
+  }
+});
+
+app.post('/api/positions', requireAuth, async (req, res) => {
+  if (!dbReady || !pool) return res.status(503).json({ error: '数据库暂不可用，请稍后再试' });
+  const recordId = String((req.body && req.body.recordId) || '').trim().slice(0, 64);
+  let leftPct = Number(req.body && req.body.leftPct);
+  let topPct = Number(req.body && req.body.topPct);
+  let pageNo = Number(req.body && req.body.page);
+  const removed = (req.body && (req.body.removed === true || Number(req.body.removed) === 1)) ? 1 : 0;
+  let scale = Number(req.body && req.body.scale);
+  let rotate = Number(req.body && req.body.rotate);
+  if (!recordId) return res.status(400).json({ error: '缺少记录 id' });
+  if (!isFinite(leftPct) || !isFinite(topPct)) return res.status(400).json({ error: '位置参数错误' });
+  if (!isFinite(pageNo)) pageNo = 0;
+  if (!isFinite(scale)) scale = 1;
+  if (!isFinite(rotate)) rotate = 0;
+  leftPct = Math.max(0, Math.min(100, leftPct));
+  topPct = Math.max(0, Math.min(100, topPct));
+  pageNo = Math.max(0, Math.min(999, Math.floor(pageNo)));
+  scale = Math.max(0.2, Math.min(10, scale));
+  rotate = ((Math.round(rotate) % 360) + 360) % 360;
+  try {
+    await pool.query(
+      'INSERT INTO cutout_positions (user_id, record_id, pos_x, pos_y, page_no, removed, scale, rotate, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ' +
+      'ON DUPLICATE KEY UPDATE pos_x = VALUES(pos_x), pos_y = VALUES(pos_y), page_no = VALUES(page_no), removed = VALUES(removed), scale = VALUES(scale), rotate = VALUES(rotate), updated_at = VALUES(updated_at)',
+      [req.user.id, recordId, leftPct, topPct, pageNo, removed, scale, rotate, Date.now()]
+    );
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('[摆放位置] 保存失败:', e.message);
+    res.status(503).json({ error: '保存失败，请稍后再试' });
   }
 });
 
