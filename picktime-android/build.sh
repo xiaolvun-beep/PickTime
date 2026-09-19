@@ -30,6 +30,7 @@ rsync -a --delete \
   --exclude 'sw.js' \
   --exclude 'font-preview.html' \
   --exclude '*.zip' \
+  --exclude 'images/stickers' \
   "$WEB_DIR/" "$PROJECT_DIR/app/src/main/assets/www/"
 
 # 资源包版本戳：网页内容有变化时变化，App 用它判断本地资源是否过期
