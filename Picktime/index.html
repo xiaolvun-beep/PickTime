@@ -44,10 +44,19 @@
 
     @font-face {
       font-family: "Onboarding Title";
-      src: url("/fonts/onboarding-title.woff2?v=6") format("woff2");
+      src: url("/fonts/onboarding-title.woff2?v=7") format("woff2");
       font-weight: 400;
       font-style: normal;
       font-display: swap;
+    }
+
+    /* 站酷快乐体完整字库（小贴士等内容是 AI 动态文字，需要完整字库） */
+    @font-face {
+      font-family: "KuaiLe Full";
+      src: url("/fonts/kuaile-full.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
     }
 
     @font-face {
@@ -434,12 +443,27 @@
     }
 
     .week-day {
+      position: relative;
       flex: 1;
       min-width: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 6px;
+    }
+
+    /* 选中的日期：去掉灰色圆圈，改为套一个圆角竖长方形（包住星期和整个圈） */
+    .week-day.is-today::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -6px;
+      bottom: -6px;
+      width: 46px;
+      transform: translateX(-50%);
+      border: 1.5px solid #cfd6de;
+      border-radius: 999px;
+      pointer-events: none;
     }
 
     .week-day__name {
@@ -501,8 +525,6 @@
     }
 
     .week-day.is-today .week-day__num {
-      background: #e3e8ee;
-      border-color: #cfd6de;
       color: var(--color-ink);
     }
 
@@ -580,6 +602,272 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
+    }
+
+    /* 首页点击抠图：背景变暗，抠图垂直居中放大展示 */
+    .cutout-viewer {
+      position: fixed;
+      inset: 0;
+      z-index: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(14, 17, 22, 0.55);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 260ms var(--ease), visibility 260ms var(--ease), background 260ms var(--ease);
+      -webkit-tap-highlight-color: transparent;
+      touch-action: none;
+      cursor: zoom-out;
+    }
+
+    /* 点击右上角虚化图标：模糊遮住首页内容，只看抠图和小贴士 */
+    .cutout-viewer.is-blurred {
+      background: rgba(14, 17, 22, 0.8);
+      backdrop-filter: blur(24px) saturate(1.05);
+      -webkit-backdrop-filter: blur(24px) saturate(1.05);
+    }
+
+    .cutout-viewer__blur {
+      position: absolute;
+      top: calc(14px + env(safe-area-inset-top));
+      right: 16px;
+      z-index: 3;
+      width: 40px;
+      height: 40px;
+      padding: 8px;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.92);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+      transition: transform 200ms var(--ease), background 200ms var(--ease);
+    }
+
+    .cutout-viewer__blur:active {
+      transform: scale(0.92);
+    }
+
+    .cutout-viewer.is-blurred .cutout-viewer__blur {
+      background: #ffd76a;
+    }
+
+    /* 点过之后按钮隐藏，截图里不会出现它；重新打开大图时再出现 */
+    .cutout-viewer__blur.is-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .cutout-viewer__blur-icon {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+      -webkit-user-drag: none;
+      user-select: none;
+    }
+
+    .cutout-viewer.is-open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .cutout-viewer__stage {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin: 0;
+      transform: translateY(calc(-18vh + var(--pan, 0px))) scale(0.86);
+      transition: transform 300ms cubic-bezier(0.2, 0.9, 0.3, 1.15);
+    }
+
+    .cutout-viewer.is-open .cutout-viewer__stage {
+      transform: translateY(calc(-18vh + var(--pan, 0px))) scale(1);
+    }
+
+    .cutout-viewer__frame {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      max-width: 78vw;
+      filter: drop-shadow(0 18px 42px rgba(0, 0, 0, 0.38));
+    }
+
+    /* 查看大图统一显示尺寸：所有抠图都放在同一个方框里等比缩放（不裁剪、不加边框） */
+    .cutout-viewer__img {
+      width: 78vw;
+      height: 78vw;
+      max-height: 58vh;
+      object-fit: contain;
+      object-position: center bottom;
+      pointer-events: none;
+      -webkit-user-drag: none;
+      user-select: none;
+    }
+
+    .cutout-viewer__name {
+      max-width: 78vw;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: "KuaiLe Full", "Onboarding Title", "Picktime Title", "Yuanti SC", "YouYuan", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 24px;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      color: #ffffff;
+      pointer-events: none;
+      /* 只上移名字，不影响图片位置 */
+      transform: translateY(-26px);
+    }
+
+    .cutout-viewer__name:empty {
+      display: none;
+    }
+
+    /* 小贴士：名字下方左侧，AI 判断食物后给一句可爱提示 */
+    .cutout-viewer__tip {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      width: 100%;
+      min-width: 220px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      text-align: left;
+      pointer-events: none;
+    }
+
+    .cutout-viewer__tip.is-hidden {
+      display: none;
+    }
+
+    /* 字体没就绪前先隐藏文字，避免先用常规字体渲染再跳成元气体 */
+    .cutout-viewer.is-font-wait .cutout-viewer__name,
+    .cutout-viewer.is-font-wait .cutout-viewer__tip-head,
+    .cutout-viewer.is-font-wait .cutout-viewer__tip-text {
+      visibility: hidden;
+    }
+
+    .cutout-viewer__name:empty + .cutout-viewer__tip {
+      top: calc(100% + 6px);
+    }
+
+    .cutout-viewer__tip-head {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cutout-viewer__tip-label {
+      font-family: "KuaiLe Full", "Onboarding Title", "Picktime Title", "Yuanti SC", "YouYuan", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 19px;
+      font-weight: 400;
+      line-height: 1.2;
+      letter-spacing: 0.06em;
+      color: #ffd76a;
+    }
+
+    .cutout-viewer__tip-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      opacity: 1;
+      transition: opacity 500ms var(--ease), visibility 500ms var(--ease);
+    }
+
+    .cutout-viewer__tip.is-done .cutout-viewer__tip-status {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .cutout-viewer__tip-star {
+      width: 21px;
+      height: 21px;
+      fill: #ffd76a;
+      stroke: #ffd76a;
+      stroke-width: 1.4;
+      stroke-linejoin: round;
+      stroke-linecap: round;
+      animation: cutoutTipStarSpin 2.4s linear infinite;
+    }
+
+    .cutout-viewer__tip-thinking {
+      font-family: "KuaiLe Full", "Onboarding Title", "Picktime Title", "Yuanti SC", "YouYuan", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 19px;
+      font-weight: 400;
+      line-height: 1.2;
+      color: transparent;
+      background: linear-gradient(100deg, rgba(255, 255, 255, 0.35) 20%, #ffffff 50%, rgba(255, 255, 255, 0.35) 80%);
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      animation: cutoutTipShimmer 1.4s linear infinite;
+    }
+
+    .cutout-viewer__tip-text {
+      position: relative;
+      z-index: 0;
+      margin: 0;
+      font-family: "KuaiLe Full", "Onboarding Title", "Picktime Title", "Yuanti SC", "YouYuan", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 19px;
+      font-weight: 400;
+      line-height: 1.5;
+      color: #ffffff;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6), 0 2px 12px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      transition: opacity 500ms var(--ease);
+    }
+
+    .cutout-viewer__tip.is-done .cutout-viewer__tip-text {
+      opacity: 1;
+    }
+
+    /* 内容右下角的印章：浅灰、向左倾斜，压在文字上面，文字淡入后渐显落下 */
+    .cutout-viewer__tip-seal {
+      position: absolute;
+      right: -4px;
+      bottom: -30px;
+      width: 96px;
+      height: 96px;
+      object-fit: contain;
+      pointer-events: none;
+      filter: invert(0.78);
+      opacity: 0;
+      z-index: 1;
+      transform: rotate(-20deg) scale(1.7);
+      transition: opacity 500ms var(--ease) 260ms, transform 700ms cubic-bezier(0.2, 0.9, 0.3, 1.25) 260ms;
+    }
+
+    .cutout-viewer__tip.is-done .cutout-viewer__tip-seal {
+      opacity: 0.9;
+      transform: rotate(-20deg) scale(1);
+    }
+
+    @keyframes cutoutTipStarSpin {
+      0% { transform: rotate(0deg) scale(0.86); }
+      37.5% { transform: rotate(180deg) scale(1.28); }
+      75% { transform: rotate(360deg) scale(0.86); }
+      100% { transform: rotate(360deg) scale(0.86); }
+    }
+
+    @keyframes cutoutTipShimmer {
+      from { background-position: 200% 0; }
+      to { background-position: -200% 0; }
+    }
+
+    body.is-home:not(.home-page2):not(.is-home-entering) .side-timeline__pic {
+      pointer-events: auto;
+      cursor: zoom-in;
     }
 
     .side-timeline__time {
@@ -1262,9 +1550,17 @@
     .cutout-loading {
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       gap: 10px;
+      width: 234px;
       transform: translateX(12px);
+    }
+
+    /* 球固定不动（位置同简体中文），文字固定从球右侧同一位置开始左对齐；更长的译文自动换行 */
+    .cutout-loading .cutout-loading__text {
+      flex: 1;
+      min-width: 0;
+      white-space: normal;
     }
 
     .cutout-orb {
@@ -2285,6 +2581,17 @@
       border-radius: 999px;
       background: #e3e7ec;
       flex: none;
+      touch-action: none;
+    }
+
+    /* 扩大把手可拖动区域，方便向下拖动关闭弹窗 */
+    .cut-sheet__handle::after {
+      content: "";
+      position: absolute;
+      left: -24px;
+      right: -24px;
+      top: -16px;
+      bottom: -16px;
     }
 
     .cut-sheet__fix {
@@ -3513,11 +3820,13 @@
     .stats-subpage__trash-slot {
       position: fixed;
       top: calc(2px + env(safe-area-inset-top));
-      left: 14px;
+      right: 14px;
       z-index: 7;
       opacity: 0;
       visibility: hidden;
       transition: opacity 200ms var(--ease), visibility 200ms var(--ease);
+      /* 按钮本体 box-shadow 会被 clip-path 裁掉，改在槽上用 drop-shadow 跟随可见圆形 */
+      filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.18));
     }
 
     body.stats-subpage-open .stats-subpage__trash-slot {
@@ -3525,15 +3834,15 @@
       visibility: visible;
     }
 
-    /* 恢复按钮：在垃圾桶右侧，一键吐出所有被移除的抠图 */
+    /* 恢复按钮：在垃圾桶左侧，一键吐出所有被移除的抠图 */
     .stats-subpage__restore-slot {
       position: fixed;
       top: calc(2px + env(safe-area-inset-top));
-      left: 60px;
+      right: 60px;
       z-index: 7;
       opacity: 0;
       visibility: hidden;
-      transition: opacity 200ms var(--ease), visibility 200ms var(--ease), left 300ms var(--ease);
+      transition: opacity 200ms var(--ease), visibility 200ms var(--ease), right 300ms var(--ease);
     }
 
     body.stats-subpage-open .stats-subpage__restore-slot {
@@ -3541,9 +3850,9 @@
       visibility: visible;
     }
 
-    /* 垃圾桶展开时，恢复按钮跟着右移 */
+    /* 垃圾桶展开时，恢复按钮跟着左移 */
     .stats-subpage__restore-slot.is-shifted {
-      left: 125px;
+      right: 125px;
     }
 
     .restore-btn {
@@ -3552,7 +3861,7 @@
       padding: 0;
       border: none;
       border-radius: 50%;
-      background-color: #e3e8ee;
+      background-color: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -3581,15 +3890,15 @@
       stroke: #ffffff;
     }
 
-    /* 扳手按钮：在恢复按钮右侧，垃圾桶展开时一起右移 */
+    /* 扳手按钮：在恢复按钮左侧，垃圾桶展开时一起左移 */
     .stats-subpage__wrench-slot {
       position: fixed;
       top: calc(2px + env(safe-area-inset-top));
-      left: 106px;
+      right: 106px;
       z-index: 7;
       opacity: 0;
       visibility: hidden;
-      transition: opacity 200ms var(--ease), visibility 200ms var(--ease), left 300ms var(--ease);
+      transition: opacity 200ms var(--ease), visibility 200ms var(--ease), right 300ms var(--ease);
     }
 
     body.stats-subpage-open .stats-subpage__wrench-slot {
@@ -3598,7 +3907,31 @@
     }
 
     .stats-subpage__wrench-slot.is-shifted {
-      left: 171px;
+      right: 171px;
+    }
+
+    /* 手账页左上角标题：引导页第一页标题同款字体 */
+    .stats-subpage__title {
+      position: fixed;
+      top: calc(2px + env(safe-area-inset-top));
+      left: 24px;
+      z-index: 7;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 200ms var(--ease), visibility 200ms var(--ease);
+      font-family: "Onboarding Title", "Picktime Title", "Yuanti SC", "YouYuan", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 26px;
+      font-weight: 400;
+      font-synthesis: none;
+      line-height: 1.35;
+      letter-spacing: 0.02em;
+      color: var(--color-ink);
+      pointer-events: none;
+    }
+
+    body.stats-subpage-open .stats-subpage__title {
+      opacity: 1;
+      visibility: visible;
     }
 
     .wrench-btn {
@@ -3607,7 +3940,7 @@
       padding: 0;
       border: none;
       border-radius: 50%;
-      background-color: #e3e8ee;
+      background-color: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -4042,7 +4375,7 @@
       width: 140px;
       height: 50px;
       border-radius: 25px;
-      background-color: #e3e8ee;
+      background-color: #ffffff;
       border: none;
       font-weight: 600;
       display: flex;
@@ -4053,8 +4386,8 @@
       overflow: hidden;
       position: relative;
       transform: translateZ(0) scale(0.72);
-      transform-origin: top left;
-      clip-path: inset(0px 90px 0px 0px round 25px);
+      transform-origin: top right;
+      clip-path: inset(0px 0px 0px 90px round 25px);
       transition: clip-path 300ms ease, background-color 300ms ease;
       will-change: clip-path;
     }
@@ -4062,23 +4395,20 @@
     /* 图标：固定最终尺寸，用 scale 缩放，避免逐帧重栅格化 SVG（视觉与源码一致） */
     .svgIcon {
       width: 50px;
-      /* 旧版图标在 50px 按钮里被 UA padding 压成 38px：0.2736 = 0.36 × 38/50，保持视觉不变 */
-      transform: translateX(-45px) scale(0.2736);
+      /* 描边图标内容比原实心图标小，0.46 放大到与恢复/贴纸按钮图标相近的视觉大小 */
+      transform: translateX(45px) scale(0.46);
       transition: transform 300ms ease;
       will-change: transform;
+      color: var(--color-ink);
     }
 
-    .svgIcon path {
-      fill: var(--color-ink);
-    }
-
-    .button.is-open .svgIcon path {
-      fill: #ffffff;
+    .button.is-open .svgIcon {
+      color: #ffffff;
     }
 
     @media (hover: hover) {
-      .button:hover .svgIcon path {
-        fill: #ffffff;
+      .button:hover .svgIcon {
+        color: #ffffff;
       }
     }
 
@@ -7073,7 +7403,7 @@
       </div>
     </div>
     <div class="menu-footer">
-      <div class="menu-footer__version">v1.3.2</div>
+      <div class="menu-footer__version">v1.3.7</div>
       <div class="menu-footer__copyright">© PickTime版权所有</div>
     </div>
   </aside>
@@ -7517,8 +7847,8 @@
       <div class="about-logo-wrap">
         <img class="about-logo" src="/icons/apple-touch-icon.png" alt="拾光" />
       </div>
-      <p class="about-meta"><strong>版本：</strong>v1.3.2</p>
-      <p class="about-meta"><strong>更新日期：</strong>2026.09.19</p>
+      <p class="about-meta"><strong>版本：</strong>v1.3.7</p>
+      <p class="about-meta"><strong>更新日期：</strong>2026.09.21</p>
 
       <h4>产品简介</h4>
       <p>拾光（PickTime）是一款专注于饮食记录与健康参考的应用，支持拍照记录饮食、智能抠图、AI 热量与营养分析、体脂率参考、饮食时间线与数据统计，帮助你用照片记录每一餐，也记录生活的温度。</p>
@@ -7666,6 +7996,13 @@
   </template>
   <template id="docChangelogTpl">
     <h1>拾光更新日志</h1>
+    <h4>v1.3.7 <span class="doc-version-date">2026.09.21</span></h4>
+    <p><strong>查看大图升级</strong></p>
+    <p>首页点击抠图即可放大查看：背景变暗突出食物，图片下方显示名称与 AI 小贴士——会看图片判断这是什么食物，给出一句可爱温馨的提示，思考时四芒星旋转闪光，完成后右下角盖上拾光印章；右上角新增虚化按钮，一点即可模糊遮住首页内容，方便截图；大图支持上下拖动，方便调整到合适的截图位置，所有抠图统一显示尺寸。</p>
+    <p><strong>交互优化</strong></p>
+    <p>抠图结果弹窗支持向下拖动关闭，拖到一定程度松手才会关闭，没到会自动弹回；抠图加载动画在「即将完成」阶段转速加快。</p>
+    <p><strong>修复已知问题</strong></p>
+    <p>修复反复开关大图后小贴士可能不显示的问题；修复手账页标题不跟随语言、更新日志部分内容仍显示中文的问题；统一多语言下抠图加载文案的位置。</p>
     <h4>v1.3.2 <span class="doc-version-date">2026.09.19</span></h4>
     <p><strong>手账页体验升级</strong></p>
     <p>美纹纸贴纸新增「美纹纸裁剪」：支持旋转 60°（长按连续旋转）、一键水平、删除，并可调整长度与粗细，附带使用说明；手账页纸张与页码位置微调，删除与恢复抠图的动画更顺滑，删除模式下点选抠图会直接吸进垃圾桶并带触感反馈。</p>
@@ -7750,13 +8087,43 @@
     <p class="doc-meta">常见问题与使用指南</p>
 
     <h4>快速上手</h4>
-    <p>在"滑动"页点击右上角相机按钮，即可拍照或从相册选择食物照片。确认后拾光会自动抠图并分析热量与营养，保存后可在首页时间线查看记录。</p>
+    <p>拾光分为「首页」「滑动」「数据」「我的」四个页面：首页查看每天的饮食时间线，滑动页拍照记录饮食，数据页查看日历、手账与统计，我的页管理个人资料和账号。</p>
+
+    <h4>如何记录一餐？</h4>
+    <p>在「滑动」页点击右上角相机按钮，拍照或从相册选择食物照片，拾光会自动抠图并分析热量与营养；在结果页还可以点「询问 AI」补充分量或换算营养成分表。确认餐次、时间与分量后保存，记录会出现在首页时间线和数据页中。</p>
+
+    <h4>首页的日期怎么用？</h4>
+    <p>点击首页左上角的日期可以按年 / 月 / 日选择，也可以直接点下方的一周日期条切换。选中的日期会同步到「数据」页日历下方的框框和手账页，方便回顾那一天的记录。</p>
+
+    <h4>手账页怎么玩？</h4>
+    <p>在「数据」页点击日历下方的框框即可进入手账页：可以拖动抠图摆放位置、左右滑动翻页，每张图右下角显示热量；左上角是「我的手账」标题，右上角依次是贴纸、恢复、垃圾桶三个按钮。</p>
+
+    <h4>贴纸和美纹纸怎么添加？</h4>
+    <p>在手账页点击右上角的贴纸按钮，选择分类与贴纸即可添加到页面；点选贴纸后可调整大小、旋转或删除，长按可连续旋转。美纹纸支持裁剪：调整长度与粗细、一键水平、旋转 60°。</p>
+
+    <h4>如何删除或恢复手账里的抠图？</h4>
+    <p>点击手账页右上角的垃圾桶进入删除模式，点选抠图即可移除，再点垃圾桶退出；点击旁边的恢复按钮，可以把移除的抠图一次性放回页面。删除只影响手账页的摆放，不会删除记录本身。</p>
+
+    <h4>「数据」页能看到什么？</h4>
+    <p>数据页第一页是日历和当天的记录框框，点框框上的日期可以快速切换；点右上角的切换按钮进入第二页，可以查看近 6 个月活跃热力图、近 7 天热量趋势和营养汇总。</p>
 
     <h4>如何修改昵称和个性签名？</h4>
     <p>进入"我的"页面，点击昵称或签名即可直接编辑，修改后自动保存。</p>
 
     <h4>如何更换封面和头像？</h4>
     <p>在"我的"页面点击封面右下角的"Change Cover"可更换封面；点击头像可上传并裁剪头像。</p>
+
+    <h4>如何注册和登录？</h4>
+    <p>在菜单中点击「登录」进入登录页，支持用户名密码、Google、QQ 邮箱和手机号四种方式，没有账号可以直接注册。登录后饮食记录与手账摆放会同步保存，换设备也能看到。</p>
+
+    <h4>如何绑定手机号或邮箱？</h4>
+    <p>进入「我的」→ 右上角菜单 →「账号与安全」，可以绑定手机号、QQ 邮箱，设置登录密码和密保问题；忘记密码时可通过密保或绑定信息找回。</p>
+
+    <h4>如何注销账号或删除数据？</h4>
+    <p>「账号与安全」页面提供「注销账号」和「删除所有历史数据」；未登录时，清除浏览器站点数据即可删除保存在本机的全部信息。</p>
+
+    <h4>我的数据保存在哪里？</h4>
+    <p>未登录时，登录状态、个人资料和消息记录保存在设备本地；登录后，饮食记录、手账摆放位置等会同步保存到我们的服务器，用于跨设备查看。食物照片仅在你使用 AI 分析时发送给第三方识别服务。</p>
 
     <h4>体脂率是怎么计算的？</h4>
     <p>体脂率根据性别、身高、体重估算（德伦伯格公式，年龄按 30 岁计算），仅供参考，不构成专业健康建议。</p>
@@ -7767,17 +8134,14 @@
     <h4>抠图失败怎么办？</h4>
     <p>请确认网络正常后重试；如果照片过于复杂或光线不足，建议重新拍摄一张主体清晰的照片。</p>
 
-    <h4>我的数据保存在哪里？</h4>
-    <p>你的登录状态、个人资料、封面头像、消息记录都保存在设备本地（浏览器存储），不会上传到我们的服务器；食物照片仅在你使用 AI 分析时发送给第三方识别服务。</p>
-
-    <h4>如何删除我的数据？</h4>
-    <p>清除浏览器站点数据即可删除保存在本地的全部信息（包括登录状态和个人资料）。</p>
-
-    <h4>如何把拾光添加到主屏幕？</h4>
-    <p>iPhone：用 Safari 打开后点击分享菜单 →"添加到主屏幕"；Android：用 Chrome 打开后点击菜单 →"添加到主屏幕"。</p>
+    <h4>如何关闭震动反馈或权限？</h4>
+    <p>进入「我的」→ 右上角菜单 →「通用设置」，可以开关消息通知、地理位置权限、动作与方向权限和震动反馈，也可以管理自己的 API 调用密钥。</p>
 
     <h4>如何切换语言？</h4>
     <p>进入"我的"页面 → 右上角菜单 →"多语言和翻译"，可选择简体中文、English、日本語、한국어。</p>
+
+    <h4>如何把拾光添加到主屏幕？</h4>
+    <p>iPhone：用 Safari 打开后点击分享菜单 →"添加到主屏幕"；Android：可以下载安装安卓版 App，或用 Chrome 打开后点击菜单 →"添加到主屏幕"。</p>
 
     <h4>还有问题？</h4>
     <p>欢迎通过"联系我们"给我们留言，或发送邮件至 PickTimeStore@outlook.com，我们会在 1-3 个工作日内回复。</p>
@@ -8047,10 +8411,13 @@
           "消息通知": "Notifications",
           "暂无消息": "No messages",
           "暂无饮食记录": "No food records yet",
-          "今天暂无饮食记录": "No food records today",
+          "今日暂无饮食记录": "No food records today",
           "今日暂无记录": "No food records today",
           "此功能暂未开放": "This feature is not available yet",
           "已保存": "Saved",
+          "小贴士": "Tip",
+          "我的手账": "My Journal",
+          "思考中...": "Thinking...",
           "云端同步失败，请检查网络后重试": "Cloud sync failed. Check your network and try again.",
           "存储空间不足，请删除部分记录后重试": "Not enough storage. Delete some records and try again.",
           "较上周": "vs last week ",
@@ -8068,23 +8435,41 @@
           "拾光帮助中心": "Shiguang Help Center",
           "常见问题与使用指南": "FAQ & user guide",
           "快速上手": "Getting started",
-          "在\"滑动\"页点击右上角相机按钮，即可拍照或从相册选择食物照片。确认后拾光会自动抠图并分析热量与营养，保存后可在首页时间线查看记录。": "On the \"Swipe\" page, tap the camera button in the top-right corner to take a photo or choose one from your album. Shiguang will cut out the food and analyze calories and nutrition automatically; after saving, the record appears in the home timeline.",
+          "拾光分为「首页」「滑动」「数据」「我的」四个页面：首页查看每天的饮食时间线，滑动页拍照记录饮食，数据页查看日历、手账与统计，我的页管理个人资料和账号。": "Shiguang has four pages: Home, Swipe, Data and Me. Home shows the daily food timeline, Swipe is where you log meals with photos, Data shows the calendar, journal and statistics, and Me manages your profile and account.",
+          "如何记录一餐？": "How do I log a meal?",
+          "在「滑动」页点击右上角相机按钮，拍照或从相册选择食物照片，拾光会自动抠图并分析热量与营养；在结果页还可以点「询问 AI」补充分量或换算营养成分表。确认餐次、时间与分量后保存，记录会出现在首页时间线和数据页中。": "On the \"Swipe\" page, tap the camera button in the top-right corner to take a photo or choose one from your album; Shiguang cuts out the food and analyzes calories and nutrition automatically. On the result page you can also tap \"Ask AI\" to add the portion size or convert a nutrition label. Confirm the meal, time and portion, then save - the record appears in the home timeline and on the Data page.",
+          "首页的日期怎么用？": "How does the date on the Home page work?",
+          "点击首页左上角的日期可以按年 / 月 / 日选择，也可以直接点下方的一周日期条切换。选中的日期会同步到「数据」页日历下方的框框和手账页，方便回顾那一天的记录。": "Tap the date at the top-left of the Home page to pick a year / month / day, or tap a day on the week strip below. The selected date syncs to the box below the calendar on the Data page and to the journal page, so you can look back at that day.",
+          "手账页怎么玩？": "What can I do on the journal page?",
+          "在「数据」页点击日历下方的框框即可进入手账页：可以拖动抠图摆放位置、左右滑动翻页，每张图右下角显示热量；左上角是「我的手账」标题，右上角依次是贴纸、恢复、垃圾桶三个按钮。": "On the Data page, tap the box below the calendar to open the journal: drag the cutouts to arrange them, swipe left or right to turn pages, and each image shows its calories at the bottom-right. The title \"My Journal\" is at the top-left, and the top-right buttons are Stickers, Restore and Trash.",
+          "贴纸和美纹纸怎么添加？": "How do I add stickers and washi tape?",
+          "在手账页点击右上角的贴纸按钮，选择分类与贴纸即可添加到页面；点选贴纸后可调整大小、旋转或删除，长按可连续旋转。美纹纸支持裁剪：调整长度与粗细、一键水平、旋转 60°。": "On the journal page, tap the Stickers button in the top-right, then choose a category and a sticker to add it. Tap a sticker to resize, rotate or delete it; press and hold to rotate continuously. Washi tape supports cropping: adjust length and thickness, snap horizontal, or rotate by 60°.",
+          "如何删除或恢复手账里的抠图？": "How do I remove or restore cutouts in the journal?",
+          "点击手账页右上角的垃圾桶进入删除模式，点选抠图即可移除，再点垃圾桶退出；点击旁边的恢复按钮，可以把移除的抠图一次性放回页面。删除只影响手账页的摆放，不会删除记录本身。": "Tap the Trash button in the top-right of the journal to enter delete mode, then tap a cutout to remove it; tap the Trash again to exit. Tap the Restore button next to it to bring all removed cutouts back at once. Removing only affects the journal layout and does not delete the record itself.",
+          "「数据」页能看到什么？": "What can I see on the Data page?",
+          "数据页第一页是日历和当天的记录框框，点框框上的日期可以快速切换；点右上角的切换按钮进入第二页，可以查看近 6 个月活跃热力图、近 7 天热量趋势和营养汇总。": "The first page of the Data page has the calendar and the record box for that day; tap the date on the box to switch days quickly. Tap the switch button in the top-right for the second page, with a 6-month activity heatmap, a 7-day calorie trend and a nutrition summary.",
           "如何修改昵称和个性签名？": "How do I change my nickname and signature?",
           "进入\"我的\"页面，点击昵称或签名即可直接编辑，修改后自动保存。": "Go to the \"Me\" page and tap the nickname or signature to edit it directly. Changes are saved automatically.",
           "如何更换封面和头像？": "How do I change my cover and avatar?",
           "在\"我的\"页面点击封面右下角的\"Change Cover\"可更换封面；点击头像可上传并裁剪头像。": "On the \"Me\" page, tap \"Change Cover\" at the bottom-right of the cover to change it; tap the avatar to upload and crop a new one.",
+          "如何注册和登录？": "How do I sign up and log in?",
+          "在菜单中点击「登录」进入登录页，支持用户名密码、Google、QQ 邮箱和手机号四种方式，没有账号可以直接注册。登录后饮食记录与手账摆放会同步保存，换设备也能看到。": "Tap \"Log in\" in the menu. You can log in with a username and password, Google, QQ email or phone number, and you can register directly if you don't have an account. After logging in, your food records and journal layout are synced so you can see them on other devices.",
+          "如何绑定手机号或邮箱？": "How do I bind a phone number or email?",
+          "进入「我的」→ 右上角菜单 →「账号与安全」，可以绑定手机号、QQ 邮箱，设置登录密码和密保问题；忘记密码时可通过密保或绑定信息找回。": "Go to \"Me\" → menu in the top-right → \"Account & Security\" to bind a phone number or QQ email and set a login password and security question. If you forget your password, you can recover it with the security question or bound information.",
+          "如何注销账号或删除数据？": "How do I delete my account or data?",
+          "「账号与安全」页面提供「注销账号」和「删除所有历史数据」；未登录时，清除浏览器站点数据即可删除保存在本机的全部信息。": "\"Account & Security\" offers \"Delete account\" and \"Delete all history\". If you are not logged in, clearing the browser's site data deletes everything stored on this device.",
+          "我的数据保存在哪里？": "Where is my data stored?",
+          "未登录时，登录状态、个人资料和消息记录保存在设备本地；登录后，饮食记录、手账摆放位置等会同步保存到我们的服务器，用于跨设备查看。食物照片仅在你使用 AI 分析时发送给第三方识别服务。": "When you are not logged in, your login state, profile and messages are stored locally on your device. After logging in, your food records and journal layout are synced to our servers so you can view them across devices. Food photos are sent to a third-party recognition service only when you use AI analysis.",
           "体脂率是怎么计算的？": "How is body fat calculated?",
           "体脂率根据性别、身高、体重估算（德伦伯格公式，年龄按 30 岁计算），仅供参考，不构成专业健康建议。": "Body fat is estimated from gender, height and weight (Deurenberg formula, age assumed 30). It is for reference only and is not professional health advice.",
           "热量和营养数据准确吗？": "Are calorie and nutrition data accurate?",
           "热量、蛋白、脂肪、碳水、糖、纤维、钠等数据由 AI 根据照片估算，可能存在偏差，仅供参考，不能替代专业的膳食建议。": "Calories, protein, fat, carbs, sugar, fiber and sodium are estimated by AI from your photo. They may be inaccurate, are for reference only, and cannot replace professional dietary advice.",
           "抠图失败怎么办？": "What if the cutout fails?",
           "请确认网络正常后重试；如果照片过于复杂或光线不足，建议重新拍摄一张主体清晰的照片。": "Check your network and try again. If the photo is too complex or poorly lit, take a new photo with a clear subject.",
-          "我的数据保存在哪里？": "Where is my data stored?",
-          "你的登录状态、个人资料、封面头像、消息记录都保存在设备本地（浏览器存储），不会上传到我们的服务器；食物照片仅在你使用 AI 分析时发送给第三方识别服务。": "Your login state, profile, cover, avatar and messages are stored locally on your device (browser storage) and are not uploaded to our servers. Food photos are sent to a third-party recognition service only when you use AI analysis.",
-          "如何删除我的数据？": "How do I delete my data?",
-          "清除浏览器站点数据即可删除保存在本地的全部信息（包括登录状态和个人资料）。": "Clear the browser\'s site data to delete all locally stored information (including login state and profile).",
+          "如何关闭震动反馈或权限？": "How do I turn off haptics or permissions?",
+          "进入「我的」→ 右上角菜单 →「通用设置」，可以开关消息通知、地理位置权限、动作与方向权限和震动反馈，也可以管理自己的 API 调用密钥。": "Go to \"Me\" → menu in the top-right → \"General Settings\" to toggle message notifications, location permission, motion & orientation permission and haptic feedback, and to manage your own API key.",
           "如何把拾光添加到主屏幕？": "How do I add Shiguang to my home screen?",
-          "iPhone：用 Safari 打开后点击分享菜单 →\"添加到主屏幕\"；Android：用 Chrome 打开后点击菜单 →\"添加到主屏幕\"。": "iPhone: open in Safari, tap the Share menu → \"Add to Home Screen\". Android: open in Chrome, tap the menu → \"Add to Home Screen\".",
+          "iPhone：用 Safari 打开后点击分享菜单 →\"添加到主屏幕\"；Android：可以下载安装安卓版 App，或用 Chrome 打开后点击菜单 →\"添加到主屏幕\"。": "iPhone: open in Safari, tap the Share menu → \"Add to Home Screen\". Android: download and install the Android app, or open in Chrome and tap the menu → \"Add to Home Screen\".",
           "如何切换语言？": "How do I switch languages?",
           "进入\"我的\"页面 → 右上角菜单 →\"多语言和翻译\"，可选择简体中文、English、日本語、한국어。": "Go to the \"Me\" page → top-right menu → \"Language & Translation\" and choose Simplified Chinese, English, Japanese or Korean.",
           "还有问题？": "Still have questions?",
@@ -8092,6 +8477,25 @@
           "拾光官网": "Official Website",
           "更新日志": "Changelog",
           "拾光更新日志": "Shiguang Changelog",
+          "查看大图升级": "Enlarged View Upgrade",
+          "首页点击抠图即可放大查看：背景变暗突出食物，图片下方显示名称与 AI 小贴士——会看图片判断这是什么食物，给出一句可爱温馨的提示，思考时四芒星旋转闪光，完成后右下角盖上拾光印章；右上角新增虚化按钮，一点即可模糊遮住首页内容，方便截图；大图支持上下拖动，方便调整到合适的截图位置，所有抠图统一显示尺寸。": "Tap a cutout on the home page to view it enlarged: the background dims to highlight the food, and the name plus an AI tip appear below - the tip looks at the photo to tell what the food is and gives a cute, warm note. While thinking, a four-point star spins and shimmers, then a Shiguang seal is stamped at the bottom-right. A new blur button at the top-right blurs the home page content for cleaner screenshots; you can also drag the view up and down to find the best position, and all cutouts now share the same display size.",
+          "交互优化": "Interaction Improvements",
+          "抠图结果弹窗支持向下拖动关闭，拖到一定程度松手才会关闭，没到会自动弹回；抠图加载动画在「即将完成」阶段转速加快。": "The cutout result sheet can now be closed by dragging it down - release after dragging far enough to close, otherwise it springs back. The cutout loading animation speeds up at the \"Almost done\" stage.",
+          "修复反复开关大图后小贴士可能不显示的问题；修复手账页标题不跟随语言、更新日志部分内容仍显示中文的问题；统一多语言下抠图加载文案的位置。": "Fixed the tip occasionally not showing after repeatedly opening and closing the enlarged view; fixed the journal page title not following the language setting and part of the changelog still showing Chinese; unified the position of the cutout loading text across languages.",
+          "v1.3.7 更新": "v1.3.7 Update",
+          "新版本 v1.3.7 已发布：首页点击抠图可放大查看并显示 AI 小贴士，新增背景虚化、上下拖动与统一显示尺寸；抠图结果弹窗支持向下拖动关闭；修复小贴士不显示、更新日志未翻译等问题。可在「菜单 → 更新日志」查看详情。": "Version v1.3.7 is out: tap a cutout on the home page to enlarge it with an AI tip, plus background blur, drag to reposition and a unified display size; the cutout result sheet can be closed by dragging down; fixes for missing tips and untranslated changelog entries. See Menu -> Changelog for details.",
+          "手账页体验升级": "Journal Experience",
+          "美纹纸贴纸新增「美纹纸裁剪」：支持旋转 60°（长按连续旋转）、一键水平、删除，并可调整长度与粗细，附带使用说明；手账页纸张与页码位置微调，删除与恢复抠图的动画更顺滑，删除模式下点选抠图会直接吸进垃圾桶并带触感反馈。": "Washi tape stickers now support \"washi tape cropping\": rotate 60° (long-press to rotate continuously), one-tap level, delete, and adjustable length and thickness, with usage tips; paper and page-number positions were fine-tuned, delete/restore animations are smoother, and in delete mode tapping a cutout sucks it into the trash with haptic feedback.",
+          "统计页优化": "Stats Page",
+          "日历下方框框没有记录时显示「今日暂无记录」；框框里的抠图支持左右滑动查看，右下角显示热量（与滑动页同款斜体描边），图片统一高度；进入手账页后，日历、框框与手账页的数据保持一致。": "The box below the calendar now shows \"No records today\" when empty; cutouts inside can be swiped left and right, with calories shown at the bottom-right (same italic outline style as the swipe page) and a unified image height; the calendar, box and journal page now stay in sync.",
+          "贴纸选择优化": "Sticker Picker",
+          "贴纸弹窗改为按需加载，打开与切换分类明显更快；「便利贴」分类暂未开放，点击会提示。": "The sticker sheet now loads on demand, so opening and switching categories is noticeably faster; the \"Sticky Notes\" category is not available yet and shows a hint when tapped.",
+          "触感反馈": "Haptics",
+          "日历左右切换、手账页左上角按钮（垃圾桶 / 恢复 / 扳手）、日期滚轮每滑过一格、日期弹窗的取消 / 确定、滑动页删除按钮与抠图上的叉叉，均新增 iOS 与安卓触感反馈；「通用设置 → 震动反馈」可一键关闭。": "Added iOS and Android haptics for switching calendar months, the journal page buttons (trash / restore / wrench), each notch of the date wheel, the date sheet's Cancel / OK, the swipe page's delete button and the cross on cutouts; turn them off anytime in Settings -> Haptic Feedback.",
+          "修复注销账号后本机缓存未清空、可能看到上一个账号数据的问题；修复模拟账号日历与框框、手账页数据不一致、恢复动画不播放、演示抠图边缘出现竖线等问题；优化删除按钮展开动画，减少卡顿。": "Fixed local cache not being cleared after deleting an account, which could show the previous account's data; fixed inconsistent calendar/box/journal data in demo mode, restore animations not playing, and vertical lines on demo cutout edges; optimized the delete button's expand animation to reduce jank.",
+          "新增触感反馈": "New Haptics",
+          "底部导航、首页日期圆圈、首页/统计页切换按钮、菜单按钮、滑动页相机按钮、统计页日历图片坠落、通用设置开关以及抠图结果确认弹窗等操作，新增 iOS 与安卓触感反馈；并在「通用设置」新增「震动反馈」开关，可随时一键关闭（默认开启）。": "Added iOS and Android haptics for the bottom navigation, home date circles, home/stats switch, menu button, swipe page camera button, stats calendar image drop, settings toggles and the cutout result dialog; also added a \"Haptic Feedback\" switch in Settings (on by default).",
+          "修复注册/登录等页面在校验失败时不显示提示文字的问题，并优化部分页面细节与稳定性。": "Fixed missing hint text on sign-up/login pages when validation fails, and improved details and stability on several pages.",
           "首次发布": "First release",
           "拍照记录饮食、本地智能抠图、AI 热量与营养分析、体脂率参考、饮食时间线等核心功能上线": "Core features released: photo food logging, local smart cutout, AI calorie and nutrition analysis, body-fat reference and a food timeline",
           "个人中心": "Profile",
@@ -8499,10 +8903,13 @@
           "消息通知": "通知",
           "暂无消息": "メッセージはありません",
           "暂无饮食记录": "食事記録はまだありません",
-          "今天暂无饮食记录": "今日の食事記録はまだありません",
+          "今日暂无饮食记录": "今日の食事記録はまだありません",
           "今日暂无记录": "今日の食事記録はまだありません",
           "此功能暂未开放": "この機能はまだご利用いただけません",
           "已保存": "保存しました",
+          "小贴士": "ヒント",
+          "我的手账": "わたしの手帳",
+          "思考中...": "考え中...",
           "云端同步失败，请检查网络后重试": "クラウド同期に失敗しました。ネットワークを確認して再試行してください。",
           "存储空间不足，请删除部分记录后重试": "ストレージが不足しています。記録を削除して再試行してください。",
           "较上周": "先週比 ",
@@ -8520,23 +8927,41 @@
           "拾光帮助中心": "拾光ヘルプセンター",
           "常见问题与使用指南": "よくある質問と使い方ガイド",
           "快速上手": "はじめに",
-          "在\"滑动\"页点击右上角相机按钮，即可拍照或从相册选择食物照片。确认后拾光会自动抠图并分析热量与营养，保存后可在首页时间线查看记录。": "「スワイプ」ページ右上のカメラボタンをタップすると、撮影またはアルバムから写真を選択できます。確定すると拾光が自動で切り抜き、カロリーと栄養を分析します。保存後はホームのタイムラインで確認できます。",
+          "拾光分为「首页」「滑动」「数据」「我的」四个页面：首页查看每天的饮食时间线，滑动页拍照记录饮食，数据页查看日历、手账与统计，我的页管理个人资料和账号。": "拾光は「ホーム」「スワイプ」「データ」「マイ」の4ページで構成されています。ホームでは毎日の食事タイムライン、スワイプでは写真での食事記録、データではカレンダー・手帳・統計、マイではプロフィールとアカウントを管理できます。",
+          "如何记录一餐？": "食事を記録するには？",
+          "在「滑动」页点击右上角相机按钮，拍照或从相册选择食物照片，拾光会自动抠图并分析热量与营养；在结果页还可以点「询问 AI」补充分量或换算营养成分表。确认餐次、时间与分量后保存，记录会出现在首页时间线和数据页中。": "「スワイプ」ページ右上のカメラボタンをタップし、撮影またはアルバムから写真を選択すると、拾光が自動で切り抜いてカロリーと栄養を分析します。結果ページでは「AIに聞く」から分量や栄養成分表示を追加できます。食事・時間・分量を確認して保存すると、ホームのタイムラインとデータページに表示されます。",
+          "首页的日期怎么用？": "ホームの日付の使い方は？",
+          "点击首页左上角的日期可以按年 / 月 / 日选择，也可以直接点下方的一周日期条切换。选中的日期会同步到「数据」页日历下方的框框和手账页，方便回顾那一天的记录。": "ホーム左上の日付をタップすると年/月/日で選択でき、下の1週間の日付バーからも切り替えられます。選んだ日付は「データ」ページのカレンダー下の枠と手帳ページに同期され、その日の記録を振り返れます。",
+          "手账页怎么玩？": "手帳ページでは何ができますか？",
+          "在「数据」页点击日历下方的框框即可进入手账页：可以拖动抠图摆放位置、左右滑动翻页，每张图右下角显示热量；左上角是「我的手账」标题，右上角依次是贴纸、恢复、垃圾桶三个按钮。": "「データ」ページでカレンダー下の枠をタップすると手帳ページが開きます。切り抜きをドラッグして配置を整えたり、左右にスワイプしてページをめくったりでき、各画像の右下にカロリーが表示されます。左上に「わたしの手帳」のタイトル、右上にステッカー・復元・ゴミ箱の3つのボタンがあります。",
+          "贴纸和美纹纸怎么添加？": "ステッカーとマスキングテープの追加方法は？",
+          "在手账页点击右上角的贴纸按钮，选择分类与贴纸即可添加到页面；点选贴纸后可调整大小、旋转或删除，长按可连续旋转。美纹纸支持裁剪：调整长度与粗细、一键水平、旋转 60°。": "手帳ページ右上のステッカーボタンをタップし、カテゴリとステッカーを選んで追加します。ステッカーを選択するとサイズ変更・回転・削除ができ、長押しで連続回転します。マスキングテープは長さと太さの調整、水平合わせ、60°回転に対応しています。",
+          "如何删除或恢复手账里的抠图？": "手帳の切り抜きを削除・復元するには？",
+          "点击手账页右上角的垃圾桶进入删除模式，点选抠图即可移除，再点垃圾桶退出；点击旁边的恢复按钮，可以把移除的抠图一次性放回页面。删除只影响手账页的摆放，不会删除记录本身。": "手帳ページ右上のゴミ箱をタップすると削除モードになり、切り抜きをタップすると削除されます。もう一度ゴミ箱をタップすると終了します。隣の復元ボタンをタップすると、削除した切り抜きをまとめて戻せます。削除は手帳上の配置だけに影響し、記録自体は削除されません。",
+          "「数据」页能看到什么？": "「データ」ページで何が見られますか？",
+          "数据页第一页是日历和当天的记录框框，点框框上的日期可以快速切换；点右上角的切换按钮进入第二页，可以查看近 6 个月活跃热力图、近 7 天热量趋势和营养汇总。": "データページの1ページ目はカレンダーとその日の記録枠で、枠の日付をタップすると素早く日付を切り替えられます。右上の切り替えボタンで2ページ目に移動すると、直近6か月のアクティビティヒートマップ、直近7日間のカロリー推移、栄養サマリーを確認できます。",
           "如何修改昵称和个性签名？": "ニックネームとひとことプロフィールの変更方法は？",
           "进入\"我的\"页面，点击昵称或签名即可直接编辑，修改后自动保存。": "「マイ」ページでニックネームまたはプロフィールをタップすると直接編集でき、変更は自動保存されます。",
           "如何更换封面和头像？": "カバーとアイコンの変更方法は？",
           "在\"我的\"页面点击封面右下角的\"Change Cover\"可更换封面；点击头像可上传并裁剪头像。": "「マイ」ページでカバー右下の「Change Cover」をタップするとカバーを変更できます。アイコンをタップするとアップロードしてトリミングできます。",
+          "如何注册和登录？": "登録とログインの方法は？",
+          "在菜单中点击「登录」进入登录页，支持用户名密码、Google、QQ 邮箱和手机号四种方式，没有账号可以直接注册。登录后饮食记录与手账摆放会同步保存，换设备也能看到。": "メニューの「ログイン」からログインページを開きます。ユーザー名とパスワード、Google、QQメール、電話番号の4つの方法に対応し、アカウントがない場合はそのまま登録できます。ログイン後は食事記録と手帳の配置が同期され、別の端末でも確認できます。",
+          "如何绑定手机号或邮箱？": "電話番号やメールの連携方法は？",
+          "进入「我的」→ 右上角菜单 →「账号与安全」，可以绑定手机号、QQ 邮箱，设置登录密码和密保问题；忘记密码时可通过密保或绑定信息找回。": "「マイ」→ 右上のメニュー →「アカウントとセキュリティ」から、電話番号やQQメールの連携、ログインパスワードと秘密の質問の設定ができます。パスワードを忘れた場合は、秘密の質問や連携情報から再設定できます。",
+          "如何注销账号或删除数据？": "アカウントの削除やデータの削除方法は？",
+          "「账号与安全」页面提供「注销账号」和「删除所有历史数据」；未登录时，清除浏览器站点数据即可删除保存在本机的全部信息。": "「アカウントとセキュリティ」に「アカウント削除」と「すべての履歴データを削除」があります。未ログインの場合は、ブラウザのサイトデータを消去すると端末内の情報がすべて削除されます。",
+          "我的数据保存在哪里？": "データはどこに保存されますか？",
+          "未登录时，登录状态、个人资料和消息记录保存在设备本地；登录后，饮食记录、手账摆放位置等会同步保存到我们的服务器，用于跨设备查看。食物照片仅在你使用 AI 分析时发送给第三方识别服务。": "未ログイン時は、ログイン状態・プロフィール・メッセージが端末内に保存されます。ログイン後は、食事記録や手帳の配置などが当社のサーバーに同期保存され、別の端末でも閲覧できます。食品写真はAI分析を利用する際にのみ、第三者の認識サービスに送信されます。",
           "体脂率是怎么计算的？": "体脂肪率はどう計算されますか？",
           "体脂率根据性别、身高、体重估算（德伦伯格公式，年龄按 30 岁计算），仅供参考，不构成专业健康建议。": "体脂肪率は性別・身長・体重から推定します（デューレンバーグ式、年齢は30歳として計算）。参考情報であり、専門的な健康アドバイスではありません。",
           "热量和营养数据准确吗？": "カロリーと栄養データは正確ですか？",
           "热量、蛋白、脂肪、碳水、糖、纤维、钠等数据由 AI 根据照片估算，可能存在偏差，仅供参考，不能替代专业的膳食建议。": "カロリー、たんぱく質、脂質、炭水化物、糖質、食物繊維、ナトリウムはAIが写真から推定した値です。誤差が生じる場合があり、参考情報としてのみご利用ください。専門的な食事指導の代わりにはなりません。",
           "抠图失败怎么办？": "切り抜きに失敗した場合は？",
           "请确认网络正常后重试；如果照片过于复杂或光线不足，建议重新拍摄一张主体清晰的照片。": "ネットワークを確認して再試行してください。写真が複雑すぎる場合や暗い場合は、被写体がはっきりした写真を撮り直すことをおすすめします。",
-          "我的数据保存在哪里？": "データはどこに保存されますか？",
-          "你的登录状态、个人资料、封面头像、消息记录都保存在设备本地（浏览器存储），不会上传到我们的服务器；食物照片仅在你使用 AI 分析时发送给第三方识别服务。": "ログイン状態、プロフィール、カバー、アイコン、メッセージは端末内（ブラウザストレージ）に保存され、当社のサーバーにはアップロードされません。食品写真はAI分析を利用する際にのみ、第三者の認識サービスに送信されます。",
-          "如何删除我的数据？": "データを削除するには？",
-          "清除浏览器站点数据即可删除保存在本地的全部信息（包括登录状态和个人资料）。": "ブラウザのサイトデータを消去すると、端末内に保存されたすべての情報（ログイン状態やプロフィールを含む）が削除されます。",
+          "如何关闭震动反馈或权限？": "触覚フィードバックや権限をオフにするには？",
+          "进入「我的」→ 右上角菜单 →「通用设置」，可以开关消息通知、地理位置权限、动作与方向权限和震动反馈，也可以管理自己的 API 调用密钥。": "「マイ」→ 右上のメニュー →「一般設定」から、メッセージ通知・位置情報の権限・モーションと方向の権限・触覚フィードバックを切り替えられ、自分のAPIキーも管理できます。",
           "如何把拾光添加到主屏幕？": "ホーム画面に追加するには？",
-          "iPhone：用 Safari 打开后点击分享菜单 →\"添加到主屏幕\"；Android：用 Chrome 打开后点击菜单 →\"添加到主屏幕\"。": "iPhone：Safariで開き、共有メニュー→「ホーム画面に追加」。Android：Chromeで開き、メニュー→「ホーム画面に追加」。",
+          "iPhone：用 Safari 打开后点击分享菜单 →\"添加到主屏幕\"；Android：可以下载安装安卓版 App，或用 Chrome 打开后点击菜单 →\"添加到主屏幕\"。": "iPhone：Safariで開き、共有メニュー→「ホーム画面に追加」。Android：Android版アプリをダウンロードしてインストールするか、Chromeで開いてメニュー→「ホーム画面に追加」。",
           "如何切换语言？": "言語を切り替えるには？",
           "进入\"我的\"页面 → 右上角菜单 →\"多语言和翻译\"，可选择简体中文、English、日本語、한국어。": "「マイ」ページ → 右上のメニュー →「言語と翻訳」から、簡体字中国語・English・日本語・한국어を選択できます。",
           "还有问题？": "まだ質問がありますか？",
@@ -8544,6 +8969,25 @@
           "拾光官网": "公式サイト",
           "更新日志": "更新履歴",
           "拾光更新日志": "拾光 更新履歴",
+          "查看大图升级": "拡大表示をアップグレード",
+          "首页点击抠图即可放大查看：背景变暗突出食物，图片下方显示名称与 AI 小贴士——会看图片判断这是什么食物，给出一句可爱温馨的提示，思考时四芒星旋转闪光，完成后右下角盖上拾光印章；右上角新增虚化按钮，一点即可模糊遮住首页内容，方便截图；大图支持上下拖动，方便调整到合适的截图位置，所有抠图统一显示尺寸。": "ホームで切り抜きをタップすると拡大表示できます：背景が暗くなり料理が引き立ち、下に名前と AI ヒントが表示されます。ヒントは写真から料理を判断し、可愛く温かい一言を添えます。考えている間は四芒星が回転・きらめき、完了すると右下に拾光の印章が押されます。右上のぼかしボタンでホーム画面の内容をぼかしてスクリーンショットが撮りやすくなり、大図は上下にドラッグして位置を調整でき、すべての切り抜きは同じ表示サイズになります。",
+          "交互优化": "操作の改善",
+          "抠图结果弹窗支持向下拖动关闭，拖到一定程度松手才会关闭，没到会自动弹回；抠图加载动画在「即将完成」阶段转速加快。": "切り抜き結果のシートは下にドラッグして閉じられます。十分にドラッグしてから離すと閉じ、足りない場合は元に戻ります。切り抜きの読み込みアニメーションは「まもなく完了」段階で回転が速くなります。",
+          "修复反复开关大图后小贴士可能不显示的问题；修复手账页标题不跟随语言、更新日志部分内容仍显示中文的问题；统一多语言下抠图加载文案的位置。": "拡大表示を何度も開閉した後、ヒントが表示されないことがある問題を修正；手帳ページのタイトルが言語設定に追従しない問題、更新履歴の一部が中国語のまま表示される問題を修正；多言語での切り抜き読み込みテキストの位置を統一しました。",
+          "v1.3.7 更新": "v1.3.7 アップデート",
+          "新版本 v1.3.7 已发布：首页点击抠图可放大查看并显示 AI 小贴士，新增背景虚化、上下拖动与统一显示尺寸；抠图结果弹窗支持向下拖动关闭；修复小贴士不显示、更新日志未翻译等问题。可在「菜单 → 更新日志」查看详情。": "v1.3.7 を公開しました：ホームで切り抜きをタップすると拡大表示と AI ヒントが表示され、背景ぼかし・上下ドラッグ・表示サイズの統一に対応；切り抜き結果シートは下にドラッグして閉じられます；ヒントが表示されない問題や更新履歴の未翻訳を修正しました。詳しくは「メニュー → 更新履歴」をご覧ください。",
+          "手账页体验升级": "手帳ページの体験向上",
+          "美纹纸贴纸新增「美纹纸裁剪」：支持旋转 60°（长按连续旋转）、一键水平、删除，并可调整长度与粗细，附带使用说明；手账页纸张与页码位置微调，删除与恢复抠图的动画更顺滑，删除模式下点选抠图会直接吸进垃圾桶并带触感反馈。": "マスキングテープのシールに「マスキングテープのトリミング」を追加：60°回転（長押しで連続回転）、ワンタップ水平、削除、長さと太さの調整ができ、使い方の説明付き。手帳の紙とページ番号の位置を微調整し、削除/復元アニメーションを滑らかにしました。削除モードで切り抜きをタップするとゴミ箱に吸い込まれ、触感フィードバックもあります。",
+          "统计页优化": "統計ページの最適化",
+          "日历下方框框没有记录时显示「今日暂无记录」；框框里的抠图支持左右滑动查看，右下角显示热量（与滑动页同款斜体描边），图片统一高度；进入手账页后，日历、框框与手账页的数据保持一致。": "カレンダー下の枠に記録がないときは「今日は記録がありません」と表示；枠内の切り抜きは左右にスワイプして閲覧でき、右下にカロリーを表示（スワイプページと同じ斜体・縁取りスタイル）、画像の高さを統一；手帳ページに入ると、カレンダー・枠・手帳のデータが一致します。",
+          "贴纸选择优化": "ステッカー選択の最適化",
+          "贴纸弹窗改为按需加载，打开与切换分类明显更快；「便利贴」分类暂未开放，点击会提示。": "ステッカーシートを必要時に読み込むようにし、開く・カテゴリ切り替えが明らかに速くなりました；「付箋」カテゴリは未開放で、タップすると案内が表示されます。",
+          "触感反馈": "触感フィードバック",
+          "日历左右切换、手账页左上角按钮（垃圾桶 / 恢复 / 扳手）、日期滚轮每滑过一格、日期弹窗的取消 / 确定、滑动页删除按钮与抠图上的叉叉，均新增 iOS 与安卓触感反馈；「通用设置 → 震动反馈」可一键关闭。": "カレンダーの左右切り替え、手帳ページのボタン（ゴミ箱/復元/レンチ）、日付ホイールの1目盛りごと、日付シートのキャンセル/OK、スワイプページの削除ボタンと切り抜きの×に、iOS と Android の触感フィードバックを追加；「一般設定 → 触感フィードバック」でいつでもオフにできます。",
+          "修复注销账号后本机缓存未清空、可能看到上一个账号数据的问题；修复模拟账号日历与框框、手账页数据不一致、恢复动画不播放、演示抠图边缘出现竖线等问题；优化删除按钮展开动画，减少卡顿。": "アカウント削除後にローカルキャッシュが消えず、前のアカウントのデータが見えることがある問題を修正；デモアカウントのカレンダー・枠・手帳のデータ不一致、復元アニメーションが再生されない、デモ切り抜きの縁に縦線が出る等の問題を修正；削除ボタンの展開アニメーションを最適化し、カクつきを軽減しました。",
+          "新增触感反馈": "触感フィードバックを追加",
+          "底部导航、首页日期圆圈、首页/统计页切换按钮、菜单按钮、滑动页相机按钮、统计页日历图片坠落、通用设置开关以及抠图结果确认弹窗等操作，新增 iOS 与安卓触感反馈；并在「通用设置」新增「震动反馈」开关，可随时一键关闭（默认开启）。": "下部ナビ、ホームの日付サークル、ホーム/統計の切り替え、メニューボタン、スワイプページのカメラボタン、統計カレンダーの画像ドロップ、一般設定のスイッチ、切り抜き結果ダイアログなどの操作に iOS と Android の触感フィードバックを追加；「一般設定」に「触感フィードバック」スイッチを追加し、いつでもオフにできます（初期設定はオン）。",
+          "修复注册/登录等页面在校验失败时不显示提示文字的问题，并优化部分页面细节与稳定性。": "登録/ログインなどのページで検証失敗時にヒントが表示されない問題を修正し、一部ページの細部と安定性を改善しました。",
           "首次发布": "初回リリース",
           "拍照记录饮食、本地智能抠图、AI 热量与营养分析、体脂率参考、饮食时间线等核心功能上线": "写真での食事記録、ローカルスマート切り抜き、AIカロリー・栄養分析、体脂肪率の参考、食事タイムラインなどの主要機能をリリース",
           "个人中心": "マイページ",
@@ -8951,10 +9395,13 @@
           "消息通知": "알림",
           "暂无消息": "메시지가 없습니다",
           "暂无饮食记录": "아직 식사 기록이 없습니다",
-          "今天暂无饮食记录": "오늘은 식사 기록이 없습니다",
+          "今日暂无饮食记录": "오늘은 식사 기록이 없습니다",
           "今日暂无记录": "오늘은 식사 기록이 없습니다",
           "此功能暂未开放": "이 기능은 아직 사용할 수 없습니다",
           "已保存": "저장되었습니다",
+          "小贴士": "팁",
+          "我的手账": "나의 다이어리",
+          "思考中...": "생각 중...",
           "云端同步失败，请检查网络后重试": "클라우드 동기화에 실패했습니다. 네트워크를 확인한 후 다시 시도하세요.",
           "存储空间不足，请删除部分记录后重试": "저장 공간이 부족합니다. 일부 기록을 삭제한 후 다시 시도하세요.",
           "较上周": "지난주 대비 ",
@@ -8972,23 +9419,41 @@
           "拾光帮助中心": "拾光 고객센터",
           "常见问题与使用指南": "자주 묻는 질문과 사용 가이드",
           "快速上手": "시작하기",
-          "在\"滑动\"页点击右上角相机按钮，即可拍照或从相册选择食物照片。确认后拾光会自动抠图并分析热量与营养，保存后可在首页时间线查看记录。": "\"스와이프\" 페이지 오른쪽 위 카메라 버튼을 누르면 사진을 찍거나 앨범에서 선택할 수 있습니다. 확인하면 拾光이 자동으로 누끼를 따고 칼로리와 영양을 분석합니다. 저장 후에는 홈 타임라인에서 확인할 수 있습니다.",
+          "拾光分为「首页」「滑动」「数据」「我的」四个页面：首页查看每天的饮食时间线，滑动页拍照记录饮食，数据页查看日历、手账与统计，我的页管理个人资料和账号。": "拾光은 '홈', '스와이프', '데이터', '마이' 네 페이지로 구성되어 있습니다. 홈에서는 하루의 식사 타임라인을 보고, 스와이프에서는 사진으로 식사를 기록하고, 데이터에서는 캘린더·다이어리·통계를 확인하며, 마이에서는 프로필과 계정을 관리합니다.",
+          "如何记录一餐？": "식사는 어떻게 기록하나요?",
+          "在「滑动」页点击右上角相机按钮，拍照或从相册选择食物照片，拾光会自动抠图并分析热量与营养；在结果页还可以点「询问 AI」补充分量或换算营养成分表。确认餐次、时间与分量后保存，记录会出现在首页时间线和数据页中。": "'스와이프' 페이지 오른쪽 위 카메라 버튼을 눌러 사진을 찍거나 앨범에서 선택하면 拾光이 자동으로 누끼를 따고 칼로리와 영양을 분석합니다. 결과 페이지에서는 'AI에게 묻기'로 분량이나 영양성분표를 추가할 수 있습니다. 식사·시간·분량을 확인하고 저장하면 홈 타임라인과 데이터 페이지에 표시됩니다.",
+          "首页的日期怎么用？": "홈 화면의 날짜는 어떻게 사용하나요?",
+          "点击首页左上角的日期可以按年 / 月 / 日选择，也可以直接点下方的一周日期条切换。选中的日期会同步到「数据」页日历下方的框框和手账页，方便回顾那一天的记录。": "홈 왼쪽 위 날짜를 누르면 연/월/일로 선택할 수 있고, 아래 일주일 날짜 바를 눌러도 전환됩니다. 선택한 날짜는 '데이터' 페이지 캘린더 아래 상자와 다이어리 페이지에 동기화되어 그날의 기록을 되돌아볼 수 있습니다.",
+          "手账页怎么玩？": "다이어리 페이지에서는 무엇을 할 수 있나요?",
+          "在「数据」页点击日历下方的框框即可进入手账页：可以拖动抠图摆放位置、左右滑动翻页，每张图右下角显示热量；左上角是「我的手账」标题，右上角依次是贴纸、恢复、垃圾桶三个按钮。": "'데이터' 페이지에서 캘린더 아래 상자를 누르면 다이어리가 열립니다. 누끼를 드래그해 위치를 정리하고 좌우로 스와이프해 페이지를 넘길 수 있으며, 각 이미지 오른쪽 아래에 칼로리가 표시됩니다. 왼쪽 위에는 '나의 다이어리' 제목, 오른쪽 위에는 스티커·복원·휴지통 세 개의 버튼이 있습니다.",
+          "贴纸和美纹纸怎么添加？": "스티커와 마스킹 테이프는 어떻게 추가하나요?",
+          "在手账页点击右上角的贴纸按钮，选择分类与贴纸即可添加到页面；点选贴纸后可调整大小、旋转或删除，长按可连续旋转。美纹纸支持裁剪：调整长度与粗细、一键水平、旋转 60°。": "다이어리 페이지 오른쪽 위 스티커 버튼을 눌러 카테고리와 스티커를 선택해 추가합니다. 스티커를 선택하면 크기 조절·회전·삭제가 가능하고, 길게 누르면 연속 회전합니다. 마스킹 테이프는 길이와 두께 조절, 수평 맞춤, 60° 회전을 지원합니다.",
+          "如何删除或恢复手账里的抠图？": "다이어리의 누끼를 삭제하거나 복원하려면?",
+          "点击手账页右上角的垃圾桶进入删除模式，点选抠图即可移除，再点垃圾桶退出；点击旁边的恢复按钮，可以把移除的抠图一次性放回页面。删除只影响手账页的摆放，不会删除记录本身。": "다이어리 오른쪽 위 휴지통을 누르면 삭제 모드가 되고, 누끼를 누르면 삭제됩니다. 휴지통을 다시 누르면 종료됩니다. 옆의 복원 버튼을 누르면 삭제한 누끼를 한 번에 되돌릴 수 있습니다. 삭제는 다이어리 배치에만 영향을 주며 기록 자체는 삭제되지 않습니다.",
+          "「数据」页能看到什么？": "'데이터' 페이지에서는 무엇을 볼 수 있나요?",
+          "数据页第一页是日历和当天的记录框框，点框框上的日期可以快速切换；点右上角的切换按钮进入第二页，可以查看近 6 个月活跃热力图、近 7 天热量趋势和营养汇总。": "데이터 페이지 첫 화면은 캘린더와 그날의 기록 상자이며, 상자의 날짜를 눌러 빠르게 날짜를 바꿀 수 있습니다. 오른쪽 위 전환 버튼으로 두 번째 페이지에 가면 최근 6개월 활동 히트맵, 최근 7일 칼로리 추이, 영양 요약을 볼 수 있습니다.",
           "如何修改昵称和个性签名？": "닉네임과 한 줄 소개는 어떻게 변경하나요?",
           "进入\"我的\"页面，点击昵称或签名即可直接编辑，修改后自动保存。": "\"마이\" 페이지에서 닉네임이나 한 줄 소개를 누르면 바로 편집할 수 있으며, 변경 사항은 자동 저장됩니다.",
           "如何更换封面和头像？": "커버와 프로필 사진은 어떻게 변경하나요?",
           "在\"我的\"页面点击封面右下角的\"Change Cover\"可更换封面；点击头像可上传并裁剪头像。": "\"마이\" 페이지에서 커버 오른쪽 아래의 \"Change Cover\"를 누르면 커버를 변경할 수 있고, 프로필 사진을 누르면 업로드 후 자를 수 있습니다.",
+          "如何注册和登录？": "회원가입과 로그인은 어떻게 하나요?",
+          "在菜单中点击「登录」进入登录页，支持用户名密码、Google、QQ 邮箱和手机号四种方式，没有账号可以直接注册。登录后饮食记录与手账摆放会同步保存，换设备也能看到。": "메뉴의 '로그인'에서 로그인 페이지를 엽니다. 사용자 이름과 비밀번호, Google, QQ 이메일, 휴대폰 번호 네 가지 방식을 지원하며 계정이 없으면 바로 가입할 수 있습니다. 로그인하면 식사 기록과 다이어리 배치가 동기화되어 다른 기기에서도 볼 수 있습니다.",
+          "如何绑定手机号或邮箱？": "휴대폰 번호나 이메일은 어떻게 연결하나요?",
+          "进入「我的」→ 右上角菜单 →「账号与安全」，可以绑定手机号、QQ 邮箱，设置登录密码和密保问题；忘记密码时可通过密保或绑定信息找回。": "'마이' → 오른쪽 위 메뉴 → '계정 및 보안'에서 휴대폰 번호나 QQ 이메일을 연결하고 로그인 비밀번호와 보안 질문을 설정할 수 있습니다. 비밀번호를 잊어버리면 보안 질문이나 연결된 정보로 재설정할 수 있습니다.",
+          "如何注销账号或删除数据？": "계정을 삭제하거나 데이터를 지우려면?",
+          "「账号与安全」页面提供「注销账号」和「删除所有历史数据」；未登录时，清除浏览器站点数据即可删除保存在本机的全部信息。": "'계정 및 보안'에서 '계정 삭제'와 '모든 기록 데이터 삭제'를 제공합니다. 로그인하지 않은 경우 브라우저 사이트 데이터를 지우면 기기에 저장된 모든 정보가 삭제됩니다.",
+          "我的数据保存在哪里？": "내 데이터는 어디에 저장되나요?",
+          "未登录时，登录状态、个人资料和消息记录保存在设备本地；登录后，饮食记录、手账摆放位置等会同步保存到我们的服务器，用于跨设备查看。食物照片仅在你使用 AI 分析时发送给第三方识别服务。": "로그인하지 않은 경우 로그인 상태, 프로필, 메시지가 기기에 저장됩니다. 로그인하면 식사 기록과 다이어리 배치 등이 서버에 동기화되어 여러 기기에서 볼 수 있습니다. 음식 사진은 AI 분석을 사용할 때만 제3자 인식 서비스로 전송됩니다.",
           "体脂率是怎么计算的？": "체지방률은 어떻게 계산되나요?",
           "体脂率根据性别、身高、体重估算（德伦伯格公式，年龄按 30 岁计算），仅供参考，不构成专业健康建议。": "체지방률은 성별, 키, 몸무게로 추정합니다(드렌버그 공식, 나이는 30세 기준). 참고용이며 전문적인 건강 조언이 아닙니다.",
           "热量和营养数据准确吗？": "칼로리와 영양 데이터는 정확한가요?",
           "热量、蛋白、脂肪、碳水、糖、纤维、钠等数据由 AI 根据照片估算，可能存在偏差，仅供参考，不能替代专业的膳食建议。": "칼로리, 단백질, 지방, 탄수화물, 당류, 식이섬유, 나트륨은 AI가 사진으로 추정한 값입니다. 오차가 있을 수 있으며 참고용으로만 사용하세요. 전문적인 식이 조언을 대신할 수 없습니다.",
           "抠图失败怎么办？": "누끼가 실패하면 어떻게 하나요?",
           "请确认网络正常后重试；如果照片过于复杂或光线不足，建议重新拍摄一张主体清晰的照片。": "네트워크를 확인한 후 다시 시도하세요. 사진이 너무 복잡하거나 어두우면 피사체가 선명한 사진을 다시 찍는 것이 좋습니다.",
-          "我的数据保存在哪里？": "내 데이터는 어디에 저장되나요?",
-          "你的登录状态、个人资料、封面头像、消息记录都保存在设备本地（浏览器存储），不会上传到我们的服务器；食物照片仅在你使用 AI 分析时发送给第三方识别服务。": "로그인 상태, 프로필, 커버, 프로필 사진, 메시지는 기기 로컬(브라우저 저장소)에 저장되며 서버로 업로드되지 않습니다. 음식 사진은 AI 분석을 사용할 때만 제3자 인식 서비스로 전송됩니다.",
-          "如何删除我的数据？": "내 데이터를 삭제하려면?",
-          "清除浏览器站点数据即可删除保存在本地的全部信息（包括登录状态和个人资料）。": "브라우저 사이트 데이터를 지우면 로컬에 저장된 모든 정보(로그인 상태와 프로필 포함)가 삭제됩니다.",
+          "如何关闭震动反馈或权限？": "진동 피드백이나 권한은 어떻게 끄나요?",
+          "进入「我的」→ 右上角菜单 →「通用设置」，可以开关消息通知、地理位置权限、动作与方向权限和震动反馈，也可以管理自己的 API 调用密钥。": "'마이' → 오른쪽 위 메뉴 → '일반 설정'에서 메시지 알림, 위치 권한, 동작 및 방향 권한, 진동 피드백을 켜고 끌 수 있으며 자신의 API 키도 관리할 수 있습니다.",
           "如何把拾光添加到主屏幕？": "홈 화면에 추가하려면?",
-          "iPhone：用 Safari 打开后点击分享菜单 →\"添加到主屏幕\"；Android：用 Chrome 打开后点击菜单 →\"添加到主屏幕\"。": "iPhone: Safari에서 열고 공유 메뉴 → \"홈 화면에 추가\". Android: Chrome에서 열고 메뉴 → \"홈 화면에 추가\".",
+          "iPhone：用 Safari 打开后点击分享菜单 →\"添加到主屏幕\"；Android：可以下载安装安卓版 App，或用 Chrome 打开后点击菜单 →\"添加到主屏幕\"。": "iPhone: Safari에서 열고 공유 메뉴 → \"홈 화면에 추가\". Android: 안드로이드 앱을 다운로드해 설치하거나 Chrome에서 열고 메뉴 → \"홈 화면에 추가\".",
           "如何切换语言？": "언어를 변경하려면?",
           "进入\"我的\"页面 → 右上角菜单 →\"多语言和翻译\"，可选择简体中文、English、日本語、한국어。": "\"마이\" 페이지 → 오른쪽 위 메뉴 → \"언어 및 번역\"에서 중국어 간체, English, 日本語, 한국어를 선택할 수 있습니다.",
           "还有问题？": "더 궁금한 점이 있나요?",
@@ -8996,6 +9461,25 @@
           "拾光官网": "공식 웹사이트",
           "更新日志": "업데이트 내역",
           "拾光更新日志": "拾光 업데이트 내역",
+          "查看大图升级": "확대 보기 업그레이드",
+          "首页点击抠图即可放大查看：背景变暗突出食物，图片下方显示名称与 AI 小贴士——会看图片判断这是什么食物，给出一句可爱温馨的提示，思考时四芒星旋转闪光，完成后右下角盖上拾光印章；右上角新增虚化按钮，一点即可模糊遮住首页内容，方便截图；大图支持上下拖动，方便调整到合适的截图位置，所有抠图统一显示尺寸。": "홈에서 누끼를 탭하면 크게 볼 수 있습니다: 배경이 어두워져 음식이 돋보이고, 아래에 이름과 AI 팁이 표시됩니다. 팁은 사진을 보고 어떤 음식인지 판단해 귀엽고 따뜻한 한마디를 전합니다. 생각하는 동안 네 갈래 별이 회전·반짝이고, 완료되면 오른쪽 아래에 拾光 도장이 찍힙니다. 오른쪽 위 흐림 버튼으로 홈 화면 내용을 가려 스크린샷을 찍기 좋게 만들 수 있고, 큰 이미지는 위아래로 드래그해 위치를 조정할 수 있으며 모든 누끼가 같은 크기로 표시됩니다.",
+          "交互优化": "인터랙션 개선",
+          "抠图结果弹窗支持向下拖动关闭，拖到一定程度松手才会关闭，没到会自动弹回；抠图加载动画在「即将完成」阶段转速加快。": "누끼 결과 시트를 아래로 드래그해 닫을 수 있습니다. 충분히 끌어서 놓으면 닫히고, 부족하면 원래대로 돌아옵니다. 누끼 로딩 애니메이션은 '곧 완료' 단계에서 회전이 빨라집니다.",
+          "修复反复开关大图后小贴士可能不显示的问题；修复手账页标题不跟随语言、更新日志部分内容仍显示中文的问题；统一多语言下抠图加载文案的位置。": "확대 보기를 반복해서 열고 닫은 뒤 팁이 표시되지 않을 수 있는 문제를 수정; 다이어리 페이지 제목이 언어 설정을 따르지 않던 문제와 업데이트 내역 일부가 중국어로 표시되던 문제를 수정; 다국어에서 누끼 로딩 문구 위치를 통일했습니다.",
+          "v1.3.7 更新": "v1.3.7 업데이트",
+          "新版本 v1.3.7 已发布：首页点击抠图可放大查看并显示 AI 小贴士，新增背景虚化、上下拖动与统一显示尺寸；抠图结果弹窗支持向下拖动关闭；修复小贴士不显示、更新日志未翻译等问题。可在「菜单 → 更新日志」查看详情。": "v1.3.7이 출시되었습니다: 홈에서 누끼를 탭하면 확대 보기와 AI 팁이 표시되고, 배경 흐림·위아래 드래그·표시 크기 통일을 지원합니다; 누끼 결과 시트는 아래로 드래그해 닫을 수 있습니다; 팁이 표시되지 않던 문제와 업데이트 내역 미번역 문제를 수정했습니다. 자세한 내용은 '메뉴 → 업데이트 내역'에서 확인하세요.",
+          "手账页体验升级": "다이어리 경험 업그레이드",
+          "美纹纸贴纸新增「美纹纸裁剪」：支持旋转 60°（长按连续旋转）、一键水平、删除，并可调整长度与粗细，附带使用说明；手账页纸张与页码位置微调，删除与恢复抠图的动画更顺滑，删除模式下点选抠图会直接吸进垃圾桶并带触感反馈。": "마스킹 테이프 스티커에 '마스킹 테이프 자르기' 추가: 60° 회전(길게 눌러 연속 회전), 원터치 수평, 삭제, 길이와 두께 조절이 가능하며 사용 설명이 포함됩니다. 다이어리 종이와 페이지 번호 위치를 미세 조정하고 삭제/복원 애니메이션을 더 부드럽게 했으며, 삭제 모드에서 누끼를 탭하면 휴지통으로 빨려 들어가고 햅틱 피드백이 있습니다.",
+          "统计页优化": "통계 페이지 최적화",
+          "日历下方框框没有记录时显示「今日暂无记录」；框框里的抠图支持左右滑动查看，右下角显示热量（与滑动页同款斜体描边），图片统一高度；进入手账页后，日历、框框与手账页的数据保持一致。": "캘린더 아래 상자에 기록이 없으면 '오늘 기록 없음'을 표시; 상자 안의 누끼는 좌우로 스와이프해 볼 수 있고 오른쪽 아래에 칼로리를 표시(스와이프 페이지와 같은 이탤릭 테두리 스타일), 이미지 높이 통일; 다이어리에 들어가면 캘린더·상자·다이어리 데이터가 일치합니다.",
+          "贴纸选择优化": "스티커 선택 최적화",
+          "贴纸弹窗改为按需加载，打开与切换分类明显更快；「便利贴」分类暂未开放，点击会提示。": "스티커 시트를 필요할 때 불러오도록 해 열기와 카테고리 전환이 눈에 띄게 빨라졌습니다; '포스트잇' 카테고리는 아직 열려 있지 않으며 탭하면 안내가 표시됩니다.",
+          "触感反馈": "햅틱 피드백",
+          "日历左右切换、手账页左上角按钮（垃圾桶 / 恢复 / 扳手）、日期滚轮每滑过一格、日期弹窗的取消 / 确定、滑动页删除按钮与抠图上的叉叉，均新增 iOS 与安卓触感反馈；「通用设置 → 震动反馈」可一键关闭。": "캘린더 좌우 전환, 다이어리 페이지 버튼(휴지통/복원/렌치), 날짜 휠 한 칸마다, 날짜 시트의 취소/확인, 스와이프 페이지 삭제 버튼과 누끼의 ×에 iOS와 Android 햅틱 피드백을 추가; '일반 설정 → 햅틱 피드백'에서 언제든 끌 수 있습니다.",
+          "修复注销账号后本机缓存未清空、可能看到上一个账号数据的问题；修复模拟账号日历与框框、手账页数据不一致、恢复动画不播放、演示抠图边缘出现竖线等问题；优化删除按钮展开动画，减少卡顿。": "계정 삭제 후 로컬 캐시가 지워지지 않아 이전 계정 데이터가 보일 수 있는 문제를 수정; 데모 계정의 캘린더·상자·다이어리 데이터 불일치, 복원 애니메이션이 재생되지 않던 문제, 데모 누끼 가장자리의 세로선 문제를 수정; 삭제 버튼 펼침 애니메이션을 최적화해 끊김을 줄였습니다.",
+          "新增触感反馈": "햅틱 피드백 추가",
+          "底部导航、首页日期圆圈、首页/统计页切换按钮、菜单按钮、滑动页相机按钮、统计页日历图片坠落、通用设置开关以及抠图结果确认弹窗等操作，新增 iOS 与安卓触感反馈；并在「通用设置」新增「震动反馈」开关，可随时一键关闭（默认开启）。": "하단 내비게이션, 홈 날짜 원, 홈/통계 전환 버튼, 메뉴 버튼, 스와이프 페이지 카메라 버튼, 통계 캘린더 이미지 낙하, 일반 설정 스위치, 누끼 결과 확인 다이얼로그 등에 iOS와 Android 햅틱 피드백을 추가; '일반 설정'에 '햅틱 피드백' 스위치를 추가해 언제든 끌 수 있습니다(기본 켜짐).",
+          "修复注册/登录等页面在校验失败时不显示提示文字的问题，并优化部分页面细节与稳定性。": "가입/로그인 등 페이지에서 검증 실패 시 안내 문구가 표시되지 않던 문제를 수정하고 일부 페이지의 세부 사항과 안정성을 개선했습니다.",
           "首次发布": "첫 출시",
           "拍照记录饮食、本地智能抠图、AI 热量与营养分析、体脂率参考、饮食时间线等核心功能上线": "사진 식사 기록, 로컬 스마트 누끼, AI 칼로리·영양 분석, 체지방률 참고, 식사 타임라인 등 핵심 기능 출시",
           "个人中心": "마이페이지",
@@ -9701,9 +10185,9 @@
       function notifUpdateMessage() {
         return {
           id: "m" + Date.now(),
-          tag: "v1.3.2",
-          title: "v1.3.2 更新",
-          content: "新版本 v1.3.2 已发布：手账页新增美纹纸裁剪，删除/恢复动画更顺滑；统计页框框支持滑动看图与显示热量；贴纸弹窗打开更快；新增多处触感反馈，并修复注销账号数据残留等问题。可在「菜单 → 更新日志」查看详情。",
+          tag: "v1.3.7",
+          title: "v1.3.7 更新",
+          content: "新版本 v1.3.7 已发布：首页点击抠图可放大查看并显示 AI 小贴士，新增背景虚化、上下拖动与统一显示尺寸；抠图结果弹窗支持向下拖动关闭；修复小贴士不显示、更新日志未翻译等问题。可在「菜单 → 更新日志」查看详情。",
           time: Date.now(),
           read: false
         };
@@ -9717,7 +10201,7 @@
             if (Array.isArray(list)) {
               var hasUpdate = false;
               for (var i = 0; i < list.length; i++) {
-                if (list[i] && list[i].tag === "v1.3.2") hasUpdate = true;
+                if (list[i] && list[i].tag === "v1.3.7") hasUpdate = true;
               }
               if (!hasUpdate) {
                 list.unshift(notifUpdateMessage());
@@ -11674,7 +12158,7 @@
   </div>
   <div class="stats-subpage__trash-slot" id="statsSubpageTrashSlot" aria-hidden="true">
     <button class="button">
-      <svg viewBox="0 0 448 512" class="svgIcon"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"></path></svg>
+      <svg viewBox="0 0 24 24" class="svgIcon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
     </button>
   </div>
   <div class="stats-subpage__restore-slot" id="statsSubpageRestoreSlot" aria-hidden="true">
@@ -11684,9 +12168,10 @@
   </div>
   <div class="stats-subpage__wrench-slot" id="statsSubpageWrenchSlot" aria-hidden="true">
     <button class="wrench-btn" id="statsSubpageWrenchBtn" type="button" aria-label="选择贴纸">
-      <img src="/images/wrench.png" alt="" />
+      <img src="/images/sticker.png" alt="" />
     </button>
   </div>
+  <div class="stats-subpage__title" id="statsSubpageTitle">我的手账</div>
 
   <div class="sticker-backdrop" id="stickerBackdrop" aria-hidden="true"></div>
   <div class="sticker-sheet" id="stickerSheet" role="dialog" aria-modal="true" aria-label="选择贴纸">
@@ -11928,6 +12413,29 @@
       </div>
     </div>
     <div class="pic-sheet__footer">© PickTime版权所有</div>
+  </div>
+
+  <div class="cutout-viewer" id="cutoutViewer" aria-hidden="true">
+    <button class="cutout-viewer__blur" id="cutoutViewerBlur" type="button" aria-label="虚化背景">
+      <img class="cutout-viewer__blur-icon" src="/images/blur-circle.png" alt="" />
+    </button>
+    <figure class="cutout-viewer__stage">
+      <div class="cutout-viewer__frame">
+        <img class="cutout-viewer__img" id="cutoutViewerImg" alt="" />
+      </div>
+      <figcaption class="cutout-viewer__name" id="cutoutViewerName"></figcaption>
+      <div class="cutout-viewer__tip" id="cutoutViewerTip">
+        <div class="cutout-viewer__tip-head">
+          <span class="cutout-viewer__tip-label">小贴士</span>
+          <span class="cutout-viewer__tip-status" id="cutoutViewerTipStatus">
+            <svg class="cutout-viewer__tip-star" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path></svg>
+            <span class="cutout-viewer__tip-thinking">思考中...</span>
+          </span>
+        </div>
+        <p class="cutout-viewer__tip-text" id="cutoutViewerTipText"></p>
+        <img class="cutout-viewer__tip-seal" id="cutoutViewerTipSeal" src="/images/seal.png" alt="" aria-hidden="true" />
+      </div>
+    </figure>
   </div>
 
   <div class="sheet-mask" id="regionMask" aria-hidden="true"></div>
@@ -14927,6 +15435,14 @@
         for (var di = 0; di < dayEls.length; di++) attachIOSSwitchHaptic(dayEls[di]);
       }
 
+      // 首页日期变化时，统计页日历下方的框框（含手账页）同步跟随
+      function syncStatsDateFromHome(date) {
+        statsPickedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        if (statsPlaceholderDate) statsPlaceholderDate.textContent = i18nDate(statsPickedDate);
+        renderStatsPlaceholderPics();
+        renderStatsSubpageItems();
+      }
+
       function selectHomeDate(date) {
         selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
         if (dateEl) dateEl.textContent = i18nDate(selectedDate);
@@ -14934,6 +15450,7 @@
         renderTimeline(selectedDate);
         renderFoodCarousel();
         applyMealCardMode();
+        syncStatsDateFromHome(selectedDate);
       }
 
       if (weekStrip) {
@@ -14945,6 +15462,242 @@
           var idx = Array.prototype.indexOf.call(days, dayEl);
           if (idx < 0) return;
           selectHomeDate(new Date(weekStripMonday.getFullYear(), weekStripMonday.getMonth(), weekStripMonday.getDate() + idx));
+        });
+      }
+
+      // 首页点击时间线抠图：背景变暗，抠图垂直居中放大突出，下方显示名字
+      var cutoutViewer = document.getElementById("cutoutViewer");
+      var cutoutViewerImg = document.getElementById("cutoutViewerImg");
+      var cutoutViewerName = document.getElementById("cutoutViewerName");
+      var cutoutViewerBlur = document.getElementById("cutoutViewerBlur");
+      var cutoutViewerOpen = false;
+
+      // 小贴士：AI 看图片判断食物并给一句可爱提示
+      var cutoutViewerTip = document.getElementById("cutoutViewerTip");
+      var cutoutViewerTipText = document.getElementById("cutoutViewerTipText");
+      var cutoutTipCache = {};
+      var cutoutTipToken = 0;
+
+      // 统一转成 384px PNG，兼容 webp 并减小上传体积
+      function cutoutTipImageDataUrl(src) {
+        if (src.indexOf("data:image/png") === 0) return Promise.resolve(src);
+        return new Promise(function (resolve, reject) {
+          var img = new Image();
+          img.onload = function () {
+            try {
+              var maxSide = 384;
+              var w = img.naturalWidth || img.width;
+              var h = img.naturalHeight || img.height;
+              var scale = Math.min(1, maxSide / Math.max(w, h));
+              var cw = Math.max(1, Math.round(w * scale));
+              var ch = Math.max(1, Math.round(h * scale));
+              var c = document.createElement("canvas");
+              c.width = cw;
+              c.height = ch;
+              c.getContext("2d").drawImage(img, 0, 0, cw, ch);
+              resolve(c.toDataURL("image/png"));
+            } catch (e) {
+              reject(e);
+            }
+          };
+          img.onerror = function () { reject(new Error("image load failed")); };
+          img.src = src;
+        });
+      }
+
+      function hideCutoutTip() {
+        if (!cutoutViewerTip) return;
+        cutoutViewerTip.classList.add("is-hidden");
+        cutoutViewerTip.classList.remove("is-done");
+        if (cutoutViewerTipText) cutoutViewerTipText.textContent = "";
+      }
+
+      function renderCutoutTip(tip) {
+        if (!cutoutViewerTip || !cutoutViewerTipText) return;
+        cutoutViewerTip.classList.remove("is-hidden");
+        cutoutViewerTipText.textContent = tip;
+        cutoutViewerTip.classList.add("is-done");
+      }
+
+      // 思考中：四芒星旋转 + 「思考中...」闪光；拿到结果后两者渐渐隐藏，小贴士淡入
+      function requestCutoutTip(src) {
+        if (!cutoutViewerTip || !src) return;
+        var token = ++cutoutTipToken;
+        var lang = window.__picktimeI18n ? window.__picktimeI18n.get() : "zh-CN";
+        var cacheKey = src + "|" + lang;
+        if (cutoutTipCache[cacheKey]) {
+          renderCutoutTip(cutoutTipCache[cacheKey]);
+          return;
+        }
+        // 先无动画地清掉上一条的印章/文字，避免切换食物时旧印章先闪一下
+        cutoutViewerTip.classList.add("is-hidden");
+        cutoutViewerTip.classList.remove("is-done");
+        if (cutoutViewerTipText) cutoutViewerTipText.textContent = "";
+        void cutoutViewerTip.offsetWidth;
+        cutoutViewerTip.classList.remove("is-hidden");
+        cutoutTipImageDataUrl(src).then(function (dataUrl) {
+          return fetch("/api/food-tip", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: dataUrl, lang: lang })
+          });
+        }).then(function (res) {
+          return res.json().catch(function () { return {}; });
+        }).then(function (data) {
+          if (data && data.tip) {
+            // 即使已经关掉大图（token 失效）也缓存结果，下次打开直接显示，避免重复请求
+            cutoutTipCache[cacheKey] = data.tip;
+            if (token !== cutoutTipToken) return;
+            renderCutoutTip(data.tip);
+          } else if (token === cutoutTipToken) {
+            hideCutoutTip();
+          }
+        }).catch(function () {
+          if (token !== cutoutTipToken) return;
+          hideCutoutTip();
+        });
+      }
+
+      function closeCutoutViewer() {
+        if (!cutoutViewer || !cutoutViewerOpen) return;
+        cutoutViewerOpen = false;
+        cutoutTipToken++;
+        cutoutViewer.classList.remove("is-open");
+        cutoutViewer.setAttribute("aria-hidden", "true");
+      }
+
+      // 元气体没就绪前先藏起名字/小贴士，避免常规字体先渲染再跳字
+      var cutoutFontReady = false;
+      function waitCutoutFont() {
+        if (cutoutFontReady || !document.fonts || !document.fonts.load) return;
+        cutoutViewer.classList.add("is-font-wait");
+        var done = function () {
+          cutoutFontReady = true;
+          cutoutViewer.classList.remove("is-font-wait");
+        };
+        document.fonts.load('24px "KuaiLe Full"').then(function () {
+          if (document.fonts.check('24px "KuaiLe Full"')) done();
+        }).catch(function () {});
+        window.setTimeout(done, 5000);
+      }
+
+      function openCutoutViewer(src, name) {
+        if (!cutoutViewer || !cutoutViewerImg || !src) return;
+        cutoutViewerImg.src = src;
+        if (cutoutViewerName) cutoutViewerName.textContent = name || "";
+        cutoutViewerOpen = true;
+        cutoutViewer.classList.remove("is-blurred");
+        if (cutoutViewerBlur) cutoutViewerBlur.classList.remove("is-hidden");
+        cutoutPanY = 0;
+        cutoutPanApply();
+        cutoutViewer.classList.add("is-open");
+        cutoutViewer.setAttribute("aria-hidden", "false");
+        waitCutoutFont();
+        requestCutoutTip(src);
+      }
+
+      // 上下拖动查看器内容，方便找合适的截图位置
+      var cutoutPanY = 0;
+      var cutoutPanDrag = null;
+      var cutoutPanMoved = false;
+      var cutoutStage = cutoutViewer ? cutoutViewer.querySelector(".cutout-viewer__stage") : null;
+
+      function cutoutPanApply() {
+        if (cutoutStage) cutoutStage.style.setProperty("--pan", cutoutPanY.toFixed(1) + "px");
+      }
+
+      function cutoutPanBounds() {
+        if (!cutoutStage) return null;
+        var rect = cutoutStage.getBoundingClientRect();
+        var baseTop = rect.top - cutoutPanY;
+        var baseBottom = rect.bottom - cutoutPanY;
+        if (cutoutViewerTip && !cutoutViewerTip.classList.contains("is-hidden")) {
+          var tipRect = cutoutViewerTip.getBoundingClientRect();
+          if (tipRect.height > 0) baseBottom = Math.max(baseBottom, tipRect.bottom - cutoutPanY);
+        }
+        var vh = window.innerHeight;
+        var margin = 16;
+        var min = margin - baseTop;
+        var max = vh - margin - baseBottom;
+        if (min > max) {
+          var tmp = min;
+          min = max;
+          max = tmp;
+        }
+        return { min: min, max: max };
+      }
+
+      function cutoutPanStart(y) {
+        cutoutPanDrag = { y: y, startPan: cutoutPanY };
+        cutoutPanMoved = false;
+        if (cutoutStage) cutoutStage.style.transition = "none";
+      }
+
+      function cutoutPanMove(y, event) {
+        if (!cutoutPanDrag) return;
+        var dy = y - cutoutPanDrag.y;
+        if (!cutoutPanMoved && Math.abs(dy) < 6) return;
+        cutoutPanMoved = true;
+        if (event && event.cancelable) event.preventDefault();
+        var next = cutoutPanDrag.startPan + dy;
+        var b = cutoutPanBounds();
+        if (b) next = Math.max(b.min, Math.min(b.max, next));
+        cutoutPanY = next;
+        cutoutPanApply();
+      }
+
+      function cutoutPanEnd() {
+        if (!cutoutPanDrag) return;
+        cutoutPanDrag = null;
+        if (cutoutStage) cutoutStage.style.transition = "";
+      }
+
+      if (cutoutViewer) {
+        cutoutViewer.addEventListener("pointerdown", function (event) {
+          if (event.target && event.target.closest(".cutout-viewer__blur")) return;
+          if (event.pointerType === "mouse" && event.button !== 0) return;
+          cutoutPanStart(event.clientY);
+          try { cutoutViewer.setPointerCapture(event.pointerId); } catch (e) {}
+        });
+        cutoutViewer.addEventListener("pointermove", function (event) {
+          cutoutPanMove(event.clientY, event);
+        });
+        cutoutViewer.addEventListener("pointerup", function () { cutoutPanEnd(); });
+        cutoutViewer.addEventListener("pointercancel", function () { cutoutPanEnd(); });
+        cutoutViewer.addEventListener("click", function (event) {
+          if (cutoutPanMoved) {
+            cutoutPanMoved = false;
+            return;
+          }
+          if (event.target && event.target.closest(".cutout-viewer__blur")) return;
+          closeCutoutViewer();
+        });
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape") closeCutoutViewer();
+        });
+      }
+
+      // 右上角虚化按钮：模糊遮住首页内容；点一下后按钮自动隐藏，方便截图
+      if (cutoutViewerBlur) {
+        cutoutViewerBlur.addEventListener("click", function (event) {
+          event.stopPropagation();
+          vibrateTap(8);
+          cutoutViewer.classList.toggle("is-blurred");
+          cutoutViewerBlur.classList.add("is-hidden");
+        });
+      }
+
+      if (timeline) {
+        timeline.addEventListener("click", function (event) {
+          if (!document.body.classList.contains("is-home") || document.body.classList.contains("home-page2")) return;
+          var pic = event.target.closest(".side-timeline__pic");
+          if (!pic) return;
+          var img = pic.querySelector("img");
+          if (!img) return;
+          var item = pic.closest(".side-timeline__item");
+          var nameEl = item ? item.querySelector(".side-timeline__food") : null;
+          vibrateTap(8);
+          openCutoutViewer(img.currentSrc || img.src, nameEl ? nameEl.textContent : img.getAttribute("alt"));
         });
       }
 
@@ -14999,7 +15752,7 @@
             '<div class="side-timeline__item side-timeline__item--empty">' +
               '<span class="side-timeline__dot"></span>' +
               '<div class="side-timeline__info">' +
-                '<span class="side-timeline__empty">' + i18nT("今天暂无饮食记录") + "</span>" +
+                '<span class="side-timeline__empty">' + i18nT("今日暂无饮食记录") + "</span>" +
               "</div>" +
             "</div>");
           return;
@@ -16823,6 +17576,17 @@
         if (window.__picktimeAttachHaptic) window.__picktimeAttachHaptic(weekDelete);
       }
 
+      // 删除模式激活后，点击空白处（按钮与抠图以外的区域）即可关闭
+      var weekPage = document.getElementById("weekPage");
+      if (weekPage) {
+        weekPage.addEventListener("click", function (event) {
+          if (!weekDeleteMode) return;
+          var target = event.target;
+          if (target && target.closest && target.closest("#weekDelete, .food-carousel__item")) return;
+          setWeekDeleteMode(false);
+        });
+      }
+
       window.__picktimeRerender = function () {
         if (window.__picktimeApplyDemoMode) {
           window.__picktimeApplyDemoMode();
@@ -17156,6 +17920,74 @@
         cutMask.classList.remove("is-open");
         cutSheet.classList.remove("is-open");
         closeAiChat();
+      }
+
+      // 抠图结果弹窗：向下拖动关闭
+      var cutSheetDrag = null;
+
+      function cutDragAllowed(target, clientY) {
+        if (target && target.closest("button, input, textarea, select, [role='slider'], a")) return false;
+        if (target && target.closest(".cut-sheet__handle")) return true;
+        var rect = cutSheet.getBoundingClientRect();
+        if (clientY - rect.top <= 64) return true;
+        return !cutSheetBody || cutSheetBody.scrollTop <= 0;
+      }
+
+      function cutSheetDragStart(y, isTouch) {
+        if (!cutSheet.classList.contains("is-open")) return;
+        cutSheetDrag = { y: y, dy: 0, t: performance.now(), touch: isTouch };
+        cutSheet.style.transition = "none";
+        cutSheet.style.userSelect = "none";
+      }
+
+      function cutSheetDragMove(y, event) {
+        if (!cutSheetDrag) return;
+        var dy = y - cutSheetDrag.y;
+        if (dy < 0) dy = 0;
+        cutSheetDrag.dy = dy;
+        if (dy > 0) {
+          if (event && event.cancelable) event.preventDefault();
+          cutSheet.style.transform = "translateY(" + dy + "px)";
+        }
+      }
+
+      function cutSheetDragEnd() {
+        if (!cutSheetDrag) return;
+        var dy = cutSheetDrag.dy;
+        cutSheetDrag = null;
+        cutSheet.style.transition = "";
+        cutSheet.style.transform = "";
+        cutSheet.style.userSelect = "";
+        // 规则：拖到一定程度（弹窗高度的 15%，最少 100px）松手才关闭，没到就弹回
+        var threshold = Math.max(100, Math.round(cutSheet.getBoundingClientRect().height * 0.15));
+        if (dy >= threshold) closeCutSheet();
+      }
+
+      if (cutSheet) {
+        cutSheet.addEventListener("pointerdown", function (event) {
+          if (event.pointerType === "touch") return;
+          if (event.pointerType === "mouse" && event.button !== 0) return;
+          if (!cutDragAllowed(event.target, event.clientY)) return;
+          cutSheetDragStart(event.clientY, false);
+          try { cutSheet.setPointerCapture(event.pointerId); } catch (e) {}
+        });
+        cutSheet.addEventListener("pointermove", function (event) {
+          if (!cutSheetDrag || cutSheetDrag.touch) return;
+          cutSheetDragMove(event.clientY, event);
+        });
+        cutSheet.addEventListener("pointerup", function () { cutSheetDragEnd(); });
+        cutSheet.addEventListener("pointercancel", function () { cutSheetDragEnd(); });
+        cutSheet.addEventListener("touchstart", function (event) {
+          if (event.touches.length !== 1) return;
+          if (!cutDragAllowed(event.target, event.touches[0].clientY)) return;
+          cutSheetDragStart(event.touches[0].clientY, true);
+        }, { passive: true });
+        cutSheet.addEventListener("touchmove", function (event) {
+          if (!cutSheetDrag || !cutSheetDrag.touch || event.touches.length !== 1) return;
+          cutSheetDragMove(event.touches[0].clientY, event);
+        }, { passive: false });
+        cutSheet.addEventListener("touchend", function () { cutSheetDragEnd(); });
+        cutSheet.addEventListener("touchcancel", function () { cutSheetDragEnd(); });
       }
 
       // 译文到达后：若弹窗还开着且用户没改过名称，则把输入框更新为译文
@@ -17932,6 +18764,8 @@
 
       function cutoutSetText(text) {
         if (!cutoutLoadingText) return;
+        // 快结束时（即将完成）转动速度提到 1.5 倍
+        if (window.__picktimeOrbSpeed) window.__picktimeOrbSpeed(text === "即将完成..." ? 1.5 : 1);
         var display = i18nT(text);
         if (cutoutLoadingText.textContent === display) return;
         window.clearTimeout(cutoutTextTimer);
@@ -18048,6 +18882,7 @@
             return;
           }
           stopProgress();
+          cutoutSetText("即将完成...");
           window.setTimeout(function () {
             cameraProcessing = false;
             openCutSheet(url, { calories: 0, names: [], nutrients: null, cutout: null });
@@ -19342,8 +20177,16 @@
       var orbReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       var orbDpr = 1;
       var orbRaf = 0;
-      var orbT0 = 0;
       var orbRunning = false;
+      var orbSpeedMul = 1;
+      var orbPhase = 0;
+      var orbLast = 0;
+
+      // 供阶段文案控制转速：快结束时提速
+      window.__picktimeOrbSpeed = function (mult) {
+        var v = Number(mult);
+        orbSpeedMul = isFinite(v) && v > 0.1 && v < 3 ? v : 1;
+      };
 
       function orbFrame(tSec) {
         orbCtx.setTransform(orbDpr, 0, 0, orbDpr, 0, 0);
@@ -19353,14 +20196,20 @@
 
       function orbLoop(ts) {
         if (!orbRunning) return;
-        if (!orbT0) orbT0 = ts;
-        orbFrame((ts - orbT0) / 1000);
+        if (!orbLast) orbLast = ts;
+        var dt = (ts - orbLast) / 1000;
+        orbLast = ts;
+        orbPhase += dt * orbSpeedMul;
+        orbFrame(orbPhase);
         orbRaf = window.requestAnimationFrame(orbLoop);
       }
 
       function orbStart() {
         if (orbRunning) return;
         orbRunning = true;
+        orbSpeedMul = 1;
+        orbPhase = 0;
+        orbLast = 0;
         orbDpr = Math.min(2, window.devicePixelRatio || 1);
         orbCanvas.width = Math.round(ORB_SIZE * orbDpr);
         orbCanvas.height = Math.round(ORB_SIZE * orbDpr);
@@ -19370,7 +20219,6 @@
           orbFrame(0.6);
           return;
         }
-        orbT0 = 0;
         orbRaf = window.requestAnimationFrame(orbLoop);
       }
 

@@ -1380,6 +1380,46 @@ app.post('/api/ai-chat', requireAuth, async (req, res) => {
   }
 });
 
+// ===== 首页抠图小贴士：转发到识别服务（看图片生成一句 AI 提示，无需登录） =====
+const foodTipHits = new Map();
+const FOOD_TIP_WINDOW = 60 * 1000;
+const FOOD_TIP_MAX = 30;
+
+app.post('/api/food-tip', async (req, res) => {
+  const xff = String(req.headers['x-forwarded-for'] || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+  const ip = xff.length ? xff[xff.length - 1] : String(req.headers['x-real-ip'] || req.socket.remoteAddress || '');
+  const now = Date.now();
+  const hits = (foodTipHits.get(ip) || []).filter(function (t) { return now - t < FOOD_TIP_WINDOW; });
+  if (hits.length >= FOOD_TIP_MAX) {
+    return res.status(429).json({ error: '操作太频繁，请稍后再试' });
+  }
+  hits.push(now);
+  foodTipHits.set(ip, hits);
+  if (foodTipHits.size > 500) {
+    foodTipHits.forEach(function (v, k) {
+      if (!v.some(function (t) { return now - t < FOOD_TIP_WINDOW; })) foodTipHits.delete(k);
+    });
+  }
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 60000);
+  try {
+    const upstream = await fetch('http://127.0.0.1:5003/api/food-tip', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body || {}),
+      signal: controller.signal,
+    });
+    const data = await upstream.json().catch(() => ({}));
+    res.status(upstream.status).json(data);
+  } catch (e) {
+    const aborted = e && e.name === 'AbortError';
+    console.error('[小贴士] 失败:', e && e.message);
+    res.status(aborted ? 504 : 502).json({ error: aborted ? '小贴士生成超时' : '小贴士服务暂不可用' });
+  } finally {
+    clearTimeout(timer);
+  }
+});
+
 // ===== Google 登录 =====
 app.get('/auth/google', (req, res) => {
   const params = new URLSearchParams({

@@ -1,10 +1,11 @@
-const CACHE = "picktime-v371";
+const CACHE = "picktime-v398";
 const ASSETS = [
   "/",
   "/index.html",
   "/vendor/thinking-orbs-engine.es.js",
   "/fonts/ruanti-Medium-v5.woff2",
-  "/fonts/onboarding-title.woff2?v=6",
+  "/fonts/onboarding-title.woff2?v=7",
+  "/fonts/kuaile-full.woff2",
   "/manifest.webmanifest",
   "/icons/icon-192.png",
   "/icons/icon-512.png",

@@ -154,3 +154,49 @@ def stream_chat(messages, context, timeout=None, api_key=None):
             delta = (choices[0].get("delta") or {}).get("content")
             if delta:
                 yield delta
+
+
+TIP_SYSTEM_TMPL = """你是「拾光」App 的可爱美食小助手。用户会发来一张食物的抠图照片，请你：
+1. 先在心里判断这是什么食物（看不出来就按最接近的品类判断，不要反问用户）；
+2. 再写一段可爱、温暖、口语化的小贴士（60~100 个字，2~3 句话）：可以说口感、搭配、吃法、营养小知识，或者一句暖心的话，读起来像朋友在耳边轻声提醒。
+只输出小贴士正文：不要标题、不要引号、不要 Markdown、不要表情符号、不要解释，也不要重复食物名称。用 __LANG__ 回复。"""
+
+
+def generate_tip(image_data_url, name="", lang="zh-CN", timeout=None, api_key=None):
+    """看抠图照片判断食物，生成一句可爱温馨的小贴士。"""
+    key = str(api_key or API_KEY or "").strip()
+    if not key:
+        raise RuntimeError("未配置 ARK_API_KEY")
+    timeout = timeout or int(os.environ.get("DOUBAO_CHAT_TIMEOUT", "120"))
+    system = TIP_SYSTEM_TMPL.replace("__LANG__", LANG_NAMES.get(lang, "中文"))
+    hint = ("图片里的食物是「%s」，请自己看图确认。" % name) if name else ""
+    body = {
+        "model": MODEL,
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": [
+                {"type": "image_url", "image_url": {"url": image_data_url}},
+                {"type": "text", "text": hint + "请判断这是什么食物，并给出小贴士。"},
+            ]},
+        ],
+        "stream": False,
+        "temperature": 0.7,
+        "max_tokens": 260,
+    }
+    if THINKING in ("enabled", "disabled", "auto"):
+        body["thinking"] = {"type": THINKING}
+    req = urllib.request.Request(
+        CHAT_URL,
+        data=json.dumps(body).encode(),
+        headers={"Content-Type": "application/json", "Authorization": "Bearer " + key},
+    )
+    resp = _open_stream(req, timeout)
+    with resp:
+        data = json.loads(resp.read().decode("utf-8", "ignore"))
+    choices = data.get("choices") or []
+    if not choices:
+        raise RuntimeError("Ark 未返回结果")
+    text = str(((choices[0].get("message") or {}).get("content")) or "").strip()
+    if not text:
+        raise RuntimeError("Ark 返回为空")
+    return text

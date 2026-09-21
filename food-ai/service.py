@@ -13,6 +13,7 @@
 import json
 import os
 import time
+import hashlib
 import traceback
 import asyncio
 import threading
@@ -55,6 +56,11 @@ _ready = {"ok": False, "error": None}
 # 抠图进度：jobId -> {"stage": str, "ts": float}，供前端轮询展示阶段文案
 PROGRESS = {}
 PROGRESS_TTL = 600
+
+# 小贴士缓存：sha256(语言|图片) -> {"tip": str, "ts": float}
+TIP_CACHE = {}
+TIP_CACHE_TTL = 6 * 3600
+TIP_CACHE_MAX = 500
 
 
 def _set_progress(job_id, stage):
@@ -260,6 +266,37 @@ async def ai_chat_stream(request: Request):
         "X-Accel-Buffering": "no",
         "Connection": "keep-alive",
     })
+
+
+@app.post("/api/food-tip")
+async def food_tip(request: Request):
+    """首页点击抠图的小贴士：看图片判断食物并生成一句可爱提示（无需登录）。"""
+    try:
+        body = await request.json()
+    except Exception:  # noqa: BLE001
+        return JSONResponse({"error": "请求体不是 JSON"}, status_code=400)
+    image = body.get("image") if isinstance(body, dict) else None
+    if not isinstance(image, str) or not image.startswith("data:image/"):
+        return JSONResponse({"error": "缺少图片"}, status_code=400)
+    if len(image) > 4 * 1024 * 1024:
+        return JSONResponse({"error": "图片过大"}, status_code=413)
+    lang = str(body.get("lang") or "zh-CN")[:10]
+    # 同一张图 + 同一语言只生成一次：重复打开大图/多个用户看同一张图时直接命中缓存
+    cache_key = hashlib.sha256((lang + "|" + image).encode("utf-8")).hexdigest()
+    now = time.time()
+    hit = TIP_CACHE.get(cache_key)
+    if hit and now - hit["ts"] < TIP_CACHE_TTL:
+        return JSONResponse({"tip": hit["tip"], "cached": True})
+    try:
+        tip = await asyncio.to_thread(ai_chat.generate_tip, image, lang=lang)
+    except Exception as e:  # noqa: BLE001
+        log("小贴士生成失败: %s" % e)
+        return JSONResponse({"error": "生成失败: %s" % str(e)[:200]}, status_code=500)
+    TIP_CACHE[cache_key] = {"tip": tip, "ts": now}
+    if len(TIP_CACHE) > TIP_CACHE_MAX:
+        for key in [k for k, v in TIP_CACHE.items() if now - v["ts"] > TIP_CACHE_TTL]:
+            TIP_CACHE.pop(key, None)
+    return JSONResponse({"tip": tip})
 
 
 @app.post("/api/translate")
