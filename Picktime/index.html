@@ -173,6 +173,25 @@
       cursor: pointer;
     }
 
+    /* 首页日期左右滑动切换上下周：滑动方向入场动画 */
+    .week-strip.is-week-prev {
+      animation: weekStripInLeft 260ms var(--snap);
+    }
+
+    .week-strip.is-week-next {
+      animation: weekStripInRight 260ms var(--snap);
+    }
+
+    @keyframes weekStripInLeft {
+      from { transform: translateX(-26px); opacity: 0.35; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes weekStripInRight {
+      from { transform: translateX(26px); opacity: 0.35; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
     .home-head {
       display: flex;
       align-items: center;
@@ -684,12 +703,12 @@
       align-items: center;
       gap: 6px;
       margin: 0;
-      transform: translateY(calc(-18vh + var(--pan, 0px))) scale(0.86);
+      transform: translateY(calc(-22vh + var(--pan, 0px))) scale(0.86);
       transition: transform 300ms cubic-bezier(0.2, 0.9, 0.3, 1.15);
     }
 
     .cutout-viewer.is-open .cutout-viewer__stage {
-      transform: translateY(calc(-18vh + var(--pan, 0px))) scale(1);
+      transform: translateY(calc(-22vh + var(--pan, 0px))) scale(1);
     }
 
     .cutout-viewer__frame {
@@ -708,9 +727,16 @@
       max-height: 58vh;
       object-fit: contain;
       object-position: center bottom;
+      opacity: 0;
+      transform: translateX(var(--cutout-center-x, 0px));
+      transition: opacity 140ms ease-out;
       pointer-events: none;
       -webkit-user-drag: none;
       user-select: none;
+    }
+
+    .cutout-viewer__img.is-positioned {
+      opacity: 1;
     }
 
     .cutout-viewer__name {
@@ -3101,6 +3127,150 @@
       100% {
         box-shadow: 0.5em 1em rgba(61, 184, 143, 0.75), -0.5em -1em rgba(233, 169, 32, 0.75);
       }
+    }
+
+    /* ===== 添加页「个性描边」按钮 + 描边选择弹窗 ===== */
+    .cut-sheet__stroke {
+      width: 40px;
+      height: 40px;
+      margin-top: 2px;
+      padding: 0;
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 6px 16px rgba(31, 45, 61, 0.14);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 160ms var(--ease);
+    }
+
+    .cut-sheet__stroke:active {
+      transform: scale(0.94);
+    }
+
+    .cut-sheet__stroke svg {
+      width: 20px;
+      height: 20px;
+      display: block;
+      color: #5b6472;
+    }
+
+    #strokeMask {
+      z-index: 431;
+    }
+
+    #strokeSheet {
+      z-index: 432;
+    }
+
+    .stroke-sheet__body {
+      display: flex;
+      justify-content: flex-start;
+      gap: 12px;
+      padding: 10px 16px 12px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .stroke-sheet__body::-webkit-scrollbar {
+      display: none;
+    }
+
+    .stroke-option {
+      position: relative;
+      flex: none;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .stroke-option__box {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 104px;
+      height: 136px;
+      padding: 6px;
+      border-radius: 18px;
+      background: #f1f4f8;
+      box-shadow: inset 0 0 0 1px #e3e8ee;
+      transition: box-shadow 160ms var(--ease);
+    }
+
+    .stroke-option.is-selected .stroke-option__box {
+      box-shadow: 0 0 0 2px #7d9b5f;
+    }
+
+    .stroke-option__art {
+      position: relative;
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* 成品预览图只作为画布绘制的素材，不直接显示，避免打开时闪一下 */
+    .stroke-option__art img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+      visibility: hidden;
+    }
+
+    .stroke-option__art img.is-visible {
+      visibility: visible;
+    }
+
+    /* 卡片里的“从无到有描出来”动画画布（尺寸由 JS 按 contain 计算，不依赖 object-fit） */
+    .stroke-option__art canvas {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      display: none;
+    }
+
+    .stroke-option__check {
+      position: absolute;
+      top: -7px;
+      right: -7px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #7d9b5f;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 8px rgba(31, 45, 61, 0.22);
+      opacity: 0;
+      transform: scale(0.5);
+      transition: opacity 160ms var(--ease), transform 160ms var(--ease);
+      pointer-events: none;
+    }
+
+    .stroke-option.is-selected .stroke-option__check {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .stroke-option__check svg {
+      width: 13px;
+      height: 13px;
+      display: block;
     }
 
     /* ===== 添加页 AI 对话弹窗 ===== */
@@ -8356,6 +8526,20 @@
           "重新填写密钥": "Re-enter key",
           "使用本机抠图": "Use local cutout",
           "询问 AI": "Ask AI",
+          "个性描边": "Custom Outline",
+          "系统默认（黄色光芒白色描边）": "Default (yellow glow + white outline)",
+          "浅灰虚线": "Light gray dashed",
+          "浅蓝虚线": "Light blue dashed",
+          "浅粉虚线": "Light pink dashed",
+          "浅绿虚线": "Light green dashed",
+          "浅灰虚线+白边": "Gray dashed + white edge",
+          "浅蓝虚线+白边": "Blue dashed + white edge",
+          "浅粉虚线+白边": "Pink dashed + white edge",
+          "浅绿虚线+白边": "Green dashed + white edge",
+          "纯白实线": "Solid white",
+          "浅粉实线": "Solid pink",
+          "抹茶绿实线": "Solid matcha green",
+          "浅蓝实线": "Solid light blue",
           "这份食物": "this food",
           "的解析有质疑吗？告诉我净含量（克），或者拍一张包装上的营养成分表，我来帮你修正热量和营养。": " — do you doubt this analysis? Tell me the net weight (grams), or snap the nutrition label, and I'll correct the calories and nutrients for you.",
           "，对这次识别的数据有疑问吗？可以把图片发给我，我再确认一下；或者告诉我吃了多少克；有营养成分表的话也一并发给我。": " — do you doubt this result? Send me a photo and I'll double-check, or tell me how many grams you ate. You can also send the nutrition label.",
@@ -8848,6 +9032,20 @@
           "重新填写密钥": "キーを再入力",
           "使用本机抠图": "ローカルで切り抜き",
           "询问 AI": "AIに質問",
+          "个性描边": "オリジナル縁取り",
+          "系统默认（黄色光芒白色描边）": "デフォルト（黄色い光＋白い縁）",
+          "浅灰虚线": "薄灰色の破線",
+          "浅蓝虚线": "薄青色の破線",
+          "浅粉虚线": "薄ピンクの破線",
+          "浅绿虚线": "薄緑の破線",
+          "浅灰虚线+白边": "灰色破線＋白縁",
+          "浅蓝虚线+白边": "青破線＋白縁",
+          "浅粉虚线+白边": "ピンク破線＋白縁",
+          "浅绿虚线+白边": "緑破線＋白縁",
+          "纯白实线": "白の実線",
+          "浅粉实线": "ピンクの実線",
+          "抹茶绿实线": "抹茶色の実線",
+          "浅蓝实线": "薄青の実線",
           "这份食物": "この食べ物",
           "的解析有质疑吗？告诉我净含量（克），或者拍一张包装上的营养成分表，我来帮你修正热量和营养。": "の解析に疑問がありますか？内容量（グラム）を教えるか、栄養成分表示の写真を撮ってください。カロリーと栄養を修正します。",
           "，对这次识别的数据有疑问吗？可以把图片发给我，我再确认一下；或者告诉我吃了多少克；有营养成分表的话也一并发给我。": "の解析結果に疑問がありますか？写真を送っていただければ再確認します。食べた量（グラム）を教えていただくか、栄養成分表示を送ってください。",
@@ -9340,6 +9538,20 @@
           "重新填写密钥": "키 다시 입력",
           "使用本机抠图": "로컬 누끼 사용",
           "询问 AI": "AI에게 묻기",
+          "个性描边": "커스텀 테두리",
+          "系统默认（黄色光芒白色描边）": "기본(노란 빛 + 흰색 테두리)",
+          "浅灰虚线": "연회색 점선",
+          "浅蓝虚线": "연파랑 점선",
+          "浅粉虚线": "연분홍 점선",
+          "浅绿虚线": "연녹색 점선",
+          "浅灰虚线+白边": "회색 점선+흰 테두리",
+          "浅蓝虚线+白边": "파랑 점선+흰 테두리",
+          "浅粉虚线+白边": "분홍 점선+흰 테두리",
+          "浅绿虚线+白边": "녹색 점선+흰 테두리",
+          "纯白实线": "흰색 실선",
+          "浅粉实线": "연분홍 실선",
+          "抹茶绿实线": "말차색 실선",
+          "浅蓝实线": "연파랑 실선",
           "这份食物": "이 음식",
           "的解析有质疑吗？告诉我净含量（克），或者拍一张包装上的营养成分表，我来帮你修正热量和营养。": " 분석이 의심되시나요? 내용량(g)을 알려주시거나 영양성분표 사진을 찍어주세요. 칼로리와 영양을 수정해 드릴게요.",
           "，对这次识别的数据有疑问吗？可以把图片发给我，我再确认一下；或者告诉我吃了多少克；有营养成分表的话也一并发给我。": "의 인식 결과가 의심되시나요? 사진을 보내주시면 다시 확인해 드릴게요. 몇 g 드셨는지 알려주시거나 영양성분표를 함께 보내주세요.",
@@ -12513,6 +12725,12 @@
       <button class="cut-sheet__askai" id="cutSheetAskAi" type="button" aria-label="询问 AI">
         <span class="ai-loader" aria-hidden="true"></span>
       </button>
+      <button class="cut-sheet__stroke" id="cutSheetStroke" type="button" aria-label="个性描边">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+      </button>
     </div>
     <div class="cut-sheet__body" id="cutSheetBody">
       <div class="cut-sheet__stage" id="cutSheetStage">
@@ -12570,6 +12788,15 @@
     </div>
   </div>
 </div>
+
+  <div class="sheet-mask" id="strokeMask" aria-hidden="true"></div>
+  <div class="time-sheet" id="strokeSheet" role="dialog" aria-modal="true" aria-label="个性描边">
+    <header class="time-sheet__head">
+      <span class="time-sheet__title">个性描边</span>
+      <button class="time-sheet__btn time-sheet__btn--primary" id="strokeDone" type="button">完成</button>
+    </header>
+    <div class="stroke-sheet__body" id="strokeSheetBody"></div>
+  </div>
 
   <div class="sheet-mask" id="aiChatMask" aria-hidden="true"></div>
   <div class="ai-chat" id="aiChatSheet" role="dialog" aria-modal="true" aria-label="询问 AI">
@@ -15453,8 +15680,12 @@
         syncStatsDateFromHome(selectedDate);
       }
 
+      // 滑动切换周后短暂屏蔽点击，避免手指抬起时误选某一天
+      var weekSwipeJustFired = false;
+
       if (weekStrip) {
         weekStrip.addEventListener("click", function (event) {
+          if (weekSwipeJustFired) return;
           var dayEl = event.target.closest(".week-day");
           if (!dayEl || !weekStripMonday) return;
           vibrateTap(8);
@@ -15465,12 +15696,61 @@
         });
       }
 
+      // 首页日期手势：右滑看上周，左滑看下周（同一星期几，整周平移 7 天）
+      if (weekStrip) {
+        var WEEK_SWIPE_DIST = 42;
+        var weekSwipe = null;
+        var weekSwipeSurface = weekStrip.closest(".home-header") || weekStrip;
+
+        var weekSwipeApply = function (dir) {
+          var base = selectedDate || weekStripMonday || new Date();
+          vibrateTap(8);
+          weekSwipeJustFired = true;
+          window.setTimeout(function () { weekSwipeJustFired = false; }, 400);
+          weekStrip.classList.remove("is-week-prev", "is-week-next");
+          void weekStrip.offsetWidth;
+          weekStrip.classList.add(dir > 0 ? "is-week-prev" : "is-week-next");
+          selectHomeDate(new Date(base.getFullYear(), base.getMonth(), base.getDate() + (dir > 0 ? -7 : 7)));
+        };
+
+        // 刚滑动过：拦掉手指抬起时产生的 click，避免误开日期弹窗/误选某天
+        weekSwipeSurface.addEventListener("click", function (event) {
+          if (!weekSwipeJustFired) return;
+          event.preventDefault();
+          event.stopPropagation();
+        }, true);
+
+        weekSwipeSurface.addEventListener("touchstart", function (event) {
+          if (event.touches.length !== 1) { weekSwipe = null; return; }
+          var t = event.touches[0];
+          weekSwipe = { x: t.clientX, y: t.clientY, fired: false };
+        }, { passive: true });
+
+        weekSwipeSurface.addEventListener("touchmove", function (event) {
+          if (!weekSwipe || weekSwipe.fired || event.touches.length !== 1) return;
+          var t = event.touches[0];
+          var dx = t.clientX - weekSwipe.x;
+          var dy = t.clientY - weekSwipe.y;
+          if (Math.abs(dx) < 12) return;
+          // 纵向位移更大时按页面滚动处理，不触发切周
+          if (Math.abs(dx) < Math.abs(dy) * 1.2) { weekSwipe = null; return; }
+          // 距离不够时不锁定，继续跟随手指，直到超过阈值才触发
+          if (Math.abs(dx) < WEEK_SWIPE_DIST) return;
+          weekSwipe.fired = true;
+          weekSwipeApply(dx > 0 ? 1 : -1);
+        }, { passive: true });
+
+        weekSwipeSurface.addEventListener("touchend", function () { weekSwipe = null; }, { passive: true });
+        weekSwipeSurface.addEventListener("touchcancel", function () { weekSwipe = null; }, { passive: true });
+      }
+
       // 首页点击时间线抠图：背景变暗，抠图垂直居中放大突出，下方显示名字
       var cutoutViewer = document.getElementById("cutoutViewer");
       var cutoutViewerImg = document.getElementById("cutoutViewerImg");
       var cutoutViewerName = document.getElementById("cutoutViewerName");
       var cutoutViewerBlur = document.getElementById("cutoutViewerBlur");
       var cutoutViewerOpen = false;
+      var cutoutViewerPositionToken = 0;
 
       // 小贴士：AI 看图片判断食物并给一句可爱提示
       var cutoutViewerTip = document.getElementById("cutoutViewerTip");
@@ -15558,10 +15838,93 @@
         });
       }
 
+      function positionCutoutViewerImage() {
+        if (!cutoutViewerImg) return;
+        var token = ++cutoutViewerPositionToken;
+        cutoutViewerImg.classList.remove("is-positioned");
+        cutoutViewerImg.style.setProperty("--cutout-center-x", "0px");
+
+        var finish = function (shift) {
+          if (token !== cutoutViewerPositionToken) return;
+          cutoutViewerImg.style.setProperty("--cutout-center-x", shift.toFixed(1) + "px");
+          cutoutViewerImg.classList.add("is-positioned");
+        };
+
+        var calculate = function () {
+          if (token !== cutoutViewerPositionToken) return;
+          window.requestAnimationFrame(function () {
+            if (token !== cutoutViewerPositionToken) return;
+            var naturalWidth = cutoutViewerImg.naturalWidth || 0;
+            var naturalHeight = cutoutViewerImg.naturalHeight || 0;
+            var boxWidth = cutoutViewerImg.clientWidth || 0;
+            var boxHeight = cutoutViewerImg.clientHeight || 0;
+            if (!naturalWidth || !naturalHeight || !boxWidth || !boxHeight) {
+              finish(0);
+              return;
+            }
+
+            var sampleScale = Math.min(1, 480 / Math.max(naturalWidth, naturalHeight));
+            var sampleWidth = Math.max(1, Math.round(naturalWidth * sampleScale));
+            var sampleHeight = Math.max(1, Math.round(naturalHeight * sampleScale));
+            var sample = document.createElement("canvas");
+            sample.width = sampleWidth;
+            sample.height = sampleHeight;
+            var sampleCtx = sample.getContext("2d");
+            var pixels;
+            try {
+              sampleCtx.drawImage(cutoutViewerImg, 0, 0, sampleWidth, sampleHeight);
+              pixels = sampleCtx.getImageData(0, 0, sampleWidth, sampleHeight).data;
+            } catch (e) {
+              finish(0);
+              return;
+            }
+
+            var minX = sampleWidth;
+            var maxX = -1;
+            for (var i = 0; i < sampleWidth * sampleHeight; i++) {
+              if (pixels[i * 4 + 3] < 24) continue;
+              var x = i % sampleWidth;
+              if (x < minX) minX = x;
+              if (x > maxX) maxX = x;
+            }
+            if (maxX < minX) {
+              finish(0);
+              return;
+            }
+
+            var visibleCenter = (minX + maxX + 1) / 2;
+            var fitScale = Math.min(boxWidth / naturalWidth, boxHeight / naturalHeight);
+            var shift = (sampleWidth / 2 - visibleCenter) * (fitScale / sampleScale);
+            var maxShift = boxWidth * 0.25;
+            shift = Math.max(-maxShift, Math.min(maxShift, shift));
+            finish(shift);
+          });
+        };
+
+        if (cutoutViewerImg.complete && cutoutViewerImg.naturalWidth) calculate();
+        else {
+          var cleanup = function () {
+            cutoutViewerImg.removeEventListener("load", onLoad);
+            cutoutViewerImg.removeEventListener("error", onError);
+          };
+          var onLoad = function () {
+            cleanup();
+            calculate();
+          };
+          var onError = function () {
+            cleanup();
+            finish(0);
+          };
+          cutoutViewerImg.addEventListener("load", onLoad);
+          cutoutViewerImg.addEventListener("error", onError);
+        }
+      }
+
       function closeCutoutViewer() {
         if (!cutoutViewer || !cutoutViewerOpen) return;
         cutoutViewerOpen = false;
         cutoutTipToken++;
+        cutoutViewerPositionToken++;
         cutoutViewer.classList.remove("is-open");
         cutoutViewer.setAttribute("aria-hidden", "true");
       }
@@ -15584,6 +15947,7 @@
       function openCutoutViewer(src, name) {
         if (!cutoutViewer || !cutoutViewerImg || !src) return;
         cutoutViewerImg.src = src;
+        positionCutoutViewerImage();
         if (cutoutViewerName) cutoutViewerName.textContent = name || "";
         cutoutViewerOpen = true;
         cutoutViewer.classList.remove("is-blurred");
@@ -17866,6 +18230,7 @@
         if (cutSheetUrl) URL.revokeObjectURL(cutSheetUrl);
         cutSheetUrl = url;
         cutSheetImage.src = url;
+        resetCutStroke();
         var calories = result && result.calories ? result.calories : 0;
         var names = result && result.names ? result.names : [];
         var nutrients = (result && result.nutrients) || {};
@@ -18485,6 +18850,491 @@
           openAiChat();
         });
       }
+
+      // 个性描边：齿轮按钮打开描边选择弹窗，选中后重新生成抠图（替换系统默认的黄色光芒+白色描边）
+      var CUT_STROKE_COLOR = {
+        gray: "#b6bdc8",
+        blue: "#9cc3e8",
+        pink: "#f2b3c6",
+        green: "#b3d9a1",
+        matcha: "#a8c07a"
+      };
+      // 默认描边保留清晰白边，黄色只在轮廓附近柔和发光，避免外层光晕喧宾夺主。
+      var CUT_GLOW_LAYERS = [
+        { color: "rgba(255, 170, 0, 0.28)", blur: 30 },
+        { color: "rgba(255, 190, 0, 0.52)", blur: 18 },
+        { color: "rgba(255, 205, 40, 0.76)", blur: 10 },
+        { color: "rgba(255, 214, 82, 0.94)", blur: 5 }
+      ];
+      var CUT_STROKE_STYLE_LIST = [
+        { id: "glow", type: "glow", label: "系统默认（黄色光芒白色描边）" },
+        { id: "dashed-gray", type: "dashed", color: CUT_STROKE_COLOR.gray, label: "浅灰虚线" },
+        { id: "dashed-blue", type: "dashed", color: CUT_STROKE_COLOR.blue, label: "浅蓝虚线" },
+        { id: "dashed-pink", type: "dashed", color: CUT_STROKE_COLOR.pink, label: "浅粉虚线" },
+        { id: "dashed-green", type: "dashed", color: CUT_STROKE_COLOR.green, label: "浅绿虚线" },
+        { id: "double-gray", type: "double", color: CUT_STROKE_COLOR.gray, label: "浅灰虚线+白边" },
+        { id: "double-blue", type: "double", color: CUT_STROKE_COLOR.blue, label: "浅蓝虚线+白边" },
+        { id: "double-pink", type: "double", color: CUT_STROKE_COLOR.pink, label: "浅粉虚线+白边" },
+        { id: "double-green", type: "double", color: CUT_STROKE_COLOR.green, label: "浅绿虚线+白边" },
+        { id: "solid-white", type: "solid", color: "#ffffff", label: "纯白实线" },
+        { id: "solid-pink", type: "solid", color: CUT_STROKE_COLOR.pink, label: "浅粉实线" },
+        { id: "solid-matcha", type: "solid", color: CUT_STROKE_COLOR.matcha, label: "抹茶绿实线" },
+        { id: "solid-blue", type: "solid", color: CUT_STROKE_COLOR.blue, label: "浅蓝实线" }
+      ];
+      var CUT_STROKE_STYLES = {};
+      for (var cssi = 0; cssi < CUT_STROKE_STYLE_LIST.length; cssi++) {
+        CUT_STROKE_STYLES[CUT_STROKE_STYLE_LIST[cssi].id] = CUT_STROKE_STYLE_LIST[cssi];
+      }
+      // 内部使用：无描边底图（不生成卡片）
+      CUT_STROKE_STYLES.plain = { id: "plain", type: "plain", label: "" };
+
+      var cutSheetStroke = document.getElementById("cutSheetStroke");
+      var strokeMask = document.getElementById("strokeMask");
+      var strokeSheet = document.getElementById("strokeSheet");
+      var strokeDone = document.getElementById("strokeDone");
+      var strokeSheetBody = document.getElementById("strokeSheetBody");
+      if (strokeSheetBody) {
+        var strokeCardsHtml = "";
+        for (var sci = 0; sci < CUT_STROKE_STYLE_LIST.length; sci++) {
+          var sc = CUT_STROKE_STYLE_LIST[sci];
+          strokeCardsHtml += '<button class="stroke-option" type="button" data-stroke="' + sc.id + '" aria-pressed="false" aria-label="' + i18nT(sc.label) + '">' +
+            '<span class="stroke-option__box"><span class="stroke-option__art"><img alt="" aria-hidden="true" /><canvas class="stroke-option__anim" aria-hidden="true"></canvas></span>' +
+            '<span class="stroke-option__check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span></button>';
+        }
+        strokeSheetBody.innerHTML = strokeCardsHtml;
+      }
+      var strokeOptions = strokeSheet ? strokeSheet.querySelectorAll(".stroke-option") : [];
+      var cutStrokeStyle = "glow";
+
+      // 切换语言后刷新描边卡片的多语言标签
+      function refreshStrokeLabels() {
+        for (var rli = 0; rli < strokeOptions.length; rli++) {
+          var rlStyle = CUT_STROKE_STYLES[strokeOptions[rli].getAttribute("data-stroke")];
+          if (rlStyle) strokeOptions[rli].setAttribute("aria-label", i18nT(rlStyle.label));
+        }
+        var rlTitle = strokeSheet ? strokeSheet.querySelector(".time-sheet__title") : null;
+        if (rlTitle) rlTitle.textContent = i18nT("个性描边");
+        if (cutSheetStroke) cutSheetStroke.setAttribute("aria-label", i18nT("个性描边"));
+      }
+      var strokeRerenderPrev = window.__picktimeRerender;
+      window.__picktimeRerender = function () {
+        if (strokeRerenderPrev) strokeRerenderPrev.apply(this, arguments);
+        refreshStrokeLabels();
+      };
+
+      function cutStrokeSelectUI(style) {
+        cutStrokeStyle = style || "glow";
+        for (var soi = 0; soi < strokeOptions.length; soi++) {
+          var active = strokeOptions[soi].getAttribute("data-stroke") === cutStrokeStyle;
+          strokeOptions[soi].classList.toggle("is-selected", active);
+          strokeOptions[soi].setAttribute("aria-pressed", active ? "true" : "false");
+        }
+      }
+
+      // 选中描边：用原始抠图重新生成带该描边的图片（不是叠加在默认描边上），主图不做任何动画
+      var cutStrokeApplyToken = 0;
+      function setCutStroke(style) {
+        cutStrokeSelectUI(style);
+        if (!cutoutSourceImg || !cutSheetImage) return;
+        var built = buildCutoutCanvas(cutoutSourceImg, 640, 180, cutStrokeStyle);
+        cutoutFood = { x: built.x, y: built.y, w: built.w, h: built.h, side: built.side };
+        var url = built.canvas.toDataURL("image/png");
+        // 先把新图解码好再替换，避免主图空白闪一下
+        var token = ++cutStrokeApplyToken;
+        var pre = new Image();
+        var apply = function () {
+          if (token === cutStrokeApplyToken) cutSheetImage.src = url;
+        };
+        pre.onload = apply;
+        pre.onerror = apply;
+        pre.src = url;
+      }
+
+      // 新抠图打开时重置为系统默认描边（图片本身已是默认效果，无需重绘）
+      function resetCutStroke() {
+        cutStrokeSelectUI("glow");
+      }
+
+      // 描边预览卡片：用当前抠图按各描边样式生成预览小图（图片只作为画布素材）
+      function syncStrokePreviews() {
+        if (!strokeSheet || !cutoutSourceImg) return;
+        var cards = strokeSheet.querySelectorAll(".stroke-option");
+        for (var spi = 0; spi < cards.length; spi++) {
+          var img = cards[spi].querySelector("img");
+          if (!img) continue;
+          var url = strokePreviewUrl(cards[spi].getAttribute("data-stroke"));
+          if (url && img.src !== url) img.src = url;
+        }
+      }
+
+      // ===== 描边卡片预览动画：每个样式从无到有把描边描出来 =====
+      var strokeCardAnimFrame = 0;
+      var strokeCardStartTimer = 0;
+      var strokeCardScrollTimer = 0;
+      var strokeCardAnims = [];
+
+      function stopStrokeCardAnimations() {
+        if (strokeCardStartTimer) {
+          clearTimeout(strokeCardStartTimer);
+          strokeCardStartTimer = 0;
+        }
+        if (strokeCardScrollTimer) {
+          clearTimeout(strokeCardScrollTimer);
+          strokeCardScrollTimer = 0;
+        }
+        if (strokeCardAnimFrame) {
+          cancelAnimationFrame(strokeCardAnimFrame);
+          strokeCardAnimFrame = 0;
+        }
+        // 中断时把卡片补成最终成品图，避免留下半截描边
+        for (var sai = 0; sai < strokeCardAnims.length; sai++) {
+          var sa = strokeCardAnims[sai];
+          if (sa.canvas && sa.final && sa.box) {
+            if (sa.tipCtx) sa.tipCtx.clearRect(0, 0, sa.box.sw, sa.box.sh);
+            sa.ctx.globalAlpha = 1;
+            sa.ctx.drawImage(sa.final, 0, 0, sa.box.sw, sa.box.sh);
+            sa.canvas.style.opacity = "1";
+          }
+        }
+        strokeCardAnims = [];
+      }
+
+      // 兜底：动画准备失败时直接显示成品预览图
+      function showStrokePreviewImages() {
+        if (!strokeSheet) return;
+        var imgs = strokeSheet.querySelectorAll(".stroke-option__art img");
+        for (var si = 0; si < imgs.length; si++) imgs[si].classList.add("is-visible");
+      }
+
+      // 沿路径预计算弧长 + 弯曲权重（弯道处放慢，像真人执笔）
+      function buildCutoutPathMetrics(path) {
+        var n = path.length;
+        var cumLen = new Float64Array(n + 1);
+        var cumWeight = new Float64Array(n + 1);
+        var totalLen = 0;
+        var totalWeight = 0;
+        var curveK = 7;
+        for (var i = 0; i < n; i++) {
+          var a = path[i];
+          var b = path[(i + 1) % n];
+          var prev = path[(i - 1 + n) % n];
+          var dx = b[0] - a[0];
+          var dy = b[1] - a[1];
+          var ds = Math.sqrt(dx * dx + dy * dy);
+          var angPrev = Math.atan2(a[1] - prev[1], a[0] - prev[0]);
+          var angNext = Math.atan2(dy, dx);
+          var dAng = Math.atan2(Math.sin(angNext - angPrev), Math.cos(angNext - angPrev));
+          var weight = 1 / (1 + Math.abs(dAng) * curveK);
+          totalLen += ds;
+          totalWeight += ds * weight;
+          cumLen[i + 1] = totalLen;
+          cumWeight[i + 1] = totalWeight;
+        }
+        return { n: n, cumLen: cumLen, cumWeight: cumWeight, totalLen: totalLen, totalWeight: totalWeight };
+      }
+
+      // 先把所有卡片切到“还没描边”的底图状态（弹窗出现时就是无描边的图）
+      function prepareStrokeCardAnimations() {
+        if (!strokeSheet) return false;
+        stopStrokeCardAnimations();
+        var base = strokePreviewBase();
+        if (!base || !base.path || base.path.length < 3) return false;
+        if (!base.metrics) base.metrics = buildCutoutPathMetrics(base.path);
+        var metrics = base.metrics;
+        var cards = strokeSheet.querySelectorAll(".stroke-option");
+        for (var ci = 0; ci < cards.length; ci++) {
+          var card = cards[ci];
+          var style = card.getAttribute("data-stroke");
+          var st = CUT_STROKE_STYLES[style] || {};
+          var img = card.querySelector("img");
+          var canvas = card.querySelector(".stroke-option__anim");
+          if (!img || !canvas) continue;
+          var data = strokePreviewData(style);
+          if (!data || !data.box) continue;
+          var box = data.box;
+          img.classList.remove("is-visible");
+          canvas.width = box.sw;
+          canvas.height = box.sh;
+          // 按 contain 算显示尺寸（与图片一致），避免不同浏览器 object-fit 表现不一致
+          var artBox = canvas.parentElement;
+          var aw = artBox && artBox.clientWidth ? artBox.clientWidth : box.sw;
+          var ah = artBox && artBox.clientHeight ? artBox.clientHeight : box.sh;
+          var fitScale = Math.min(aw / box.sw, ah / box.sh);
+          var cssW = Math.max(1, Math.round(box.sw * fitScale)) + "px";
+          var cssH = Math.max(1, Math.round(box.sh * fitScale)) + "px";
+          canvas.style.width = cssW;
+          canvas.style.height = cssH;
+          canvas.style.display = "block";
+          // 笔尖单独一层：每帧只清这一小层，主线画布永不清屏，杜绝闪烁
+          var tipCanvas = card.querySelector(".stroke-option__tip");
+          if (!tipCanvas) {
+            tipCanvas = document.createElement("canvas");
+            tipCanvas.className = "stroke-option__tip";
+            tipCanvas.setAttribute("aria-hidden", "true");
+            canvas.parentElement.appendChild(tipCanvas);
+          }
+          tipCanvas.width = box.sw;
+          tipCanvas.height = box.sh;
+          tipCanvas.style.width = cssW;
+          tipCanvas.style.height = cssH;
+          tipCanvas.style.display = "block";
+          var ctx = canvas.getContext("2d");
+          // 底图只画一次，之后只往画布上添线
+          ctx.clearRect(0, 0, box.sw, box.sh);
+          ctx.drawImage(base.canvas, box.sx, box.sy, box.sw, box.sh, 0, 0, box.sw, box.sh);
+          var points = [];
+          for (var pi = 0; pi < base.path.length; pi++) {
+            points.push([base.path[pi][0] - box.sx, base.path[pi][1] - box.sy]);
+          }
+          var strokeInfo = data.stroke || null;
+          var previewUnit = data.unit || 0.55;
+          // 笔尖把成品图沿着走过的轨迹“刷”出来：笔到哪，成品描边（黄光/白边/阴影/虚线）就到哪
+          var mask = cutoutCanvas(box.sw, box.sh);
+          strokeCardAnims.push({
+            ctx: ctx,
+            tipCtx: tipCanvas.getContext("2d"),
+            canvas: canvas,
+            tipCanvas: tipCanvas,
+            img: img,
+            final: data.canvas || null,
+            mask: mask,
+            maskCtx: mask.getContext("2d"),
+            box: box,
+            card: card,
+            points: points,
+            metrics: metrics,
+            idx: 0,
+            started: false,
+            lastLen: 0,
+            lineWidth: (strokeInfo && strokeInfo.lineWidth) || 11 * previewUnit,
+            color: st.type === "glow" ? "#ffd76a" : (st.color || CUT_STROKE_COLOR.gray),
+            // 覆盖成品描边从轮廓向外扩散的范围（与收紧后的黄光宽度保持一致）
+            revealWidth: (st.type === "glow" ? 96 : st.type === "double" ? 90 : 70) * previewUnit,
+            start: 0,
+            done: false
+          });
+        }
+        return strokeCardAnims.length > 0;
+      }
+
+      // 只让当前看得见的卡片起笔：一次最多三四张在画，手机不卡；滚到哪张哪张开始画
+      function strokeCardIsVisible(card) {
+        if (!strokeSheetBody) return true;
+        var sl = strokeSheetBody.scrollLeft;
+        var sw = strokeSheetBody.clientWidth;
+        var left = card.offsetLeft;
+        var right = left + card.offsetWidth;
+        return right > sl - 40 && left < sl + sw + 40;
+      }
+
+      function startVisibleStrokeCardAnimations() {
+        var now = performance.now();
+        var delay = 0;
+        var startedAny = false;
+        for (var si = 0; si < strokeCardAnims.length; si++) {
+          var a = strokeCardAnims[si];
+          if (a.started || a.done) continue;
+          if (!a.card || !strokeCardIsVisible(a.card)) continue;
+          a.started = true;
+          a.start = now + 40 + delay;
+          delay += 55;
+          a.idx = 0;
+          a.lastLen = 0;
+          if (a.tipCtx) a.tipCtx.clearRect(0, 0, a.box.sw, a.box.sh);
+          startedAny = true;
+        }
+        if (startedAny && !strokeCardAnimFrame) startStrokeCardAnimLoop();
+      }
+
+      function startStrokeCardAnimLoop() {
+        var DURATION = 3000;
+        var DRAW_PHASE = 0.78;
+        var lastFrame = 0;
+        var frame = function (tnow) {
+          // 限制到约 30fps，手机上更稳
+          if (tnow - lastFrame < 30) {
+            strokeCardAnimFrame = requestAnimationFrame(frame);
+            return;
+          }
+          lastFrame = tnow;
+          var active = false;
+          for (var ai = 0; ai < strokeCardAnims.length; ai++) {
+            var a = strokeCardAnims[ai];
+            if (!a.started || a.done) continue;
+            if (tnow < a.start) {
+              active = true;
+              continue;
+            }
+            var t = Math.min(1, (tnow - a.start) / DURATION);
+            if (t >= 1) {
+              a.done = true;
+              finishStrokeCardAnim(a);
+              continue;
+            }
+            active = true;
+            drawStrokeCardFrame(a, t, DRAW_PHASE);
+          }
+          if (active) strokeCardAnimFrame = requestAnimationFrame(frame);
+          else strokeCardAnimFrame = 0;
+        };
+        strokeCardAnimFrame = requestAnimationFrame(frame);
+      }
+
+      // 按弧长把轮廓路径的一段加进 Path2D（虚线一段段出现靠它）
+      function appendCutoutRange(p, points, metrics, fromLen, toLen) {
+        var n = points.length;
+        var li = 0;
+        while (li < n - 1 && metrics.cumLen[li + 1] < fromLen) li++;
+        var l0 = metrics.cumLen[li];
+        var l1 = metrics.cumLen[li + 1];
+        var sIdx = li;
+        var sFrac = l1 > l0 ? (fromLen - l0) / (l1 - l0) : 0;
+        while (li < n - 1 && metrics.cumLen[li + 1] < toLen) li++;
+        var t0 = metrics.cumLen[li];
+        var t1 = metrics.cumLen[li + 1];
+        var eIdx = li;
+        var eFrac = t1 > t0 ? (toLen - t0) / (t1 - t0) : 0;
+        var s0 = points[sIdx];
+        var s1 = points[(sIdx + 1) % n];
+        p.moveTo(s0[0] + (s1[0] - s0[0]) * sFrac, s0[1] + (s1[1] - s0[1]) * sFrac);
+        // 起止点落在同一段内时不能绕整圈，否则第一帧会把整条轮廓一次性画满
+        if (eIdx !== sIdx) {
+          var i = (sIdx + 1) % n;
+          var guard = 0;
+          while (i !== eIdx && guard++ < n) {
+            p.lineTo(points[i][0], points[i][1]);
+            i = (i + 1) % n;
+          }
+        }
+        var e0 = points[eIdx];
+        var e1 = points[(eIdx + 1) % n];
+        p.lineTo(e0[0] + (e1[0] - e0[0]) * eFrac, e0[1] + (e1[1] - e0[1]) * eFrac);
+      }
+
+      // 收尾：直接显示成品，不再有多余的增粗/淡入动作
+      function finishStrokeCardAnim(a) {
+        if (a.tipCtx) a.tipCtx.clearRect(0, 0, a.box.sw, a.box.sh);
+        if (a.final) {
+          a.ctx.globalAlpha = 1;
+          a.ctx.drawImage(a.final, 0, 0, a.box.sw, a.box.sh);
+        }
+      }
+
+      function drawStrokeCardFrame(a, t, DRAW_PHASE) {
+        var ctx = a.ctx;
+        var box = a.box;
+        var m = a.metrics;
+        if (t < DRAW_PHASE) {
+          var p = t / DRAW_PHASE;
+          var eased = p * p * (3 - 2 * p);
+          var targetW = eased * m.totalWeight;
+          while (a.idx < m.n && m.cumWeight[a.idx + 1] < targetW) a.idx++;
+          var i = Math.min(a.idx, m.n - 1);
+          var w0 = m.cumWeight[i];
+          var w1 = m.cumWeight[i + 1];
+          var segT = w1 > w0 ? (targetW - w0) / (w1 - w0) : 0;
+          var lenAt = m.cumLen[i] + (m.cumLen[i + 1] - m.cumLen[i]) * segT;
+          // 把成品图沿笔尖走过的轨迹“刷”出来：笔到哪，黄光/白边/阴影/虚线就到哪
+          if (a.final && a.maskCtx) {
+            var mctx = a.maskCtx;
+            mctx.globalCompositeOperation = "source-over";
+            mctx.clearRect(0, 0, box.sw, box.sh);
+            mctx.drawImage(a.final, 0, 0, box.sw, box.sh);
+            mctx.globalCompositeOperation = "destination-in";
+            mctx.lineWidth = a.revealWidth;
+            mctx.lineCap = "butt";
+            mctx.lineJoin = "round";
+            mctx.beginPath();
+            appendCutoutRange(mctx, a.points, m, 0, lenAt);
+            mctx.stroke();
+            mctx.globalCompositeOperation = "source-over";
+            ctx.globalAlpha = 1;
+            ctx.drawImage(a.mask, 0, 0);
+          }
+          a.lastLen = lenAt;
+          // 笔尖只画在独立图层上
+          var tip = a.tipCtx;
+          if (tip) {
+            tip.clearRect(0, 0, box.sw, box.sh);
+            if (p > 0.01) {
+              var p0 = a.points[i];
+              var p1 = a.points[(i + 1) % a.points.length];
+              var tipX = p0[0] + (p1[0] - p0[0]) * segT;
+              var tipY = p0[1] + (p1[1] - p0[1]) * segT;
+              tip.fillStyle = a.color;
+              tip.beginPath();
+              tip.arc(tipX, tipY, Math.max(1.6, a.lineWidth * 0.62), 0, Math.PI * 2);
+              tip.fill();
+            }
+          }
+        } else {
+          // 画完直接停在成品状态
+          finishStrokeCardAnim(a);
+        }
+      }
+
+      function openStrokeSheet() {
+        if (!strokeSheet || !strokeMask) return;
+        syncStrokePreviews();
+        // 先切成无描边底图，再让弹窗出现，最后等弹窗滑上来才起笔
+        var canAnimate = prepareStrokeCardAnimations();
+        if (!canAnimate) showStrokePreviewImages();
+        strokeMask.classList.add("is-open");
+        strokeSheet.classList.add("is-open");
+        var selected = strokeSheet.querySelector(".stroke-option.is-selected");
+        if (selected && strokeSheetBody) {
+          strokeSheetBody.scrollLeft = Math.max(0, selected.offsetLeft - (strokeSheetBody.clientWidth - selected.offsetWidth) / 2);
+        }
+        if (canAnimate) {
+          if (strokeCardStartTimer) clearTimeout(strokeCardStartTimer);
+          strokeCardStartTimer = window.setTimeout(function () {
+            strokeCardStartTimer = 0;
+            if (strokeSheet.classList.contains("is-open")) startVisibleStrokeCardAnimations();
+          }, 420);
+        }
+      }
+
+      function closeStrokeSheet() {
+        if (!strokeSheet || !strokeMask) return;
+        stopStrokeCardAnimations();
+        strokeMask.classList.remove("is-open");
+        strokeSheet.classList.remove("is-open");
+      }
+
+      if (cutSheetStroke) {
+        cutSheetStroke.addEventListener("click", function () {
+          vibrateTap(8);
+          openStrokeSheet();
+        });
+      }
+      if (strokeMask) strokeMask.addEventListener("click", closeStrokeSheet);
+      if (strokeDone) {
+        strokeDone.addEventListener("click", function () {
+          vibrateTap(8);
+          closeStrokeSheet();
+        });
+      }
+      for (var stoi = 0; stoi < strokeOptions.length; stoi++) {
+        strokeOptions[stoi].addEventListener("click", function () {
+          vibrateTap(8);
+          setCutStroke(this.getAttribute("data-stroke"));
+        });
+      }
+      // 横向滚动时，等滚动停下来再给看得见的卡片起笔，避免手指还在滑动画就播完了
+      if (strokeSheetBody) {
+        strokeSheetBody.addEventListener("scroll", function () {
+          if (!strokeSheet.classList.contains("is-open")) return;
+          if (strokeCardScrollTimer) clearTimeout(strokeCardScrollTimer);
+          strokeCardScrollTimer = window.setTimeout(function () {
+            strokeCardScrollTimer = 0;
+            startVisibleStrokeCardAnimations();
+          }, 150);
+        }, { passive: true });
+      }
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && strokeSheet && strokeSheet.classList.contains("is-open")) closeStrokeSheet();
+      });
+
       if (aiChatClose) aiChatClose.addEventListener("click", closeAiChat);
       if (aiChatMask) aiChatMask.addEventListener("click", closeAiChat);
       if (aiChatSend) {
@@ -18548,7 +19398,166 @@
         window.visualViewport.addEventListener("scroll", aiChatSyncKeyboard);
       }
 
-      function buildGlowCanvas(source, contentMax, pad) {
+      // 当前抠图的原始图片（未加描边），用于更换描边时重新生成
+      var cutoutSourceImg = null;
+      var cutoutSourceId = 0;
+      var strokePreviewCache = {};
+
+      function cutoutCanvas(w, h) {
+        var c = document.createElement("canvas");
+        c.width = w;
+        c.height = h;
+        return c;
+      }
+
+      // 沿抠图轮廓外扩一圈的纯色轮廓（用剪影在 28 个方向平移叠加而成）
+      function buildCutoutRing(sil, side, ox, oy, outline, color) {
+        var src = sil;
+        if (color && color !== "#ffffff") {
+          src = cutoutCanvas(sil.width, sil.height);
+          var tintCtx = src.getContext("2d");
+          tintCtx.drawImage(sil, 0, 0);
+          tintCtx.globalCompositeOperation = "source-in";
+          tintCtx.fillStyle = color;
+          tintCtx.fillRect(0, 0, sil.width, sil.height);
+        }
+        var ring = cutoutCanvas(side, side);
+        var rctx = ring.getContext("2d");
+        var steps = 28;
+        for (var si = 0; si < steps; si++) {
+          var ang = (si / steps) * Math.PI * 2;
+          rctx.drawImage(src, ox + Math.cos(ang) * outline, oy + Math.sin(ang) * outline);
+        }
+        rctx.drawImage(src, ox, oy);
+        return ring;
+      }
+
+      function traceCutoutBoundary(mask, w, h) {
+        var dirs = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
+        function at(x, y) { return x >= 0 && y >= 0 && x < w && y < h ? mask[y * w + x] : 0; }
+        var sx = -1;
+        var sy = -1;
+        for (var y = 0; y < h && sx < 0; y++) {
+          for (var x = 0; x < w; x++) {
+            if (mask[y * w + x]) { sx = x; sy = y; break; }
+          }
+        }
+        if (sx < 0) return null;
+        var pts = [];
+        var cx = sx;
+        var cy = sy;
+        var back = 4;
+        var guard = w * h * 2;
+        do {
+          pts.push([cx, cy]);
+          var moved = false;
+          for (var k = 1; k <= 8; k++) {
+            var d = (back + k) % 8;
+            var nx = cx + dirs[d][0];
+            var ny = cy + dirs[d][1];
+            if (at(nx, ny)) {
+              back = (d + 4) % 8;
+              cx = nx;
+              cy = ny;
+              moved = true;
+              break;
+            }
+          }
+          if (!moved) break;
+        } while ((cx !== sx || cy !== sy) && --guard > 0);
+        return pts;
+      }
+
+      function smoothCutoutPath(pts, iterations, windowSize) {
+        var out = pts;
+        for (var it = 0; it < iterations; it++) {
+          var next = [];
+          for (var i = 0; i < out.length; i++) {
+            var a = out[i];
+            var b = out[(i + 1) % out.length];
+            next.push([a[0] * 0.75 + b[0] * 0.25, a[1] * 0.75 + b[1] * 0.25]);
+            next.push([a[0] * 0.25 + b[0] * 0.75, a[1] * 0.25 + b[1] * 0.75]);
+          }
+          out = next;
+        }
+        // 再滑动平均一遍，去掉跟踪留下的锯齿抖动（窗口越小越贴近真实轮廓）
+        var win = windowSize || 3;
+        var half = Math.floor(win / 2);
+        var n = out.length;
+        var smooth = [];
+        for (var si = 0; si < n; si++) {
+          var ax = 0;
+          var ay = 0;
+          for (var k = -half; k <= half; k++) {
+            var p = out[(si + k + n) % n];
+            ax += p[0];
+            ay += p[1];
+          }
+          smooth.push([ax / win, ay / win]);
+        }
+        return smooth;
+      }
+
+      // 生成沿抠图真实轮廓外扩的路径（画布坐标，全分辨率 Moore 跟踪 + 轻量平滑）
+      function buildCutoutContourPath(sil, iw, ih, ox, oy, lineWidth) {
+        // 全分辨率取样，避免细小/窄缝在降采样时被糊掉后与描边粘连
+        var data;
+        try {
+          data = sil.getContext("2d").getImageData(0, 0, iw, ih).data;
+        } catch (e) {
+          return null;
+        }
+        var mask = new Uint8Array(iw * ih);
+        for (var mi = 0; mi < iw * ih; mi++) mask[mi] = data[mi * 4 + 3] > 48 ? 1 : 0;
+        var pts = traceCutoutBoundary(mask, iw, ih);
+        if (!pts || pts.length < 3) return null;
+        pts = smoothCutoutPath(pts, 1, 3);
+        // 沿法线向外偏移半个线宽，描边贴在轮廓外侧、不压住食物边缘
+        var n = pts.length;
+        var offset = lineWidth / 2;
+        var probe = Math.max(2, offset * 1.5);
+        var path = [];
+        for (var oi = 0; oi < n; oi++) {
+          var prev = pts[(oi - 1 + n) % n];
+          var next = pts[(oi + 1) % n];
+          var tx = next[0] - prev[0];
+          var ty = next[1] - prev[1];
+          var tl = Math.sqrt(tx * tx + ty * ty) || 1;
+          var nx = -ty / tl;
+          var ny = tx / tl;
+          var qx = Math.round(pts[oi][0] + nx * probe);
+          var qy = Math.round(pts[oi][1] + ny * probe);
+          if (qx >= 0 && qx < iw && qy >= 0 && qy < ih && mask[qy * iw + qx]) {
+            nx = -nx;
+            ny = -ny;
+          }
+          path.push([ox + pts[oi][0] + nx * offset, oy + pts[oi][1] + ny * offset]);
+        }
+        return path;
+      }
+
+      function drawCutoutContourPath(ctx, path, color, lineWidth, dash) {
+        if (!path || path.length < 3) return;
+        ctx.save();
+        ctx.beginPath();
+        for (var pi = 0; pi < path.length; pi++) {
+          if (pi === 0) ctx.moveTo(path[pi][0], path[pi][1]);
+          else ctx.lineTo(path[pi][0], path[pi][1]);
+        }
+        ctx.closePath();
+        ctx.lineWidth = lineWidth;
+        ctx.strokeStyle = color;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+        if (dash) ctx.setLineDash(dash);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // style: glow=系统默认（黄色光芒+白色描边）| dashed=浅灰虚线 | white=纯白实线 | double=内虚线外实线双层
+      // wantPath=true 时额外返回轮廓路径，用于选中描边时的轮廓动画
+      function buildCutoutCanvas(source, contentMax, pad, style, wantPath) {
+        style = style || "glow";
         var sw = source.naturalWidth || source.width;
         var sh = source.naturalHeight || source.height;
         var side = contentMax + pad * 2;
@@ -18559,53 +19568,181 @@
         var ox = Math.round(pad + (contentMax - iw) / 2);
         var oy = Math.round(pad + (contentMax - ih));
 
-        var base = document.createElement("canvas");
-        base.width = iw;
-        base.height = ih;
+        var base = cutoutCanvas(iw, ih);
         base.getContext("2d").drawImage(source, 0, 0, iw, ih);
 
-        var sil = document.createElement("canvas");
-        sil.width = iw;
-        sil.height = ih;
+        var sil = cutoutCanvas(iw, ih);
         var sctx = sil.getContext("2d");
         sctx.drawImage(base, 0, 0);
         sctx.globalCompositeOperation = "source-in";
         sctx.fillStyle = "#ffffff";
         sctx.fillRect(0, 0, iw, ih);
 
-        var ring = document.createElement("canvas");
-        ring.width = side;
-        ring.height = side;
-        var rctx = ring.getContext("2d");
-        var outline = 8;
-        var steps = 28;
-        for (var si = 0; si < steps; si++) {
-          var ang = (si / steps) * Math.PI * 2;
-          rctx.drawImage(sil, ox + Math.cos(ang) * outline, oy + Math.sin(ang) * outline);
-        }
-        rctx.drawImage(sil, ox, oy);
-
-        var canvas = document.createElement("canvas");
-        canvas.width = side;
-        canvas.height = side;
+        var canvas = cutoutCanvas(side, side);
         var ctx = canvas.getContext("2d");
-        var glow = [
-          { color: "rgba(255, 170, 0, 0.5)", blur: 50 },
-          { color: "rgba(255, 190, 0, 0.75)", blur: 30 },
-          { color: "rgba(255, 205, 40, 0.9)", blur: 16 },
-          { color: "rgba(255, 214, 82, 1)", blur: 8 }
-        ];
-        for (var gi = 0; gi < glow.length; gi++) {
-          ctx.shadowColor = glow[gi].color;
-          ctx.shadowBlur = glow[gi].blur;
+        // 描边粗细/间距严格随内容尺寸缩放，保证预览和主图（640）的黄光/白边/线宽比例一致
+        var unit = contentMax / 640;
+        var st = CUT_STROKE_STYLES[style] || CUT_STROKE_STYLES.glow;
+
+        if (st.type === "glow") {
+          var ring = buildCutoutRing(sil, side, ox, oy, 8 * unit);
+          for (var gi = 0; gi < CUT_GLOW_LAYERS.length; gi++) {
+            ctx.shadowColor = CUT_GLOW_LAYERS[gi].color;
+            ctx.shadowBlur = CUT_GLOW_LAYERS[gi].blur * unit;
+            ctx.drawImage(ring, 0, 0);
+          }
+          ctx.shadowColor = "transparent";
+          ctx.shadowBlur = 0;
           ctx.drawImage(ring, 0, 0);
+          ctx.drawImage(base, ox, oy);
+          return { canvas: canvas, side: side, x: ox, y: oy, w: iw, h: ih };
         }
-        ctx.shadowColor = "transparent";
-        ctx.shadowBlur = 0;
-        ctx.drawImage(ring, 0, 0);
+
+        // plain：只有抠图本体，用于卡片“从无到有描出来”的动画底图
+        if (st.type === "plain") {
+          var plainPath = wantPath ? buildCutoutContourPath(sil, iw, ih, ox, oy, 11 * unit) : null;
+          ctx.drawImage(base, ox, oy);
+          return {
+            canvas: canvas,
+            side: side,
+            x: ox,
+            y: oy,
+            w: iw,
+            h: ih,
+            path: plainPath,
+            stroke: { type: "plain", color: CUT_STROKE_COLOR.gray, lineWidth: 11 * unit, dash: [26 * unit, 18 * unit] }
+          };
+        }
+
+        if (st.type === "solid" || st.type === "double") {
+          // 双层的外圈固定白色，实线描边用各自颜色
+          var outer = buildCutoutRing(sil, side, ox, oy, (st.type === "double" ? 16 : 8) * unit, st.type === "solid" ? st.color : "#ffffff");
+          // 浅灰投影：描边在白色背景上也能看清轮廓
+          ctx.shadowColor = "rgba(31, 45, 61, 0.22)";
+          ctx.shadowBlur = 16 * unit;
+          ctx.shadowOffsetY = 7 * unit;
+          ctx.drawImage(outer, 0, 0);
+          ctx.shadowColor = "transparent";
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetY = 0;
+        }
+
+        // 虚线先画、抠图后画：任何压到食物上的部分都会被抠图盖掉，绝不吞掉吸管等细节
+        var contourPath = null;
+        var strokeLineWidth = (st.type === "double" ? 9 : 11) * unit;
+        // 圆头线帽会往两端各撑出半个线宽，间距要留够，否则虚线看着像连成一条实线
+        var strokeDash = st.type === "double" ? [18 * unit, 24 * unit] : [20 * unit, 26 * unit];
+        if (st.type === "dashed" || st.type === "double" || wantPath) {
+          contourPath = buildCutoutContourPath(sil, iw, ih, ox, oy, strokeLineWidth);
+        }
+        if (st.type === "dashed" || st.type === "double") {
+          drawCutoutContourPath(ctx, contourPath, st.color || CUT_STROKE_COLOR.gray, strokeLineWidth, strokeDash);
+        }
+
         ctx.drawImage(base, ox, oy);
 
-        return { canvas: canvas, side: side, x: ox, y: oy, w: iw, h: ih };
+        return {
+          canvas: canvas,
+          side: side,
+          x: ox,
+          y: oy,
+          w: iw,
+          h: ih,
+          path: contourPath,
+          stroke: { type: st.type, color: st.color || CUT_STROKE_COLOR.gray, lineWidth: strokeLineWidth, dash: strokeDash }
+        };
+      }
+
+      function buildGlowCanvas(source, contentMax, pad) {
+        return buildCutoutCanvas(source, contentMax, pad, "glow");
+      }
+
+      // 裁掉预览图四周透明边距，让抠图在卡片里尽量大
+      function cutoutCropBox(canvas, margin) {
+        var w = canvas.width;
+        var h = canvas.height;
+        var data;
+        try {
+          data = canvas.getContext("2d").getImageData(0, 0, w, h).data;
+        } catch (e) {
+          return null;
+        }
+        var minX = w;
+        var minY = h;
+        var maxX = -1;
+        var maxY = -1;
+        for (var y = 0; y < h; y++) {
+          var row = y * w;
+          for (var x = 0; x < w; x++) {
+            if (data[(row + x) * 4 + 3] > 8) {
+              if (x < minX) minX = x;
+              if (x > maxX) maxX = x;
+              if (y < minY) minY = y;
+              if (y > maxY) maxY = y;
+            }
+          }
+        }
+        if (maxX < minX || maxY < minY) return null;
+        var m = margin || 0;
+        var sx = Math.max(0, minX - m);
+        var sy = Math.max(0, minY - m);
+        var sw = Math.min(w - sx, maxX - minX + 1 + m * 2);
+        var sh = Math.min(h - sy, maxY - minY + 1 + m * 2);
+        return { sx: sx, sy: sy, sw: sw, sh: sh };
+      }
+
+      function cutoutCropCanvas(canvas, box) {
+        if (!box) return canvas;
+        var out = cutoutCanvas(box.sw, box.sh);
+        out.getContext("2d").drawImage(canvas, box.sx, box.sy, box.sw, box.sh, 0, 0, box.sw, box.sh);
+        return out;
+      }
+
+      function cropCutoutCanvas(canvas, margin) {
+        var box = cutoutCropBox(canvas, margin);
+        return box ? cutoutCropCanvas(canvas, box) : canvas;
+      }
+
+      // 描边预览：成品图 + 裁剪框（动画用同一裁剪框，切换时不跳）
+      function strokePreviewData(style) {
+        if (!cutoutSourceImg) return null;
+        var key = cutoutSourceId + "|" + style;
+        if (strokePreviewCache[key]) return strokePreviewCache[key];
+        var built = buildCutoutCanvas(cutoutSourceImg, 260, 40, style);
+        var box = cutoutCropBox(built.canvas, 2);
+        var cropped = cutoutCropCanvas(built.canvas, box);
+        var data = {
+          url: cropped.toDataURL("image/png"),
+          canvas: cropped,
+          box: box,
+          unit: 260 / 640,
+          stroke: built.stroke || null
+        };
+        strokePreviewCache[key] = data;
+        return data;
+      }
+
+      function strokePreviewUrl(style) {
+        var data = strokePreviewData(style);
+        return data ? data.url : "";
+      }
+
+      // 无描边底图 + 轮廓路径（每个抠图只算一次，所有卡片共用）
+      var strokePreviewBaseCache = null;
+      function strokePreviewBase() {
+        if (!cutoutSourceImg) return null;
+        if (strokePreviewBaseCache && strokePreviewBaseCache.id === cutoutSourceId) return strokePreviewBaseCache;
+        var built = buildCutoutCanvas(cutoutSourceImg, 260, 40, "plain", true);
+        var path = built.path || null;
+        // 卡片画布很小，路径抽稀到 400 点以内，动画更流畅
+        if (path && path.length > 420) {
+          var step = Math.ceil(path.length / 420);
+          var thin = [];
+          for (var pi = 0; pi < path.length; pi += step) thin.push(path[pi]);
+          path = thin;
+        }
+        strokePreviewBaseCache = { id: cutoutSourceId, canvas: built.canvas, path: path };
+        return strokePreviewBaseCache;
       }
 
       function buildCutoutWithGlow(blob) {
@@ -18614,6 +19751,9 @@
           var img = new Image();
           img.onload = function () {
             URL.revokeObjectURL(url);
+            cutoutSourceImg = img;
+            cutoutSourceId++;
+            strokePreviewCache = {};
             var built = buildGlowCanvas(img, 640, 180);
             cutoutFood = { x: built.x, y: built.y, w: built.w, h: built.h, side: built.side };
             resolve(built.canvas.toDataURL("image/png"));
@@ -18690,6 +19830,9 @@
         return new Promise(function (resolve, reject) {
           var img = new Image();
           img.onload = function () {
+            cutoutSourceImg = img;
+            cutoutSourceId++;
+            strokePreviewCache = {};
             var built = buildGlowCanvas(img, 640, 180);
             cutoutFood = { x: built.x, y: built.y, w: built.w, h: built.h, side: built.side };
             resolve(built.canvas.toDataURL("image/png"));
