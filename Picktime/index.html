@@ -8837,6 +8837,7 @@
           "未设置": "Not set",
           "QQ邮箱": "QQ Email",
           "未绑定": "Not linked",
+          "加载中...": "Loading...",
           "设置密保": "Security questions",
           "修改密码": "Change password",
           "绑定手机号": "Bind phone",
@@ -9356,6 +9357,7 @@
           "未设置": "未設定",
           "QQ邮箱": "QQメール",
           "未绑定": "未連携",
+          "加载中...": "読み込み中...",
           "设置密保": "セキュリティ質問",
           "修改密码": "パスワード変更",
           "绑定手机号": "電話番号を連携",
@@ -9875,6 +9877,7 @@
           "未设置": "미설정",
           "QQ邮箱": "QQ 이메일",
           "未绑定": "미연동",
+          "加载中...": "불러오는 중...",
           "设置密保": "보안 질문",
           "修改密码": "비밀번호 변경",
           "绑定手机号": "휴대폰 번호 연동",
@@ -12358,7 +12361,7 @@
         var row = document.getElementById(id);
         if (row) row.disabled = !enabled;
       }
-      function applyAccountUser(user) {
+      function applyAccountUser(user, loading) {
         accountUser = user || null;
         var type = user ? (user.registerType || "normal") : "";
         var phoneValue = document.getElementById("accPhoneValue");
@@ -12366,6 +12369,21 @@
         var pwdValue = document.getElementById("accPasswordValue");
         var secValue = document.getElementById("accSecurityValue");
         var note = document.getElementById("accGoogleNote");
+        if (loading) {
+          // 数据加载中：不显示「未绑定 / 未设置」，避免误导用户
+          var loadingText = t("加载中...");
+          if (phoneValue) phoneValue.textContent = loadingText;
+          if (emailValue) emailValue.textContent = loadingText;
+          if (pwdValue) pwdValue.textContent = loadingText;
+          if (secValue) secValue.textContent = loadingText;
+          if (note) note.hidden = true;
+          setAccountRowState("accPhoneRow", false);
+          setAccountRowState("accEmailRow", false);
+          setAccountRowState("accPasswordRow", false);
+          setAccountRowState("accSecurityRow", false);
+          applyLanguage(currentLang);
+          return;
+        }
         if (phoneValue) phoneValue.textContent = user && user.phone ? user.phone : t("未绑定");
         if (emailValue) emailValue.textContent = user && user.email ? user.email : t("未绑定");
         if (pwdValue) pwdValue.textContent = user && user.hasPassword ? t("已设置") : t("未设置");
@@ -12393,7 +12411,11 @@
         }).catch(function () { applyAccountUser(null); });
       }
       function initAccountPage() {
-        applyAccountUser(null);
+        if (getAuthToken()) {
+          applyAccountUser(null, true);
+        } else {
+          applyAccountUser(null);
+        }
         loadAccountInfo();
       }
       function handleAccountAction(action) {
