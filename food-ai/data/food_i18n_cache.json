@@ -115,7 +115,34 @@
   "泡椒凤爪": "Pickled Chicken Feet",
   "冬枣": "Winter Jujube",
   "牛肉烤蔬菜碗": "Grilled Beef and Vegetables Bowl",
-  "三文鱼饭 bowl": "Salmon Rice Bowl"
+  "三文鱼饭 bowl": "Salmon Rice Bowl",
+  "青椒肉末...": "Pepper and Minced Pork...",
+  "虾仁...": "Shrimp...",
+  "牛排...": "Steak...",
+  "Ground Pork with Green Peppers": "Sautéed Pork with Green Peppers",
+  "Cold Mixed Vegetables": "Cold Mixed Veggies",
+  "Roasted Potato Cubes": "Roasted Potatoes",
+  "Lemon Mint Drink": "Lemon Mint Cooler",
+  "Pepper and Minced Pork...": "Pepper and Minced Pork",
+  "Steak...": "Steak",
+  "Shrimp...": "Shrimp",
+  "菠菜胡萝卜炒菜": "Stir-Fried Spinach and Carrot",
+  "胡萝卜": "Carrot",
+  "西兰花": "Broccoli",
+  "鸡胸肉": "Chicken Breast",
+  "Stir-Fried Spinach and Carrot": "Sautéed Spinach and Carrot",
+  "西兰花...": "Broccoli...",
+  "加奶冰咖啡（冰拿铁）": "Iced Milk Coffee (Iced Latte)",
+  "葡萄": "Grapes",
+  "蛋糕": "Cake",
+  "辣子鸡块": "Spicy Chicken Cubes",
+  "青提": "Green Grape",
+  "布丁": "Pudding",
+  "水果茶": "Fruit Tea",
+  "奶油": "Cream",
+  "炒土豆块": "Stir-Fried Potato Cubes",
+  "玉米热狗": "Corn Hot Dog",
+  "Corn Hot Dog": "Corn Dog"
  },
  "ja": {
   "生日蛋糕": "バースデーケーキ",
@@ -356,6 +383,7 @@
   "토마토 계란볶음": "토마토 계란 볶음",
   "소고기 롤": "소고기롤",
   "타마고야키": "달걀요리",
-  "커리 크랩": "커리 게"
+  "커리 크랩": "커리 게",
+  "玉米热狗": "콘핫도그"
  }
 }

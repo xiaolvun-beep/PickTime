@@ -6,6 +6,7 @@
   <title>PickTime</title>
   <script>if ("scrollRestoration" in history) history.scrollRestoration = "manual";</script>
   <script>
+    document.documentElement.classList.add("splash-on");
     try {
       var picktimeStandalone = (window.matchMedia && (window.matchMedia("(display-mode: standalone)").matches || window.matchMedia("(display-mode: fullscreen)").matches)) || window.navigator.standalone === true;
       var picktimeInstalled = false;
@@ -21,6 +22,8 @@
   <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  <link rel="preload" as="image" href="/images/splash-bg.webp" />
+  <link rel="preload" as="font" type="font/woff2" href="/fonts/onboarding-title.woff2?v=7" crossorigin />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="PickTime" />
@@ -621,6 +624,7 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
+      transform: translateX(var(--visible-center-x, 0px));
     }
 
     /* 首页点击抠图：背景变暗，抠图垂直居中放大展示 */
@@ -858,25 +862,34 @@
       opacity: 1;
     }
 
-    /* 内容右下角的印章：浅灰、向左倾斜，压在文字上面，文字淡入后渐显落下 */
+    /* 内容右下角的印章：精确抹茶绿并向右倾斜，文字淡入后渐显落下 */
     .cutout-viewer__tip-seal {
       position: absolute;
       right: -4px;
       bottom: -30px;
       width: 96px;
       height: 96px;
-      object-fit: contain;
       pointer-events: none;
-      filter: invert(0.78);
+      /* 以原图透明轮廓作为遮罩，确保填充色精确为指定 RGB。 */
+      background-color: #9cbb7c;
+      -webkit-mask: url("/images/seal.png?v=2") center / contain no-repeat;
+      mask: url("/images/seal.png?v=2") center / contain no-repeat;
       opacity: 0;
       z-index: 1;
-      transform: rotate(-20deg) scale(1.7);
+      transform: rotate(9deg) scale(1.7);
       transition: opacity 500ms var(--ease) 260ms, transform 700ms cubic-bezier(0.2, 0.9, 0.3, 1.25) 260ms;
     }
 
     .cutout-viewer__tip.is-done .cutout-viewer__tip-seal {
       opacity: 0.9;
-      transform: rotate(-20deg) scale(1);
+      transform: rotate(9deg) scale(1);
+    }
+
+    /* AI 暂时不可用时仍保留小贴士文字，但不盖成功印章。 */
+    .cutout-viewer__tip.is-error .cutout-viewer__tip-seal {
+      opacity: 0;
+      transform: rotate(9deg) scale(1.15);
+      transition-delay: 0ms;
     }
 
     @keyframes cutoutTipStarSpin {
@@ -1199,7 +1212,7 @@
     .week-camera {
       position: fixed;
       top: calc(16px + env(safe-area-inset-top));
-      right: 20px;
+      left: 20px;
       z-index: 5;
       width: 40px;
       height: 40px;
@@ -1229,7 +1242,7 @@
     .week-delete {
       position: fixed;
       top: calc(16px + env(safe-area-inset-top));
-      left: 20px;
+      right: 20px;
       z-index: 5;
       width: 40px;
       height: 40px;
@@ -1480,6 +1493,80 @@
     .camera-overlay__caption {
       padding-top: 2px;
       pointer-events: none;
+    }
+
+    .camera-cutout-checkbox {
+      --checkbox-color: #ffffff;
+      --checkbox-size: 1.35rem;
+      display: block;
+      width: max-content;
+      margin-top: 11px;
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+      color: var(--checkbox-color);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      pointer-events: auto;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .camera-cutout-checkbox input {
+      position: absolute;
+      pointer-events: none;
+      inset: 0;
+      opacity: 0;
+    }
+
+    .camera-cutout-checkbox .checkmark {
+      display: flex;
+      align-items: center;
+      gap: calc(var(--checkbox-size) / 2.5);
+      opacity: 0.7;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.38);
+      transition: opacity 150ms ease;
+    }
+
+    .camera-cutout-checkbox:hover .checkmark {
+      opacity: 0.85;
+    }
+
+    .camera-cutout-checkbox input:checked ~ .checkmark {
+      opacity: 1;
+    }
+
+    .camera-cutout-checkbox .checkmark svg {
+      width: var(--checkbox-size);
+      height: var(--checkbox-size);
+      flex: none;
+      filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.32));
+    }
+
+    .camera-cutout-checkbox .checkmark svg rect {
+      stroke-dasharray: 88 0;
+      stroke-dashoffset: 73;
+      transition: stroke-dasharray 100ms ease;
+    }
+
+    .camera-cutout-checkbox input:checked ~ .checkmark svg rect {
+      stroke-dasharray: 80 18;
+    }
+
+    .camera-cutout-checkbox .checkmark svg polyline {
+      stroke-dasharray: 0 30;
+      stroke-dashoffset: 1;
+      transition: stroke-dasharray 150ms ease;
+    }
+
+    .camera-cutout-checkbox input:checked ~ .checkmark svg polyline {
+      stroke-dasharray: 30 30;
+    }
+
+    .camera-cutout-checkbox input:focus-visible ~ .checkmark {
+      outline: 2px solid rgba(255, 255, 255, 0.9);
+      outline-offset: 5px;
+      border-radius: 5px;
     }
 
     .camera-overlay__title {
@@ -1875,7 +1962,7 @@
       overscroll-behavior: none;
     }
 
-    html.onboarding-on body > *:not(.onboarding):not(.calendar-cell__fly) {
+    html.onboarding-on body > *:not(.onboarding):not(.splash):not(.calendar-cell__fly) {
       visibility: hidden !important;
     }
 
@@ -2459,7 +2546,7 @@
       overscroll-behavior: none;
     }
 
-    html.install-on body > *:not(.install-guide):not(.calendar-cell__fly) {
+    html.install-on body > *:not(.install-guide):not(.splash):not(.calendar-cell__fly) {
       visibility: hidden !important;
     }
 
@@ -2773,7 +2860,7 @@
       height: 100%;
       object-fit: contain;
       /* 抠图带透明边距，放大到与滑动页相近的观感 */
-      transform: scale(1.35);
+      transform: scale(1.35) translateX(var(--visible-center-x, 0px));
       pointer-events: none;
     }
 
@@ -2857,6 +2944,16 @@
     }
 
     .cut-sheet__time {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      font-family: inherit;
+      cursor: pointer;
+      pointer-events: auto;
+      -webkit-tap-highlight-color: transparent;
       margin-top: 12px;
       font-size: 13px;
       font-weight: 500;
@@ -3064,6 +3161,22 @@
       transform: scale(0.94);
     }
 
+    .cut-sheet__askai.is-disabled {
+      opacity: 0.38;
+      cursor: not-allowed;
+      filter: grayscale(1);
+      box-shadow: none;
+    }
+
+    .cut-sheet__askai.is-disabled:active {
+      transform: none;
+    }
+
+    .cut-sheet__askai.is-disabled .ai-loader:before,
+    .cut-sheet__askai.is-disabled .ai-loader:after {
+      animation-play-state: paused;
+    }
+
     .ai-loader {
       position: relative;
       width: 2.5em;
@@ -3153,11 +3266,31 @@
       transform: scale(0.94);
     }
 
-    .cut-sheet__stroke svg {
-      width: 20px;
-      height: 20px;
+    .cut-sheet__stroke-entry-icon {
+      position: relative;
+      width: 31px;
+      height: 31px;
+      flex: none;
+      pointer-events: none;
+    }
+
+    .cut-sheet__stroke-entry-base,
+    .cut-sheet__stroke-entry-canvas {
+      position: absolute;
+      inset: 0;
       display: block;
-      color: #5b6472;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .cut-sheet__stroke-entry-base {
+      z-index: 0;
+      object-fit: contain;
+    }
+
+    .cut-sheet__stroke-entry-canvas {
+      z-index: 1;
     }
 
     #strokeMask {
@@ -5799,12 +5932,22 @@
       scrollbar-width: none;
     }
 
-    #dateSheet .time-sheet__body {
+    #dateSheet .time-sheet__body,
+    #cutDateSheet .time-sheet__body {
       gap: 14px;
     }
 
-    #dateSheet .wheel {
+    #dateSheet .wheel,
+    #cutDateSheet .wheel {
       width: 96px;
+    }
+
+    #cutDateMask {
+      z-index: 433;
+    }
+
+    #cutDateSheet {
+      z-index: 434;
     }
 
     .wheel::-webkit-scrollbar {
@@ -6843,59 +6986,6 @@
       margin: 0;
     }
 
-    .settings-confirm-badge {
-      position: absolute;
-      top: 6px;
-      right: 6px;
-      width: 34px;
-      height: 34px;
-      pointer-events: none;
-      object-fit: contain;
-      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.18));
-      animation: settingsBadgePulse 1.4s ease-in-out infinite;
-    }
-
-    @keyframes settingsBadgePulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(0.7); }
-    }
-
-    .settings-confirm-badge--tl {
-      right: auto;
-      left: 4px;
-      top: 14px;
-      width: 26px;
-      height: 26px;
-      animation-delay: -0.7s;
-    }
-
-    .settings-confirm-wuwu {
-      position: absolute;
-      top: 16px;
-      right: 8px;
-      pointer-events: none;
-      font-family: 'MaShanZheng', 'STKaiti', 'KaiTi', '楷体', cursive;
-      font-size: 15px;
-      line-height: 1;
-      color: #b08968;
-      transform: rotate(-7deg);
-      display: flex;
-    }
-
-    .settings-confirm-wuwu span {
-      display: inline-block;
-      animation: wuwuAltPulse 1.8s ease-in-out infinite;
-    }
-
-    .settings-confirm-wuwu span:last-child {
-      animation-delay: -0.9s;
-    }
-
-    @keyframes wuwuAltPulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(0.62); }
-    }
-
     .settings-confirm-title {
       font-size: 1.45rem;
       font-weight: 700;
@@ -7486,9 +7576,308 @@
       margin-top: 8px;
       margin-bottom: 4px;
     }
+
+    /* 启动页：背景图铺满，底部圆角 logo 容器 + 应用名，首页内容就绪后淡出 */
+    html.splash-on,
+    html.splash-on body {
+      overflow: hidden !important;
+      height: 100% !important;
+      overscroll-behavior: none;
+    }
+
+    html.splash-on body > *:not(.splash):not(.calendar-cell__fly) {
+      visibility: hidden !important;
+    }
+
+    .splash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      /* 小视口高度固定，浏览器地址栏/工具栏收放时内容不位移 */
+      height: 100vh;
+      height: 100svh;
+      z-index: 100000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      background-color: #ddf9d3;
+      background-image: url("/images/splash-bg.webp");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      transition: opacity 420ms ease;
+    }
+
+    .splash.is-hide {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .splash__bottom {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 0;
+      /* 与贴纸序列完全同步：同时开始（0ms），贴纸弹完（1210ms）时刚好显示完 */
+      animation: splash-bottom-in 1210ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+      animation-delay: 0ms;
+    }
+
+    @keyframes splash-bottom-in {
+      from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.88);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .splash__icon {
+      width: 76px;
+      height: 76px;
+      background: transparent;
+    }
+
+    .splash__logo {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .splash__name {
+      margin-top: 10px;
+      font-family: "Onboarding Title", "KuaiLe Full", "Picktime Title", sans-serif;
+      font-size: min(4.4vw, 18px);
+      /* 固定行高盒：字体切换/回退字体度量差异都不会改变整块高度 */
+      line-height: 1.2;
+      height: 1.2em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #7a4d2c;
+      letter-spacing: 0.02em;
+    }
+
+    /* 贴纸簇：模仿模板，主角色在左上，其余小图环绕紧凑摆放 */
+    .splash__caps {
+      position: absolute;
+      top: 36%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      width: 300px;
+      height: 320px;
+    }
+
+    .splash__capy,
+    .splash__food,
+    .splash__sparkle {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      height: auto;
+      --tx: 0px;
+      --ty: 0px;
+      --rot: 0deg;
+      transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) rotate(var(--rot));
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-user-drag: none;
+      /* 从中心由小变大弹到各自位置 */
+      animation: sticker-pop 720ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+    }
+
+    .splash__capy {
+      filter:
+        drop-shadow(2px 0 0 #fff)
+        drop-shadow(-2px 0 0 #fff)
+        drop-shadow(0 2px 0 #fff)
+        drop-shadow(0 -2px 0 #fff)
+        drop-shadow(1.5px 1.5px 0 #fff)
+        drop-shadow(-1.5px -1.5px 0 #fff)
+        drop-shadow(1.5px -1.5px 0 #fff)
+        drop-shadow(-1.5px 1.5px 0 #fff);
+    }
+
+    .splash__food {
+      filter:
+        drop-shadow(1.5px 0 0 #fff)
+        drop-shadow(-1.5px 0 0 #fff)
+        drop-shadow(0 1.5px 0 #fff)
+        drop-shadow(0 -1.5px 0 #fff)
+        drop-shadow(1px 1px 0 #fff)
+        drop-shadow(-1px -1px 0 #fff)
+        drop-shadow(1px -1px 0 #fff)
+        drop-shadow(-1px 1px 0 #fff);
+    }
+
+    @keyframes sticker-pop {
+      from {
+        transform: translate(-50%, -50%) rotate(var(--rot)) scale(0.12);
+        opacity: 0;
+      }
+      to {
+        transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) rotate(var(--rot)) scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* 主角：庆祝卡皮巴拉，左上，最大 */
+    .splash__capy--party {
+      width: 124px;
+      z-index: 6;
+      --tx: -62px;
+      --ty: -86px;
+      --rot: -10deg;
+      animation-delay: 0ms;
+    }
+
+    /* 抱心卡皮巴拉：右侧 */
+    .splash__capy--love {
+      width: 86px;
+      z-index: 5;
+      --tx: 91px;
+      --ty: -62px;
+      --rot: 9deg;
+      animation-delay: 70ms;
+    }
+
+    /* 大哭卡皮巴拉：下方居中偏左 */
+    .splash__capy--cry {
+      width: 78px;
+      z-index: 4;
+      --tx: -17px;
+      --ty: 62px;
+      --rot: 2deg;
+      animation-delay: 140ms;
+    }
+
+    /* 薯条：正中偏上，压在角色之间 */
+    .splash__food--fries {
+      width: 54px;
+      z-index: 7;
+      --tx: 24px;
+      --ty: -5px;
+      --rot: 14deg;
+      animation-delay: 210ms;
+    }
+
+    /* 章鱼烧：左侧 */
+    .splash__food--takoyaki {
+      width: 62px;
+      z-index: 3;
+      --tx: -110px;
+      --ty: 22px;
+      --rot: -14deg;
+      animation-delay: 280ms;
+    }
+
+    /* 饭团：右下 */
+    .splash__food--onigiri {
+      width: 56px;
+      z-index: 3;
+      --tx: 101px;
+      --ty: 67px;
+      --rot: 10deg;
+      animation-delay: 350ms;
+    }
+
+    /* 四角光芒星点缀 */
+    .splash__sparkle--1 {
+      width: 34px;
+      z-index: 8;
+      --tx: 130px;
+      --ty: -130px;
+      --rot: 12deg;
+      animation-delay: 420ms;
+    }
+
+    .splash__sparkle--2 {
+      width: 24px;
+      z-index: 3;
+      --tx: -110px;
+      --ty: 106px;
+      --rot: -14deg;
+      animation-delay: 490ms;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .splash__bottom,
+      .splash__caps,
+      .splash__capy,
+      .splash__food,
+      .splash__sparkle {
+        animation: none;
+      }
+    }
   </style>
 </head>
 <body class="is-home-entering">
+  <!-- 启动页：背景图 + 底部圆角 logo 容器 + 应用名，首页内容就绪后淡出 -->
+  <div class="splash" id="splashScreen" aria-hidden="true">
+    <div class="splash__caps">
+      <img class="splash__capy splash__capy--party" src="/images/splash-capy-party.png?v=2" alt="" draggable="false" />
+      <img class="splash__capy splash__capy--love" src="/images/splash-capy-love.png" alt="" draggable="false" />
+      <img class="splash__capy splash__capy--cry" src="/images/splash-capy-cry.png" alt="" draggable="false" />
+      <img class="splash__food splash__food--fries" src="/images/splash-food-fries.png" alt="" draggable="false" />
+      <img class="splash__food splash__food--takoyaki" src="/images/splash-food-takoyaki.png" alt="" draggable="false" />
+      <img class="splash__food splash__food--onigiri" src="/images/splash-food-onigiri.png" alt="" draggable="false" />
+      <img class="splash__sparkle splash__sparkle--1" src="/images/splash-sparkle-yellow.png?v=3" alt="" draggable="false" />
+      <img class="splash__sparkle splash__sparkle--2" src="/images/splash-sparkle-pink.png?v=3" alt="" draggable="false" />
+    </div>
+    <div class="splash__bottom">
+      <div class="splash__icon">
+        <img class="splash__logo" src="/images/splash-appicon.png" alt="" width="360" height="360" draggable="false" />
+      </div>
+      <div class="splash__name">PickTime拾光</div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var splashEl = document.getElementById("splashScreen");
+      if (!splashEl) return;
+      var splashShownAt = Date.now();
+      var splashMinMs = 600;
+      var splashHidden = false;
+      // 锁定启动页高度：地址栏/工具栏收放导致视口变化时，logo 和文字不跟着位移
+      var splashHeight = window.innerHeight;
+      var splashWidth = window.innerWidth;
+      window.addEventListener("resize", function () {
+        if (splashHidden) return;
+        if (window.innerWidth !== splashWidth) {
+          splashWidth = window.innerWidth;
+          splashHeight = window.innerHeight;
+          splashEl.style.height = "";
+          return;
+        }
+        if (window.innerHeight !== splashHeight) splashEl.style.height = splashHeight + "px";
+      });
+      window.__picktimeHideSplash = function () {
+        if (splashHidden) return;
+        splashHidden = true;
+        var wait = Math.max(0, splashMinMs - (Date.now() - splashShownAt));
+        setTimeout(function () {
+          // 先显示底层页面，再让启动页淡出，避免闪出未加载完的内容
+          document.documentElement.classList.remove("splash-on");
+          splashEl.classList.add("is-hide");
+          splashEl.setAttribute("aria-hidden", "true");
+          setTimeout(function () {
+            if (splashEl.parentNode) splashEl.parentNode.removeChild(splashEl);
+          }, 500);
+        }, wait);
+      };
+      // 兜底：接口异常或离线时也不会一直卡在启动页
+      setTimeout(function () { window.__picktimeHideSplash(); }, 6000);
+    })();
+  </script>
   <!-- 菜单抽屉 -->
   <div class="menu-mask" id="menuMask" aria-hidden="true"></div>
   <aside class="menu-drawer" id="menuDrawer" aria-hidden="true">
@@ -7573,7 +7962,7 @@
       </div>
     </div>
     <div class="menu-footer">
-      <div class="menu-footer__version">v1.3.7</div>
+      <div class="menu-footer__version">v1.4.3</div>
       <div class="menu-footer__copyright">© PickTime版权所有</div>
     </div>
   </aside>
@@ -7816,10 +8205,7 @@
       <button class="settings-confirm-back" id="confirmBack" type="button" aria-label="返回">‹</button>
       <div class="settings-confirm-body">
         <div class="settings-confirm-icon-wrap">
-          <img class="settings-confirm-icon" id="confirmIcon" src="/images/wuwu.png" alt="" />
-          <img class="settings-confirm-badge" id="confirmBadge" src="/images/angry.png" alt="" draggable="false" style="display:none" />
-          <img class="settings-confirm-badge settings-confirm-badge--tl" id="confirmBadgeL" src="/images/angry2.png" alt="" draggable="false" style="display:none" />
-          <span class="settings-confirm-wuwu" id="confirmWuwu" style="display:none"><span>呜</span><span>呜</span></span>
+          <img class="settings-confirm-icon" id="confirmIcon" src="/images/question.png" alt="" />
         </div>
         <div class="settings-confirm-title" id="confirmTitle"></div>
         <div class="settings-confirm-text settings-confirm-text--lg" id="confirmText"></div>
@@ -8017,8 +8403,8 @@
       <div class="about-logo-wrap">
         <img class="about-logo" src="/icons/apple-touch-icon.png" alt="拾光" />
       </div>
-      <p class="about-meta"><strong>版本：</strong>v1.3.7</p>
-      <p class="about-meta"><strong>更新日期：</strong>2026.09.21</p>
+      <p class="about-meta"><strong>版本：</strong>v1.4.3</p>
+      <p class="about-meta"><strong>更新日期：</strong>2026.09.22</p>
 
       <h4>产品简介</h4>
       <p>拾光（PickTime）是一款专注于饮食记录与健康参考的应用，支持拍照记录饮食、智能抠图、AI 热量与营养分析、体脂率参考、饮食时间线与数据统计，帮助你用照片记录每一餐，也记录生活的温度。</p>
@@ -8166,6 +8552,13 @@
   </template>
   <template id="docChangelogTpl">
     <h1>拾光更新日志</h1>
+    <h4>v1.4.3 <span class="doc-version-date">2026.09.22</span></h4>
+    <p><strong>新增「仅抠图」模式</strong></p>
+    <p>拍照页新增「仅抠图」复选框：勾选后只做智能抠图、跳过热量与营养识别，适合只想把食物抠出来的场景；热量与营养可在添加详情页手动填写。</p>
+    <p><strong>新增「个性描边」</strong></p>
+    <p>抠图结果弹窗新增「个性描边」入口（「询问 AI」旁的齿轮按钮），内置 13 种描边样式，每张样式卡片会播放「从无到有描出轮廓」的预览动画；选中后自动重新生成带描边的成品图，随时可恢复系统默认描边。</p>
+    <p><strong>体验优化与修复</strong></p>
+    <p>滑动页相机与删除按钮位置互换，更顺手；账号与安全弹窗换上新的卡皮巴拉插图（注销账号 / 删除所有历史数据）；拍照页的图库、反转、快门与「仅抠图」新增 iOS 与安卓触感反馈；修复已知问题并优化整体稳定性。</p>
     <h4>v1.3.7 <span class="doc-version-date">2026.09.21</span></h4>
     <p><strong>查看大图升级</strong></p>
     <p>首页点击抠图即可放大查看：背景变暗突出食物，图片下方显示名称与 AI 小贴士——会看图片判断这是什么食物，给出一句可爱温馨的提示，思考时四芒星旋转闪光，完成后右下角盖上拾光印章；右上角新增虚化按钮，一点即可模糊遮住首页内容，方便截图；大图支持上下拖动，方便调整到合适的截图位置，所有抠图统一显示尺寸。</p>
@@ -8448,6 +8841,9 @@
           "修改密码": "Change password",
           "绑定手机号": "Bind phone",
           "绑定QQ邮箱": "Bind QQ email",
+          "更换手机号": "Change phone",
+          "更换QQ邮箱": "Change QQ email",
+          "修改密保": "Change security questions",
           "已设置": "Set",
           "请先登录": "Please sign in first",
           "请先登录后修改": "Please sign in to make changes",
@@ -8526,6 +8922,7 @@
           "重新填写密钥": "Re-enter key",
           "使用本机抠图": "Use local cutout",
           "询问 AI": "Ask AI",
+          "抠图模式AI暂不可用": "AI is unavailable in cutout-only mode.",
           "个性描边": "Custom Outline",
           "系统默认（黄色光芒白色描边）": "Default (yellow glow + white outline)",
           "浅灰虚线": "Light gray dashed",
@@ -8668,6 +9065,14 @@
           "修复反复开关大图后小贴士可能不显示的问题；修复手账页标题不跟随语言、更新日志部分内容仍显示中文的问题；统一多语言下抠图加载文案的位置。": "Fixed the tip occasionally not showing after repeatedly opening and closing the enlarged view; fixed the journal page title not following the language setting and part of the changelog still showing Chinese; unified the position of the cutout loading text across languages.",
           "v1.3.7 更新": "v1.3.7 Update",
           "新版本 v1.3.7 已发布：首页点击抠图可放大查看并显示 AI 小贴士，新增背景虚化、上下拖动与统一显示尺寸；抠图结果弹窗支持向下拖动关闭；修复小贴士不显示、更新日志未翻译等问题。可在「菜单 → 更新日志」查看详情。": "Version v1.3.7 is out: tap a cutout on the home page to enlarge it with an AI tip, plus background blur, drag to reposition and a unified display size; the cutout result sheet can be closed by dragging down; fixes for missing tips and untranslated changelog entries. See Menu -> Changelog for details.",
+          "v1.4.3 更新": "v1.4.3 Update",
+          "新版本 v1.4.3 已发布：新增「仅抠图」模式与「个性描边」功能，滑动页按钮位置调整，账号安全弹窗换新插图，拍照页新增多处触感反馈，并修复已知问题。可在「菜单 → 更新日志」查看详情。": "Version v1.4.3 is out: new \"Cutout only\" mode and \"Custom Outline\", repositioned buttons on the swipe page, new artwork in the Account & Security dialogs, more haptics on the camera page, plus bug fixes. See Menu -> Changelog for details.",
+          "新增「仅抠图」模式": "New \"Cutout Only\" Mode",
+          "拍照页新增「仅抠图」复选框：勾选后只做智能抠图、跳过热量与营养识别，适合只想把食物抠出来的场景；热量与营养可在添加详情页手动填写。": "The camera page now has a \"Cutout only\" checkbox: when checked, only the smart cutout runs and calorie/nutrition recognition is skipped - perfect when you just want the food cut out. Calories and nutrition can be filled in manually on the add-detail page.",
+          "新增「个性描边」": "New \"Custom Outline\"",
+          "抠图结果弹窗新增「个性描边」入口（「询问 AI」旁的齿轮按钮），内置 13 种描边样式，每张样式卡片会播放「从无到有描出轮廓」的预览动画；选中后自动重新生成带描边的成品图，随时可恢复系统默认描边。": "The cutout result sheet now has a \"Custom Outline\" entry (the gear button next to \"Ask AI\") with 13 outline styles; each style card plays a \"drawing the outline from scratch\" preview animation. Selecting one re-renders the cutout with that outline, and you can restore the default outline at any time.",
+          "体验优化与修复": "Improvements & Fixes",
+          "滑动页相机与删除按钮位置互换，更顺手；账号与安全弹窗换上新的卡皮巴拉插图（注销账号 / 删除所有历史数据）；拍照页的图库、反转、快门与「仅抠图」新增 iOS 与安卓触感反馈；修复已知问题并优化整体稳定性。": "Swapped the camera and delete buttons on the swipe page for easier reach; new capybara artwork in the Account & Security dialogs (delete account / delete all history); added iOS and Android haptics for the camera page's album, flip, shutter and \"Cutout only\" controls; fixed known issues and improved overall stability.",
           "手账页体验升级": "Journal Experience",
           "美纹纸贴纸新增「美纹纸裁剪」：支持旋转 60°（长按连续旋转）、一键水平、删除，并可调整长度与粗细，附带使用说明；手账页纸张与页码位置微调，删除与恢复抠图的动画更顺滑，删除模式下点选抠图会直接吸进垃圾桶并带触感反馈。": "Washi tape stickers now support \"washi tape cropping\": rotate 60° (long-press to rotate continuously), one-tap level, delete, and adjustable length and thickness, with usage tips; paper and page-number positions were fine-tuned, delete/restore animations are smoother, and in delete mode tapping a cutout sucks it into the trash with haptic feedback.",
           "统计页优化": "Stats Page",
@@ -8746,6 +9151,7 @@
           "拾光中": "Capturing…",
           "抠图结果": "Cutout result",
           "相机": "Camera",
+          "仅抠图": "Cutout only",
           "从相册选择": "Choose from album",
           "切换摄像头": "Switch camera",
           "关闭相机": "Close camera",
@@ -8954,6 +9360,9 @@
           "修改密码": "パスワード変更",
           "绑定手机号": "電話番号を連携",
           "绑定QQ邮箱": "QQメールを連携",
+          "更换手机号": "電話番号を変更",
+          "更换QQ邮箱": "QQメールを変更",
+          "修改密保": "秘密の質問を変更",
           "已设置": "設定済み",
           "请先登录": "先にログインしてください",
           "请先登录后修改": "変更するにはログインしてください",
@@ -9032,6 +9441,7 @@
           "重新填写密钥": "キーを再入力",
           "使用本机抠图": "ローカルで切り抜き",
           "询问 AI": "AIに質問",
+          "抠图模式AI暂不可用": "切り抜きモードではAIは現在利用できません",
           "个性描边": "オリジナル縁取り",
           "系统默认（黄色光芒白色描边）": "デフォルト（黄色い光＋白い縁）",
           "浅灰虚线": "薄灰色の破線",
@@ -9174,6 +9584,14 @@
           "修复反复开关大图后小贴士可能不显示的问题；修复手账页标题不跟随语言、更新日志部分内容仍显示中文的问题；统一多语言下抠图加载文案的位置。": "拡大表示を何度も開閉した後、ヒントが表示されないことがある問題を修正；手帳ページのタイトルが言語設定に追従しない問題、更新履歴の一部が中国語のまま表示される問題を修正；多言語での切り抜き読み込みテキストの位置を統一しました。",
           "v1.3.7 更新": "v1.3.7 アップデート",
           "新版本 v1.3.7 已发布：首页点击抠图可放大查看并显示 AI 小贴士，新增背景虚化、上下拖动与统一显示尺寸；抠图结果弹窗支持向下拖动关闭；修复小贴士不显示、更新日志未翻译等问题。可在「菜单 → 更新日志」查看详情。": "v1.3.7 を公開しました：ホームで切り抜きをタップすると拡大表示と AI ヒントが表示され、背景ぼかし・上下ドラッグ・表示サイズの統一に対応；切り抜き結果シートは下にドラッグして閉じられます；ヒントが表示されない問題や更新履歴の未翻訳を修正しました。詳しくは「メニュー → 更新履歴」をご覧ください。",
+          "v1.4.3 更新": "v1.4.3 アップデート",
+          "新版本 v1.4.3 已发布：新增「仅抠图」模式与「个性描边」功能，滑动页按钮位置调整，账号安全弹窗换新插图，拍照页新增多处触感反馈，并修复已知问题。可在「菜单 → 更新日志」查看详情。": "v1.4.3 を公開しました：新機能「切り抜きのみ」モードと「オリジナル縁取り」、スワイプページのボタン位置調整、アカウントとセキュリティのダイアログに新しいイラスト、撮影ページの触感フィードバック追加、既知の問題を修正。詳しくは「メニュー → 更新履歴」をご覧ください。",
+          "新增「仅抠图」模式": "「切り抜きのみ」モードを追加",
+          "拍照页新增「仅抠图」复选框：勾选后只做智能抠图、跳过热量与营养识别，适合只想把食物抠出来的场景；热量与营养可在添加详情页手动填写。": "撮影ページに「切り抜きのみ」チェックボックスを追加：オンにするとスマート切り抜きのみを行い、カロリーと栄養の認識をスキップします。料理だけを切り抜きたいときに便利で、カロリーと栄養は追加詳細ページで手入力できます。",
+          "新增「个性描边」": "「オリジナル縁取り」を追加",
+          "抠图结果弹窗新增「个性描边」入口（「询问 AI」旁的齿轮按钮），内置 13 种描边样式，每张样式卡片会播放「从无到有描出轮廓」的预览动画；选中后自动重新生成带描边的成品图，随时可恢复系统默认描边。": "切り抜き結果シートに「オリジナル縁取り」の入口（「AIに聞く」の隣の歯車ボタン）を追加し、13種類の縁取りスタイルを用意しました。各スタイルカードでは「輪郭が描かれていく」プレビューアニメーションを再生します。選択すると縁取り付きの画像が再生成され、いつでもデフォルトの縁取りに戻せます。",
+          "体验优化与修复": "体験の最適化と修正",
+          "滑动页相机与删除按钮位置互换，更顺手；账号与安全弹窗换上新的卡皮巴拉插图（注销账号 / 删除所有历史数据）；拍照页的图库、反转、快门与「仅抠图」新增 iOS 与安卓触感反馈；修复已知问题并优化整体稳定性。": "スワイプページのカメラと削除ボタンの位置を入れ替え、押しやすくしました；アカウントとセキュリティのダイアログに新しいカピバラのイラスト（アカウント削除 / すべての履歴データを削除）を追加；撮影ページのアルバム・反転・シャッター・「切り抜きのみ」に iOS と Android の触感フィードバックを追加；既知の問題を修正し、全体の安定性を改善しました。",
           "手账页体验升级": "手帳ページの体験向上",
           "美纹纸贴纸新增「美纹纸裁剪」：支持旋转 60°（长按连续旋转）、一键水平、删除，并可调整长度与粗细，附带使用说明；手账页纸张与页码位置微调，删除与恢复抠图的动画更顺滑，删除模式下点选抠图会直接吸进垃圾桶并带触感反馈。": "マスキングテープのシールに「マスキングテープのトリミング」を追加：60°回転（長押しで連続回転）、ワンタップ水平、削除、長さと太さの調整ができ、使い方の説明付き。手帳の紙とページ番号の位置を微調整し、削除/復元アニメーションを滑らかにしました。削除モードで切り抜きをタップするとゴミ箱に吸い込まれ、触感フィードバックもあります。",
           "统计页优化": "統計ページの最適化",
@@ -9252,6 +9670,7 @@
           "拾光中": "拾光中…",
           "抠图结果": "切り抜き結果",
           "相机": "カメラ",
+          "仅抠图": "切り抜きのみ",
           "从相册选择": "アルバムから選択",
           "切换摄像头": "カメラを切り替え",
           "关闭相机": "カメラを閉じる",
@@ -9460,6 +9879,9 @@
           "修改密码": "비밀번호 변경",
           "绑定手机号": "휴대폰 번호 연동",
           "绑定QQ邮箱": "QQ 이메일 연동",
+          "更换手机号": "휴대폰 번호 변경",
+          "更换QQ邮箱": "QQ 이메일 변경",
+          "修改密保": "보안 질문 변경",
           "已设置": "설정됨",
           "请先登录": "먼저 로그인해 주세요",
           "请先登录后修改": "변경하려면 로그인해 주세요",
@@ -9538,6 +9960,7 @@
           "重新填写密钥": "키 다시 입력",
           "使用本机抠图": "로컬 누끼 사용",
           "询问 AI": "AI에게 묻기",
+          "抠图模式AI暂不可用": "누끼 전용 모드에서는 현재 AI를 사용할 수 없습니다.",
           "个性描边": "커스텀 테두리",
           "系统默认（黄色光芒白色描边）": "기본(노란 빛 + 흰색 테두리)",
           "浅灰虚线": "연회색 점선",
@@ -9680,6 +10103,14 @@
           "修复反复开关大图后小贴士可能不显示的问题；修复手账页标题不跟随语言、更新日志部分内容仍显示中文的问题；统一多语言下抠图加载文案的位置。": "확대 보기를 반복해서 열고 닫은 뒤 팁이 표시되지 않을 수 있는 문제를 수정; 다이어리 페이지 제목이 언어 설정을 따르지 않던 문제와 업데이트 내역 일부가 중국어로 표시되던 문제를 수정; 다국어에서 누끼 로딩 문구 위치를 통일했습니다.",
           "v1.3.7 更新": "v1.3.7 업데이트",
           "新版本 v1.3.7 已发布：首页点击抠图可放大查看并显示 AI 小贴士，新增背景虚化、上下拖动与统一显示尺寸；抠图结果弹窗支持向下拖动关闭；修复小贴士不显示、更新日志未翻译等问题。可在「菜单 → 更新日志」查看详情。": "v1.3.7이 출시되었습니다: 홈에서 누끼를 탭하면 확대 보기와 AI 팁이 표시되고, 배경 흐림·위아래 드래그·표시 크기 통일을 지원합니다; 누끼 결과 시트는 아래로 드래그해 닫을 수 있습니다; 팁이 표시되지 않던 문제와 업데이트 내역 미번역 문제를 수정했습니다. 자세한 내용은 '메뉴 → 업데이트 내역'에서 확인하세요.",
+          "v1.4.3 更新": "v1.4.3 업데이트",
+          "新版本 v1.4.3 已发布：新增「仅抠图」模式与「个性描边」功能，滑动页按钮位置调整，账号安全弹窗换新插图，拍照页新增多处触感反馈，并修复已知问题。可在「菜单 → 更新日志」查看详情。": "v1.4.3이 출시되었습니다: '누끼만' 모드와 '커스텀 테두리' 기능 추가, 스와이프 페이지 버튼 위치 조정, 계정 및 보안 다이얼로그 새 일러스트, 촬영 페이지 햅틱 피드백 추가, 알려진 문제 수정. 자세한 내용은 '메뉴 → 업데이트 내역'에서 확인하세요.",
+          "新增「仅抠图」模式": "'누끼만' 모드 추가",
+          "拍照页新增「仅抠图」复选框：勾选后只做智能抠图、跳过热量与营养识别，适合只想把食物抠出来的场景；热量与营养可在添加详情页手动填写。": "촬영 페이지에 '누끼만' 체크박스를 추가했습니다: 체크하면 스마트 누끼만 실행하고 칼로리·영양 인식은 건너뜁니다. 음식만 누끼 따고 싶을 때 유용하며, 칼로리와 영양은 추가 상세 페이지에서 직접 입력할 수 있습니다.",
+          "新增「个性描边」": "'커스텀 테두리' 추가",
+          "抠图结果弹窗新增「个性描边」入口（「询问 AI」旁的齿轮按钮），内置 13 种描边样式，每张样式卡片会播放「从无到有描出轮廓」的预览动画；选中后自动重新生成带描边的成品图，随时可恢复系统默认描边。": "누끼 결과 시트에 '커스텀 테두리' 입구('AI에게 묻기' 옆 톱니바퀴 버튼)를 추가하고 13가지 테두리 스타일을 제공합니다. 각 스타일 카드는 '윤곽이 그려지는' 미리보기 애니메이션을 재생하며, 선택하면 테두리가 적용된 이미지가 다시 생성되고 언제든 기본 테두리로 되돌릴 수 있습니다.",
+          "体验优化与修复": "사용성 개선 및 수정",
+          "滑动页相机与删除按钮位置互换，更顺手；账号与安全弹窗换上新的卡皮巴拉插图（注销账号 / 删除所有历史数据）；拍照页的图库、反转、快门与「仅抠图」新增 iOS 与安卓触感反馈；修复已知问题并优化整体稳定性。": "스와이프 페이지의 카메라와 삭제 버튼 위치를 서로 바꿔 누르기 편하게 했습니다; 계정 및 보안 다이얼로그에 새 카피바라 일러스트(계정 삭제 / 모든 기록 데이터 삭제)를 적용했습니다; 촬영 페이지의 앨범·반전·셔터·'누끼만'에 iOS와 Android 햅틱 피드백을 추가했습니다; 알려진 문제를 수정하고 전반적인 안정성을 개선했습니다.",
           "手账页体验升级": "다이어리 경험 업그레이드",
           "美纹纸贴纸新增「美纹纸裁剪」：支持旋转 60°（长按连续旋转）、一键水平、删除，并可调整长度与粗细，附带使用说明；手账页纸张与页码位置微调，删除与恢复抠图的动画更顺滑，删除模式下点选抠图会直接吸进垃圾桶并带触感反馈。": "마스킹 테이프 스티커에 '마스킹 테이프 자르기' 추가: 60° 회전(길게 눌러 연속 회전), 원터치 수평, 삭제, 길이와 두께 조절이 가능하며 사용 설명이 포함됩니다. 다이어리 종이와 페이지 번호 위치를 미세 조정하고 삭제/복원 애니메이션을 더 부드럽게 했으며, 삭제 모드에서 누끼를 탭하면 휴지통으로 빨려 들어가고 햅틱 피드백이 있습니다.",
           "统计页优化": "통계 페이지 최적화",
@@ -9758,6 +10189,7 @@
           "拾光中": "拾光 중…",
           "抠图结果": "누끼 결과",
           "相机": "카메라",
+          "仅抠图": "누끼만",
           "从相册选择": "앨범에서 선택",
           "切换摄像头": "카메라 전환",
           "关闭相机": "카메라 닫기",
@@ -10397,9 +10829,9 @@
       function notifUpdateMessage() {
         return {
           id: "m" + Date.now(),
-          tag: "v1.3.7",
-          title: "v1.3.7 更新",
-          content: "新版本 v1.3.7 已发布：首页点击抠图可放大查看并显示 AI 小贴士，新增背景虚化、上下拖动与统一显示尺寸；抠图结果弹窗支持向下拖动关闭；修复小贴士不显示、更新日志未翻译等问题。可在「菜单 → 更新日志」查看详情。",
+          tag: "v1.4.3",
+          title: "v1.4.3 更新",
+          content: "新版本 v1.4.3 已发布：新增「仅抠图」模式与「个性描边」功能，滑动页按钮位置调整，账号安全弹窗换新插图，拍照页新增多处触感反馈，并修复已知问题。可在「菜单 → 更新日志」查看详情。",
           time: Date.now(),
           read: false
         };
@@ -10413,7 +10845,7 @@
             if (Array.isArray(list)) {
               var hasUpdate = false;
               for (var i = 0; i < list.length; i++) {
-                if (list[i] && list[i].tag === "v1.3.7") hasUpdate = true;
+                if (list[i] && list[i].tag === "v1.4.3") hasUpdate = true;
               }
               if (!hasUpdate) {
                 list.unshift(notifUpdateMessage());
@@ -10931,19 +11363,10 @@
         if (confirmText) confirmText.innerHTML = html;
         if (confirmOk) confirmOk.textContent = t(isLogout ? "我已知晓，并确认注销" : "我已知晓，并确认删除");
         var iconEl = document.getElementById("confirmIcon");
-        var badgeEl = document.getElementById("confirmBadge");
-        var badgeLEl = document.getElementById("confirmBadgeL");
-        var wuwuEl = document.getElementById("confirmWuwu");
         if (isLogout) {
-          if (iconEl) iconEl.src = "/images/replace.png";
-          if (badgeEl) badgeEl.style.display = "block";
-          if (badgeLEl) badgeLEl.style.display = "block";
-          if (wuwuEl) wuwuEl.style.display = "none";
+          if (iconEl) iconEl.src = "/images/splash-capy-cry.png";
         } else {
-          if (iconEl) iconEl.src = "/images/wuwu.png";
-          if (badgeEl) badgeEl.style.display = "none";
-          if (badgeLEl) badgeLEl.style.display = "none";
-          if (wuwuEl) wuwuEl.style.display = "flex";
+          if (iconEl) iconEl.src = "/images/question.png";
         }
         confirmOverlay.classList.add("is-open");
         confirmOverlay.setAttribute("aria-hidden", "false");
@@ -11998,11 +12421,20 @@
       function openAccDialog(kind) {
         if (!accDialogOverlay) return;
         accDialogKind = kind;
-        var titles = { phone: "绑定手机号", email: "绑定QQ邮箱", password: "修改密码", security: "设置密保" };
-        if (accDialogTitle) accDialogTitle.textContent = t(titles[kind] || "账号与安全");
+        var hasPhone = !!(accountUser && accountUser.phone);
+        var hasEmail = !!(accountUser && accountUser.email);
+        var hasSecurity = !!(accountUser && accountUser.securityQuestion);
+        var titles = {
+          phone: hasPhone ? "更换手机号" : "绑定手机号",
+          email: hasEmail ? "更换QQ邮箱" : "绑定QQ邮箱",
+          password: "修改密码",
+          security: hasSecurity ? "修改密保" : "设置密保"
+        };
         if (accDialogSubtitle) accDialogSubtitle.textContent = "";
         setAccDialogMessage("");
         renderAccDialogBody(kind);
+        // 在 renderAccDialogBody 内的 applyLanguage 之后再设置标题，避免被旧的 i18n 缓存覆盖
+        if (accDialogTitle) accDialogTitle.textContent = t(titles[kind] || "账号与安全");
         accDialogOverlay.classList.add("is-open");
         accDialogOverlay.setAttribute("aria-hidden", "false");
         document.body.classList.add("login-lock");
@@ -12575,6 +13007,21 @@
     </div>
   </div>
 
+  <div class="sheet-mask" id="cutDateMask" aria-hidden="true"></div>
+  <div class="time-sheet" id="cutDateSheet" role="dialog" aria-modal="true" aria-label="选择日期">
+    <header class="time-sheet__head">
+      <button class="time-sheet__btn" id="cutDateCancel" type="button">取消</button>
+      <span class="time-sheet__title">选择日期</span>
+      <button class="time-sheet__btn time-sheet__btn--primary" id="cutDateOk" type="button">确定</button>
+    </header>
+    <div class="time-sheet__body">
+      <div class="wheel" id="cutDateYearWheel" aria-label="年份"></div>
+      <div class="wheel" id="cutDateMonthWheel" aria-label="月份"></div>
+      <div class="wheel" id="cutDateDayWheel" aria-label="日期"></div>
+      <div class="wheel-highlight" aria-hidden="true"></div>
+    </div>
+  </div>
+
   <div class="sheet-mask" id="statsDateMask" aria-hidden="true"></div>
   <div class="time-sheet" id="statsDateSheet" role="dialog" aria-modal="true" aria-label="选择日期">
     <header class="time-sheet__head">
@@ -12645,7 +13092,7 @@
           </span>
         </div>
         <p class="cutout-viewer__tip-text" id="cutoutViewerTipText"></p>
-        <img class="cutout-viewer__tip-seal" id="cutoutViewerTipSeal" src="/images/seal.png" alt="" aria-hidden="true" />
+        <span class="cutout-viewer__tip-seal" id="cutoutViewerTipSeal" aria-hidden="true"></span>
       </div>
     </figure>
   </div>
@@ -12682,6 +13129,18 @@
       <div class="camera-overlay__caption">
         <div class="camera-overlay__title">拾光</div>
         <div class="camera-overlay__subtitle">收集生活点滴的暖意</div>
+        <label class="camera-cutout-checkbox">
+          <input id="cameraCutoutOnly" type="checkbox" />
+          <span class="checkmark">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+              <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="1.5" y="1.5" width="21" height="21" rx="5" ry="5" stroke-width="3"></rect>
+                <polyline points="7 10 12 16 22 2" stroke-width="4"></polyline>
+              </g>
+            </svg>
+            <span>仅抠图</span>
+          </span>
+        </label>
       </div>
       <button class="camera-overlay__close" id="cameraClose" type="button" aria-label="关闭相机">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
@@ -12726,10 +13185,10 @@
         <span class="ai-loader" aria-hidden="true"></span>
       </button>
       <button class="cut-sheet__stroke" id="cutSheetStroke" type="button" aria-label="个性描边">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="3" />
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-        </svg>
+        <span class="cut-sheet__stroke-entry-icon" aria-hidden="true">
+          <img class="cut-sheet__stroke-entry-base" src="/images/stroke-entry-template.png" alt="" />
+          <canvas class="cut-sheet__stroke-entry-canvas" id="strokeEntryIcon" width="96" height="96"></canvas>
+        </span>
       </button>
     </div>
     <div class="cut-sheet__body" id="cutSheetBody">
@@ -12739,7 +13198,7 @@
       </div>
       <div class="cut-sheet__info" id="cutSheetInfo">
         <input class="cut-sheet__name" id="cutSheetName" type="text" maxlength="24" readonly aria-label="食物名称" />
-        <div class="cut-sheet__time" id="cutSheetTime"></div>
+        <button class="cut-sheet__time" id="cutSheetTime" type="button" aria-haspopup="dialog" aria-expanded="false"></button>
         <div class="cut-sheet__panel">
       <div class="cut-sheet__meal" id="cutSheetMeal">
           <button class="cut-sheet__meal-btn" id="cutSheetMealBtn" type="button" aria-haspopup="listbox" aria-expanded="false">
@@ -13438,148 +13897,13 @@
         });
       }
 
-      var RECORDS_IMAGE_FIX_KEY = "picktime-records-image-fix-v3";
+      var RECORDS_IMAGE_FIX_KEY = "picktime-records-image-fix-v4";
 
-      function rebuildRecordThumbnail(dataUrl) {
-        return new Promise(function (resolve) {
-          if (!dataUrl || dataUrl.indexOf("data:image") !== 0) {
-            resolve(null);
-            return;
-          }
-          var img = new Image();
-          img.onload = function () {
-            var w = img.naturalWidth;
-            var h = img.naturalHeight;
-            if (!w || !h) {
-              resolve(null);
-              return;
-            }
-            var canvas = document.createElement("canvas");
-            canvas.width = w;
-            canvas.height = h;
-            var ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0);
-            var pixels;
-            try {
-              pixels = ctx.getImageData(0, 0, w, h).data;
-            } catch (e) {
-              resolve(null);
-              return;
-            }
-            var minX = w, minY = h, maxX = -1, maxY = -1;
-            var midAlpha = 0;
-            var borderAlpha = 0;
-            var totalPixels = w * h;
-            for (var y = 0; y < h; y++) {
-              var row = y * w;
-              for (var x = 0; x < w; x++) {
-                var alpha = pixels[(row + x) * 4 + 3];
-                if (alpha > 245) {
-                  if (x < minX) minX = x;
-                  if (x > maxX) maxX = x;
-                  if (y < minY) minY = y;
-                  if (y > maxY) maxY = y;
-                } else if (alpha > 30) {
-                  midAlpha++;
-                }
-                if ((x === 0 || y === 0 || x === w - 1 || y === h - 1) && alpha > borderAlpha) {
-                  borderAlpha = alpha;
-                }
-              }
-            }
-            if (maxX < minX || maxY < minY) {
-              resolve(null);
-              return;
-            }
-            if (borderAlpha <= 5 && midAlpha > totalPixels * 0.02) {
-              resolve(null);
-              return;
-            }
-            var pad = Math.round(Math.max(maxX - minX, maxY - minY) * 0.02);
-            var sx = Math.max(0, minX - pad);
-            var sy = Math.max(0, minY - pad);
-            var sw = Math.min(w - sx, (maxX - minX) + pad * 2);
-            var sh = Math.min(h - sy, (maxY - minY) + pad * 2);
-            var food = document.createElement("canvas");
-            food.width = sw;
-            food.height = sh;
-            food.getContext("2d").drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
-            var built = buildGlowCanvas(food, 640, 180);
-            var margin = Math.round(Math.max(built.w, built.h) * 0.18);
-            var gsx = Math.max(0, built.x - margin);
-            var gsy = Math.max(0, built.y - margin);
-            var gsw = Math.min(built.side - gsx, built.w + margin * 2);
-            var gsh = Math.min(built.side - gsy, built.h + margin * 2);
-            var outScale = Math.min(1, 360 / Math.max(gsw, gsh));
-            var cw = Math.max(1, Math.round(gsw * outScale));
-            var ch = Math.max(1, Math.round(gsh * outScale));
-            var out = document.createElement("canvas");
-            out.width = cw;
-            out.height = ch;
-            out.getContext("2d").drawImage(built.canvas, gsx, gsy, gsw, gsh, 0, 0, cw, ch);
-            try {
-              var next = out.toDataURL("image/webp", 0.85);
-              if (next.indexOf("data:image/webp") !== 0) next = out.toDataURL("image/png");
-              // 先解码缓存新缩略图，重渲染时直接命中，避免首页闪一下
-              var pre = new Image();
-              pre.onload = function () { resolve(next); };
-              pre.onerror = function () { resolve(next); };
-              pre.src = next;
-            } catch (e) {
-              resolve(null);
-            }
-          };
-          img.onerror = function () { resolve(null); };
-          img.src = dataUrl;
-        });
-      }
-
+      // 已停用：该迁移会重新给抠图叠加默认黄光，覆盖用户选的个性描边（虚线/实线等），
+      // 并且会把已保存的图片重新编码。保留函数名避免调用处报错，只打标记、不再改动任何记录。
       function migrateRecordImages() {
-        var flag = "";
-        try { flag = localStorage.getItem(RECORDS_IMAGE_FIX_KEY) || ""; } catch (e) {}
-        if (flag === "1") return Promise.resolve(false);
-        var list = getRecords();
-        if (!list.length) {
-          try { localStorage.setItem(RECORDS_IMAGE_FIX_KEY, "1"); } catch (e) {}
-          return Promise.resolve(false);
-        }
-        var tasks = list.map(function (record) {
-          return rebuildRecordThumbnail(record.image).then(function (fixed) {
-            return fixed && fixed !== record.image ? { id: record.id, image: fixed } : null;
-          });
-        });
-        return Promise.all(tasks).then(function (results) {
-          var changed = results.filter(function (item) { return !!item; });
-          if (changed.length) {
-            var updated = getRecords().map(function (record) {
-              var fixedItem = null;
-              for (var ci = 0; ci < changed.length; ci++) {
-                if (changed[ci].id === record.id) { fixedItem = changed[ci]; break; }
-              }
-              if (!fixedItem) return record;
-              var copy = {};
-              for (var key in record) {
-                if (Object.prototype.hasOwnProperty.call(record, key)) copy[key] = record[key];
-              }
-              copy.image = fixedItem.image;
-              return copy;
-            });
-            cacheRecords(updated);
-            if (window.__picktimeApplyDemoMode) window.__picktimeApplyDemoMode();
-            if (isLoggedInUser()) {
-              for (var ui = 0; ui < updated.length; ui++) {
-                for (var uj = 0; uj < changed.length; uj++) {
-                  if (updated[ui].id === changed[uj].id) {
-                    uploadRecordToServer(recordPayload(updated[ui])).catch(function () {});
-                    break;
-                  }
-                }
-              }
-            }
-          }
-          try { localStorage.setItem(RECORDS_IMAGE_FIX_KEY, "1"); } catch (e) {}
-          return changed.length > 0;
-        });
+        try { localStorage.setItem(RECORDS_IMAGE_FIX_KEY, "1"); } catch (e) {}
+        return Promise.resolve(false);
       }
 
       function syncThenMigrateRecords() {
@@ -15696,15 +16020,86 @@
         });
       }
 
-      // 首页日期手势：右滑看上周，左滑看下周（同一星期几，整周平移 7 天）
+      // 首页日期手势：右滑看上周，左滑看下周（同一周几，整周平移 7 天）
       if (weekStrip) {
         var WEEK_SWIPE_DIST = 42;
         var weekSwipe = null;
         var weekSwipeSurface = weekStrip.closest(".home-header") || weekStrip;
 
+        // iOS 滑动日期原生触感：手指下那个真实 switch 挪到「再滑 WEEK_SWIPE_DIST 就跨过中点」的位置，
+        // 手指继续滑动跨过 switch 中点时 WebKit 会触发原生 tick（程序触发无效，必须是真实手势）
+        var weekHapticSwitch = null;
+        var weekHapticSaved = null;
+        function weekHapticRestore() {
+          if (weekHapticSwitch && weekHapticSaved) {
+            var st = weekHapticSwitch.style;
+            st.position = weekHapticSaved.position;
+            st.top = weekHapticSaved.top;
+            st.left = weekHapticSaved.left;
+            st.right = weekHapticSaved.right;
+            st.bottom = weekHapticSaved.bottom;
+            st.width = weekHapticSaved.width;
+            st.height = weekHapticSaved.height;
+            st.zIndex = weekHapticSaved.zIndex;
+            st.direction = weekHapticSaved.direction;
+            var sw = weekHapticSwitch;
+            window.setTimeout(function () { try { sw.checked = false; } catch (e) {} }, 160);
+          }
+          weekHapticSwitch = null;
+          weekHapticSaved = null;
+        }
+        function weekHapticArm(target, startX, clientY, dx) {
+          if (!isIOSPlatform() || !hapticEnabled()) return;
+          var sw = target && target.closest ? target.closest("input[switch]") : null;
+          // 从日期间隙起滑时没有直接命中 switch，改取离手指最近的日期触感层。
+          if (!sw && weekStrip) {
+            var switches = weekStrip.querySelectorAll("input[switch]");
+            var nearestDistance = Infinity;
+            for (var si = 0; si < switches.length; si++) {
+              var switchRect = switches[si].getBoundingClientRect();
+              var distance = Math.abs(startX - (switchRect.left + switchRect.width / 2));
+              if (distance < nearestDistance) {
+                nearestDistance = distance;
+                sw = switches[si];
+              }
+            }
+          }
+          if (!sw) return;
+          if (weekHapticSwitch !== sw) {
+            weekHapticRestore();
+            weekHapticSwitch = sw;
+            weekHapticSaved = {
+              position: sw.style.position,
+              top: sw.style.top,
+              left: sw.style.left,
+              right: sw.style.right,
+              bottom: sw.style.bottom,
+              width: sw.style.width,
+              height: sw.style.height,
+              zIndex: sw.style.zIndex,
+              direction: sw.style.direction
+            };
+          }
+          var dir = dx > 0 ? 1 : -1;
+          var w = WEEK_SWIPE_DIST * 4;
+          var h = Math.max(56, sw.offsetHeight || 56);
+          // switch 中点对准「再滑 WEEK_SWIPE_DIST 的位置」，手指跨过中点即触发原生 tick
+          var centerX = startX + dir * WEEK_SWIPE_DIST;
+          sw.style.position = "fixed";
+          sw.style.right = "auto";
+          sw.style.bottom = "auto";
+          sw.style.width = w + "px";
+          sw.style.height = h + "px";
+          sw.style.top = (clientY - h / 2) + "px";
+          sw.style.left = (centerX - w / 2) + "px";
+          sw.style.direction = dir > 0 ? "ltr" : "rtl";
+          void sw.offsetWidth;
+        }
+
         var weekSwipeApply = function (dir) {
           var base = selectedDate || weekStripMonday || new Date();
-          vibrateTap(8);
+          // 首页滑动日期：Android 直接震动，iOS 走原生 switch 触感兜底
+          hapticFeedback(8);
           weekSwipeJustFired = true;
           window.setTimeout(function () { weekSwipeJustFired = false; }, 400);
           weekStrip.classList.remove("is-week-prev", "is-week-next");
@@ -15721,9 +16116,9 @@
         }, true);
 
         weekSwipeSurface.addEventListener("touchstart", function (event) {
-          if (event.touches.length !== 1) { weekSwipe = null; return; }
+          if (event.touches.length !== 1) { weekSwipe = null; weekHapticRestore(); return; }
           var t = event.touches[0];
-          weekSwipe = { x: t.clientX, y: t.clientY, fired: false };
+          weekSwipe = { x: t.clientX, y: t.clientY, fired: false, target: event.target, armed: false };
         }, { passive: true });
 
         weekSwipeSurface.addEventListener("touchmove", function (event) {
@@ -15733,15 +16128,19 @@
           var dy = t.clientY - weekSwipe.y;
           if (Math.abs(dx) < 12) return;
           // 纵向位移更大时按页面滚动处理，不触发切周
-          if (Math.abs(dx) < Math.abs(dy) * 1.2) { weekSwipe = null; return; }
+          if (Math.abs(dx) < Math.abs(dy) * 1.2) { weekSwipe = null; weekHapticRestore(); return; }
+          if (!weekSwipe.armed) {
+            weekSwipe.armed = true;
+            weekHapticArm(weekSwipe.target, weekSwipe.x, weekSwipe.y, dx);
+          }
           // 距离不够时不锁定，继续跟随手指，直到超过阈值才触发
           if (Math.abs(dx) < WEEK_SWIPE_DIST) return;
           weekSwipe.fired = true;
           weekSwipeApply(dx > 0 ? 1 : -1);
         }, { passive: true });
 
-        weekSwipeSurface.addEventListener("touchend", function () { weekSwipe = null; }, { passive: true });
-        weekSwipeSurface.addEventListener("touchcancel", function () { weekSwipe = null; }, { passive: true });
+        weekSwipeSurface.addEventListener("touchend", function () { weekSwipe = null; weekHapticRestore(); }, { passive: true });
+        weekSwipeSurface.addEventListener("touchcancel", function () { weekSwipe = null; weekHapticRestore(); }, { passive: true });
       }
 
       // 首页点击时间线抠图：背景变暗，抠图垂直居中放大突出，下方显示名字
@@ -15751,6 +16150,82 @@
       var cutoutViewerBlur = document.getElementById("cutoutViewerBlur");
       var cutoutViewerOpen = false;
       var cutoutViewerPositionToken = 0;
+
+      // PNG 画布即使居中，可见主体仍可能因左右透明留白不对称而偏移。
+      // 只计算 alpha 边界并做水平补偿，不裁剪、不拉伸，也不改变现有图片样式。
+      function centerVisibleImageHorizontally(img, onDone) {
+        if (!img) return;
+        var token = (img._picktimeCenterToken || 0) + 1;
+        img._picktimeCenterToken = token;
+        img.style.setProperty("--visible-center-x", "0px");
+
+        var finish = function (shift) {
+          if (img._picktimeCenterToken !== token) return;
+          img.style.setProperty("--visible-center-x", shift.toFixed(1) + "px");
+          if (onDone) window.requestAnimationFrame(onDone);
+        };
+
+        var calculate = function () {
+          window.requestAnimationFrame(function () {
+            if (img._picktimeCenterToken !== token) return;
+            var naturalWidth = img.naturalWidth || 0;
+            var naturalHeight = img.naturalHeight || 0;
+            var boxWidth = img.clientWidth || 0;
+            var boxHeight = img.clientHeight || 0;
+            if (!naturalWidth || !naturalHeight || !boxWidth || !boxHeight) {
+              finish(0);
+              return;
+            }
+
+            var sampleScale = Math.min(1, 360 / Math.max(naturalWidth, naturalHeight));
+            var sampleWidth = Math.max(1, Math.round(naturalWidth * sampleScale));
+            var sampleHeight = Math.max(1, Math.round(naturalHeight * sampleScale));
+            var sample = document.createElement("canvas");
+            sample.width = sampleWidth;
+            sample.height = sampleHeight;
+            var pixels;
+            try {
+              var sampleCtx = sample.getContext("2d", { willReadFrequently: true });
+              sampleCtx.drawImage(img, 0, 0, sampleWidth, sampleHeight);
+              pixels = sampleCtx.getImageData(0, 0, sampleWidth, sampleHeight).data;
+            } catch (e) {
+              finish(0);
+              return;
+            }
+
+            var minX = sampleWidth;
+            var maxX = -1;
+            for (var i = 0; i < sampleWidth * sampleHeight; i++) {
+              if (pixels[i * 4 + 3] < 24) continue;
+              var x = i % sampleWidth;
+              if (x < minX) minX = x;
+              if (x > maxX) maxX = x;
+            }
+            if (maxX < minX) {
+              finish(0);
+              return;
+            }
+
+            var visibleCenter = (minX + maxX + 1) / 2;
+            var fitScale = Math.min(boxWidth / naturalWidth, boxHeight / naturalHeight);
+            var shift = (sampleWidth / 2 - visibleCenter) * (fitScale / sampleScale);
+            var maxShift = boxWidth * 0.25;
+            finish(Math.max(-maxShift, Math.min(maxShift, shift)));
+          });
+        };
+
+        if (img.complete && img.naturalWidth) calculate();
+        else {
+          var cleanup = function () {
+            img.removeEventListener("load", onLoad);
+            img.removeEventListener("error", onError);
+          };
+          var onLoad = function () { cleanup(); calculate(); };
+          var onError = function () { cleanup(); finish(0); };
+          img.addEventListener("load", onLoad);
+          img.addEventListener("error", onError);
+        }
+      }
 
       // 小贴士：AI 看图片判断食物并给一句可爱提示
       var cutoutViewerTip = document.getElementById("cutoutViewerTip");
@@ -15788,13 +16263,21 @@
       function hideCutoutTip() {
         if (!cutoutViewerTip) return;
         cutoutViewerTip.classList.add("is-hidden");
-        cutoutViewerTip.classList.remove("is-done");
+        cutoutViewerTip.classList.remove("is-done", "is-error");
         if (cutoutViewerTipText) cutoutViewerTipText.textContent = "";
       }
 
-      function renderCutoutTip(tip) {
+      function cutoutTipUnavailableText(lang) {
+        if (lang === "en") return "The little tip is taking a short break. Please try again later.";
+        if (lang === "ja") return "ヒントはただいま休憩中です。しばらくしてからもう一度お試しください。";
+        if (lang === "ko") return "작은 팁이 잠시 쉬고 있어요. 잠시 후 다시 시도해 주세요.";
+        return "小贴士暂时开小差了，稍后再试试吧。";
+      }
+
+      function renderCutoutTip(tip, isError) {
         if (!cutoutViewerTip || !cutoutViewerTipText) return;
         cutoutViewerTip.classList.remove("is-hidden");
+        cutoutViewerTip.classList.toggle("is-error", !!isError);
         cutoutViewerTipText.textContent = tip;
         cutoutViewerTip.classList.add("is-done");
       }
@@ -15811,7 +16294,7 @@
         }
         // 先无动画地清掉上一条的印章/文字，避免切换食物时旧印章先闪一下
         cutoutViewerTip.classList.add("is-hidden");
-        cutoutViewerTip.classList.remove("is-done");
+        cutoutViewerTip.classList.remove("is-done", "is-error");
         if (cutoutViewerTipText) cutoutViewerTipText.textContent = "";
         void cutoutViewerTip.offsetWidth;
         cutoutViewerTip.classList.remove("is-hidden");
@@ -15830,11 +16313,11 @@
             if (token !== cutoutTipToken) return;
             renderCutoutTip(data.tip);
           } else if (token === cutoutTipToken) {
-            hideCutoutTip();
+            renderCutoutTip(cutoutTipUnavailableText(lang), true);
           }
         }).catch(function () {
           if (token !== cutoutTipToken) return;
-          hideCutoutTip();
+          renderCutoutTip(cutoutTipUnavailableText(lang), true);
         });
       }
 
@@ -16071,6 +16554,12 @@
 
       var timelineFoods = ["串串香", "潮汕牛肉", "炒花菜", "炒面", "炒饭", "番茄炒蛋", "肥牛卷", "臭豆腐", "豆浆", "豆浆油条"];
 
+      function centerTimelineImages() {
+        if (!timeline) return;
+        var images = timeline.querySelectorAll(".side-timeline__pic img");
+        for (var i = 0; i < images.length; i++) centerVisibleImageHorizontally(images[i]);
+      }
+
       function renderTimeline(base) {
         if (!timeline) return;
         var oldItems = timeline.querySelectorAll(".side-timeline__item");
@@ -16107,6 +16596,7 @@
           timeline.insertAdjacentHTML("beforeend", recordHtml);
           var recordTotalEl = document.getElementById("sideTimelineTotal");
           if (recordTotalEl) recordTotalEl.textContent = String(dayTotal);
+          centerTimelineImages();
           return;
         }
         if (isLoggedInUser()) {
@@ -16142,6 +16632,7 @@
           "</div>";
         }
         timeline.insertAdjacentHTML("beforeend", timelineHtml);
+        centerTimelineImages();
         var timelineTotalEl = document.getElementById("sideTimelineTotal");
         if (timelineTotalEl) timelineTotalEl.textContent = String(timelineTotal);
       }
@@ -16244,6 +16735,7 @@
         sw.style.left = "0";
         sw.style.width = "100%";
         sw.style.height = "100%";
+        sw.style.zIndex = "2";
         sw.style.margin = "0";
         sw.style.padding = "0";
         sw.style.appearance = "auto";
@@ -17988,6 +18480,7 @@
       var cameraFlip = document.getElementById("cameraFlip");
       var cameraAlbum = document.getElementById("cameraAlbum");
       var cameraAlbumInput = document.getElementById("cameraAlbumInput");
+      var cameraCutoutOnly = document.getElementById("cameraCutoutOnly");
       var cameraLoading = document.getElementById("cameraLoading");
       var cutoutLoadingText = document.getElementById("cutoutLoadingText");
       var cutMask = document.getElementById("cutMask");
@@ -18007,6 +18500,13 @@
       var cutPortionOriginals = null;
       var cutPortionDragging = false;
       var cutSheetTime = document.getElementById("cutSheetTime");
+      var cutDateMask = document.getElementById("cutDateMask");
+      var cutDateSheet = document.getElementById("cutDateSheet");
+      var cutDateYearWheel = document.getElementById("cutDateYearWheel");
+      var cutDateMonthWheel = document.getElementById("cutDateMonthWheel");
+      var cutDateDayWheel = document.getElementById("cutDateDayWheel");
+      var cutDateCancel = document.getElementById("cutDateCancel");
+      var cutDateOk = document.getElementById("cutDateOk");
       var cutSheetMeal = document.getElementById("cutSheetMeal");
       var cutSheetMealBtn = document.getElementById("cutSheetMealBtn");
       var cutSheetMealText = document.getElementById("cutSheetMealText");
@@ -18028,6 +18528,115 @@
       var cutoutFood = null;
       var cutSheetRawName = "";
       var cutSheetDisplayName = "";
+      var cutSheetCutoutOnly = false;
+      var cutRecordDateTime = null;
+      var cutDateItemH = 44;
+      var cutDateYearStart = new Date().getFullYear() - 6;
+      var cutDateYearEnd = new Date().getFullYear() + 6;
+
+      function cutDateBuildWheel(el, from, to, suffix) {
+        var html = "";
+        for (var v = from; v <= to; v++) {
+          html += ("<div class=\"wheel-item\" data-value=\"" + v + "\">" + v + suffix + "</div>");
+        }
+        el.innerHTML = html;
+      }
+
+      function cutDateWheelIndex(el) {
+        var max = el.children.length - 1;
+        return Math.max(0, Math.min(max, Math.round(el.scrollTop / cutDateItemH)));
+      }
+
+      function cutDateUpdateWheel(el) {
+        var idx = cutDateWheelIndex(el);
+        for (var i = 0; i < el.children.length; i++) {
+          el.children[i].classList.toggle("is-active", i === idx);
+        }
+        wheelTickHaptic(el, idx);
+      }
+
+      function cutDateRebuildDays(keepDay) {
+        var year = cutDateYearStart + cutDateWheelIndex(cutDateYearWheel);
+        var month = cutDateWheelIndex(cutDateMonthWheel) + 1;
+        var days = new Date(year, month, 0).getDate();
+        cutDateBuildWheel(cutDateDayWheel, 1, days, "日");
+        var day = Math.min(Math.max(1, keepDay || 1), days);
+        cutDateDayWheel._wheelIdx = undefined;
+        cutDateDayWheel.scrollTop = (day - 1) * cutDateItemH;
+        cutDateUpdateWheel(cutDateDayWheel);
+      }
+
+      function cutDateBindWheel(el) {
+        el.addEventListener("scroll", function () {
+          cutDateUpdateWheel(el);
+          if (el !== cutDateDayWheel) cutDateRebuildDays(cutDateWheelIndex(cutDateDayWheel) + 1);
+        }, { passive: true });
+        el.addEventListener("click", function (event) {
+          var item = event.target.closest(".wheel-item");
+          if (!item) return;
+          var idx = Array.prototype.indexOf.call(el.children, item);
+          el.scrollTo({ top: idx * cutDateItemH, behavior: "smooth" });
+        });
+      }
+
+      function updateCutSheetTime() {
+        if (!cutSheetTime || !cutRecordDateTime) return;
+        var lang = window.__picktimeI18n ? window.__picktimeI18n.get() : "zh-CN";
+        var dateText;
+        try {
+          dateText = new Intl.DateTimeFormat(lang, { year: "numeric", month: "long", day: "numeric" }).format(cutRecordDateTime);
+        } catch (e) {
+          dateText = cutRecordDateTime.getFullYear() + "年" + (cutRecordDateTime.getMonth() + 1) + "月" + cutRecordDateTime.getDate() + "日";
+        }
+        var text = dateText + " " + pad2(cutRecordDateTime.getHours()) + ":" + pad2(cutRecordDateTime.getMinutes());
+        cutSheetTime.textContent = text;
+        cutSheetTime.setAttribute("aria-label", text);
+      }
+
+      function openCutDateSheet() {
+        if (!cutDateSheet || !cutRecordDateTime) return;
+        cutDateYearWheel._wheelIdx = undefined;
+        cutDateMonthWheel._wheelIdx = undefined;
+        cutDateYearWheel.scrollTop = (cutRecordDateTime.getFullYear() - cutDateYearStart) * cutDateItemH;
+        cutDateMonthWheel.scrollTop = cutRecordDateTime.getMonth() * cutDateItemH;
+        cutDateUpdateWheel(cutDateYearWheel);
+        cutDateUpdateWheel(cutDateMonthWheel);
+        cutDateRebuildDays(cutRecordDateTime.getDate());
+        cutDateMask.classList.add("is-open");
+        cutDateSheet.classList.add("is-open");
+        cutSheetTime.setAttribute("aria-expanded", "true");
+      }
+
+      function closeCutDateSheet(apply) {
+        if (!cutDateSheet) return;
+        if (apply && cutRecordDateTime) {
+          var year = cutDateYearStart + cutDateWheelIndex(cutDateYearWheel);
+          var month = cutDateWheelIndex(cutDateMonthWheel);
+          var day = cutDateWheelIndex(cutDateDayWheel) + 1;
+          cutRecordDateTime.setFullYear(year, month, day);
+          updateCutSheetTime();
+        }
+        cutDateMask.classList.remove("is-open");
+        cutDateSheet.classList.remove("is-open");
+        if (cutSheetTime) cutSheetTime.setAttribute("aria-expanded", "false");
+      }
+
+      if (cutSheetTime && cutDateMask && cutDateSheet && cutDateYearWheel && cutDateMonthWheel && cutDateDayWheel) {
+        cutDateBuildWheel(cutDateYearWheel, cutDateYearStart, cutDateYearEnd, "年");
+        cutDateBuildWheel(cutDateMonthWheel, 1, 12, "月");
+        cutDateBuildWheel(cutDateDayWheel, 1, 31, "日");
+        cutDateBindWheel(cutDateYearWheel);
+        cutDateBindWheel(cutDateMonthWheel);
+        cutDateBindWheel(cutDateDayWheel);
+        cutSheetTime.addEventListener("click", function () { vibrateTap(8); openCutDateSheet(); });
+        cutDateMask.addEventListener("click", function () { closeCutDateSheet(false); });
+        cutDateCancel.addEventListener("click", function () { vibrateTap(8); closeCutDateSheet(false); });
+        cutDateOk.addEventListener("click", function () { vibrateTap(8); closeCutDateSheet(true); });
+        if (window.__picktimeAttachHaptic) {
+          window.__picktimeAttachHaptic(cutDateCancel);
+          window.__picktimeAttachHaptic(cutDateOk);
+        }
+      }
 
       function cameraStopStream() {
         if (cameraStream) {
@@ -18100,10 +18709,12 @@
       }
 
       cutSheetImage.addEventListener("load", function () {
-        if (cutSheet.classList.contains("is-open")) positionCutOverlays();
+        if (!cutSheet.classList.contains("is-open")) return;
+        centerVisibleImageHorizontally(cutSheetImage, positionCutOverlays);
       });
       window.addEventListener("resize", function () {
-        if (cutSheet.classList.contains("is-open")) positionCutOverlays();
+        if (!cutSheet.classList.contains("is-open")) return;
+        centerVisibleImageHorizontally(cutSheetImage, positionCutOverlays);
       });
 
       function setCutMeal(meal) {
@@ -18229,19 +18840,30 @@
       function openCutSheet(url, result) {
         if (cutSheetUrl) URL.revokeObjectURL(cutSheetUrl);
         cutSheetUrl = url;
+        cutSheetImage.style.setProperty("--visible-center-x", "0px");
         cutSheetImage.src = url;
         resetCutStroke();
+        cutSheetCutoutOnly = !!(result && result.cutoutOnly);
+        if (cutSheetAskAi) {
+          cutSheetAskAi.classList.toggle("is-disabled", cutSheetCutoutOnly);
+          cutSheetAskAi.setAttribute("aria-disabled", cutSheetCutoutOnly ? "true" : "false");
+          cutSheetAskAi.setAttribute("aria-label", i18nT(cutSheetCutoutOnly ? "抠图模式AI暂不可用" : "询问 AI"));
+        }
         var calories = result && result.calories ? result.calories : 0;
-        var names = result && result.names ? result.names : [];
+        var names = cutSheetCutoutOnly ? ["未命名"] : (result && result.names ? result.names : []);
         var nutrients = (result && result.nutrients) || {};
         setCutEditMode(false);
         cutSheetKcal.value = calories > 0 ? Math.round(calories) + "Kcal" : "0Kcal";
         // 非中文界面显示译文；保存时仍存中文原文（用户手动改过则存用户输入）
-        var rawName = names.join("、");
+        var rawName = cutSheetCutoutOnly ? "未命名" : names.join("、");
         cutSheetRawName = rawName;
         cutSheetDisplayName = rawName;
         cutSheetName.value = rawName;
-        if (rawName && currentFoodLang() !== "zh-CN") {
+        if (cutSheetCutoutOnly) {
+          cutSheetDisplayName = i18nT("未命名");
+          cutSheetName.value = cutSheetDisplayName;
+        }
+        if (!cutSheetCutoutOnly && rawName && currentFoodLang() !== "zh-CN") {
           var nameTr = translatedText(rawName);
           if (nameTr && nameTr !== rawName) {
             cutSheetDisplayName = nameTr;
@@ -18268,19 +18890,21 @@
         setCutPortion(1);
         cutSheetNote.value = "";
         var now = new Date();
-        cutSheetTime.textContent = i18nT("今天") +
-          (now.getHours() < 10 ? "0" : "") + now.getHours() + ":" +
-          (now.getMinutes() < 10 ? "0" : "") + now.getMinutes();
+        cutRecordDateTime = new Date(now.getTime());
+        updateCutSheetTime();
         setCutMeal(now.getHours() < 10 ? "早餐" : now.getHours() < 15 ? "午餐" : now.getHours() < 21 ? "晚餐" : "加餐");
         closeCutMealMenu();
         cutSheetBody.scrollTop = 0;
         cutMask.classList.add("is-open");
         cutSheet.classList.add("is-open");
         positionCutOverlays();
+        startStrokeEntryIconAnimation();
         vibrateTap(15);
       }
 
       function closeCutSheet() {
+        closeCutDateSheet(false);
+        stopStrokeEntryIconAnimation();
         setCutEditMode(false);
         cutMask.classList.remove("is-open");
         cutSheet.classList.remove("is-open");
@@ -18472,7 +19096,7 @@
           if (cutSheetRawName && recordName === cutSheetDisplayName && cutSheetDisplayName !== cutSheetRawName) {
             recordName = cutSheetRawName;
           }
-          var recordTime = new Date();
+          var recordTime = cutRecordDateTime ? new Date(cutRecordDateTime.getTime()) : new Date();
           var recordData = {
             id: "r" + recordTime.getTime() + "-" + Math.random().toString(36).slice(2, 8),
             ts: recordTime.getTime(),
@@ -18720,6 +19344,10 @@
       }
 
       function openAiChat() {
+        if (cutSheetCutoutOnly) {
+          if (window.__picktimeToast) window.__picktimeToast(i18nT("抠图模式AI暂不可用"));
+          return;
+        }
         if (!aiChatSheet) return;
         var foodName = (cutSheetName.value || "").trim() || i18nT("这份食物");
         aiChatHistory = [];
@@ -18889,6 +19517,198 @@
       CUT_STROKE_STYLES.plain = { id: "plain", type: "plain", label: "" };
 
       var cutSheetStroke = document.getElementById("cutSheetStroke");
+      var strokeEntryIconFrame = 0;
+      var strokeEntryIconToken = 0;
+      var strokeEntryIconCanvas = null;
+
+      function strokeEntryIconPath() {
+        return [
+          [55.3, 12.1], [59.3, 13], [63.3, 13.3], [67.3, 15.3],
+          [71.3, 16.9], [75.3, 18.3], [79.3, 21.3], [83.3, 24.3],
+          [85.9, 28.3], [87.9, 32.3], [90.3, 36.3], [91.3, 40.3],
+          [92, 44.3], [91, 48.3], [90, 52.3], [89.1, 56.3],
+          [86.8, 60.3], [83.8, 64.3], [79.8, 67.3], [75.8, 70.3],
+          [71.8, 73.3], [67.8, 75.3], [63.8, 76.3], [59.8, 77],
+          [55.8, 78], [51.8, 78], [47.8, 78.3], [43.8, 78],
+          [39.8, 77.7], [35.8, 76.7], [31.8, 75.7], [27.8, 73.7],
+          [23.8, 71.1], [19.8, 68.7], [15.8, 64.8], [12.8, 60.8],
+          [11.1, 56.8], [9.7, 52.8], [8.1, 48.8], [8.9, 44.8],
+          [9, 40.8], [7.8, 36.8], [5.3, 32.8], [9.3, 32.3],
+          [12.9, 31.8], [14.9, 27.8], [18.3, 23.8], [22.3, 21.1],
+          [26.3, 18.8], [30.3, 16.1], [34.3, 15], [38.3, 14],
+          [42.3, 13], [46.3, 13], [50.3, 13], [54.3, 12.7]
+        ];
+      }
+
+      function strokeEntryMetrics(points) {
+        var cumLen = new Float64Array(points.length + 1);
+        var totalLen = 0;
+        for (var i = 0; i < points.length; i++) {
+          var a = points[i];
+          var b = points[(i + 1) % points.length];
+          var dx = b[0] - a[0];
+          var dy = b[1] - a[1];
+          totalLen += Math.sqrt(dx * dx + dy * dy);
+          cumLen[i + 1] = totalLen;
+        }
+        return { cumLen: cumLen, totalLen: totalLen };
+      }
+
+      function appendStrokeEntryRange(ctx, points, metrics, fromLen, toLen) {
+        if (toLen <= fromLen) return;
+        var n = points.length;
+        var startIndex = 0;
+        while (startIndex < n - 1 && metrics.cumLen[startIndex + 1] < fromLen) startIndex++;
+        var start0Len = metrics.cumLen[startIndex];
+        var start1Len = metrics.cumLen[startIndex + 1];
+        var startFraction = start1Len > start0Len ? (fromLen - start0Len) / (start1Len - start0Len) : 0;
+        var endIndex = startIndex;
+        while (endIndex < n - 1 && metrics.cumLen[endIndex + 1] < toLen) endIndex++;
+        var end0Len = metrics.cumLen[endIndex];
+        var end1Len = metrics.cumLen[endIndex + 1];
+        var endFraction = end1Len > end0Len ? (toLen - end0Len) / (end1Len - end0Len) : 0;
+        var start0 = points[startIndex];
+        var start1 = points[(startIndex + 1) % n];
+        ctx.moveTo(
+          start0[0] + (start1[0] - start0[0]) * startFraction,
+          start0[1] + (start1[1] - start0[1]) * startFraction
+        );
+        if (endIndex !== startIndex) {
+          var pi = (startIndex + 1) % n;
+          var guard = 0;
+          while (pi !== endIndex && guard++ < n) {
+            ctx.lineTo(points[pi][0], points[pi][1]);
+            pi = (pi + 1) % n;
+          }
+        }
+        var end0 = points[endIndex];
+        var end1 = points[(endIndex + 1) % n];
+        ctx.lineTo(
+          end0[0] + (end1[0] - end0[0]) * endFraction,
+          end0[1] + (end1[1] - end0[1]) * endFraction
+        );
+      }
+
+      function strokeEntryPointAt(points, metrics, length) {
+        var end = Math.max(0, Math.min(metrics.totalLen, length));
+        var i = 0;
+        while (i < points.length - 1 && metrics.cumLen[i + 1] < end) i++;
+        var from = metrics.cumLen[i];
+        var to = metrics.cumLen[i + 1];
+        var t = to > from ? (end - from) / (to - from) : 0;
+        var a = points[i];
+        var b = points[(i + 1) % points.length];
+        return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+      }
+
+      function stopStrokeEntryIconAnimation() {
+        strokeEntryIconToken++;
+        if (strokeEntryIconFrame) window.cancelAnimationFrame(strokeEntryIconFrame);
+        strokeEntryIconFrame = 0;
+        strokeEntryIconCanvas = null;
+      }
+
+      function startStrokeEntryIconAnimation() {
+        stopStrokeEntryIconAnimation();
+        if (!cutSheet || !cutSheet.classList.contains("is-open")) return;
+        var canvas = document.getElementById("strokeEntryIcon");
+        if (!canvas) return;
+        canvas.width = 96;
+        canvas.height = 96;
+        var ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        var token = strokeEntryIconToken;
+        var points = strokeEntryIconPath();
+        var metrics = strokeEntryMetrics(points);
+        var start = 0;
+        var lastFrame = 0;
+        strokeEntryIconCanvas = canvas;
+
+        function drawSolidRange(toLen, color, lineWidth) {
+          ctx.beginPath();
+          appendStrokeEntryRange(ctx, points, metrics, 0, toLen);
+          ctx.lineWidth = lineWidth;
+          ctx.strokeStyle = color;
+          ctx.stroke();
+        }
+
+        function drawDashedRange(toLen, color, lineWidth) {
+          ctx.beginPath();
+          for (var dashStart = 0; dashStart < toLen; dashStart += 19) {
+            var dashEnd = Math.min(dashStart + 8, toLen);
+            if (dashEnd > dashStart) appendStrokeEntryRange(ctx, points, metrics, dashStart, dashEnd);
+          }
+          ctx.lineWidth = lineWidth;
+          ctx.strokeStyle = color;
+          ctx.stroke();
+        }
+
+        function frame(now) {
+          if (token !== strokeEntryIconToken || !cutSheet.classList.contains("is-open")) return;
+          if (!start) start = now;
+          if (now - lastFrame < 30) {
+            strokeEntryIconFrame = window.requestAnimationFrame(frame);
+            return;
+          }
+          lastFrame = now;
+          var totalElapsed = now - start;
+          var styleIndex = Math.floor(totalElapsed / 3400) % 3;
+          var elapsed = totalElapsed % 3400;
+          var drawProgress = Math.max(0, Math.min(1, (elapsed - 120) / 2100));
+          var eased = drawProgress * drawProgress * (3 - 2 * drawProgress);
+          var lenAt = metrics.totalLen * eased;
+          var alpha = elapsed > 3100 ? Math.max(0, (3400 - elapsed) / 300) : 1;
+          ctx.clearRect(0, 0, 96, 96);
+
+          if (drawProgress > 0) {
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.lineJoin = "round";
+            ctx.lineCap = "round";
+            if (styleIndex === 0) {
+              drawDashedRange(lenAt, "#b6bdc8", 4.4);
+            } else if (styleIndex === 1) {
+              ctx.shadowColor = "rgba(75, 52, 62, 0.24)";
+              ctx.shadowBlur = 5;
+              ctx.shadowOffsetY = 2;
+              drawSolidRange(lenAt, "#f2b3c6", 5.2);
+            } else {
+              ctx.shadowColor = "rgba(255, 196, 24, 0.96)";
+              ctx.shadowBlur = 11;
+              drawSolidRange(lenAt, "#ffffff", 5.5);
+              ctx.shadowColor = "rgba(255, 214, 82, 0.95)";
+              ctx.shadowBlur = 4;
+              drawSolidRange(lenAt, "#ffffff", 5.5);
+            }
+            ctx.restore();
+
+            if (drawProgress < 1 && alpha > 0) {
+              var tip = strokeEntryPointAt(points, metrics, lenAt);
+              ctx.save();
+              ctx.globalAlpha = alpha;
+              ctx.fillStyle = styleIndex === 0 ? "#b6bdc8" : (styleIndex === 1 ? "#f2b3c6" : "#ffffff");
+              if (styleIndex === 2) {
+                ctx.shadowColor = "rgba(255, 196, 24, 0.98)";
+                ctx.shadowBlur = 8;
+              }
+              ctx.beginPath();
+              ctx.arc(tip[0], tip[1], 4.4, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.restore();
+            }
+          }
+          strokeEntryIconFrame = window.requestAnimationFrame(frame);
+        }
+
+        ctx.clearRect(0, 0, 96, 96);
+        strokeEntryIconFrame = window.requestAnimationFrame(frame);
+      }
+
+      document.addEventListener("visibilitychange", function () {
+        if (document.hidden) stopStrokeEntryIconAnimation();
+        else if (cutSheet && cutSheet.classList.contains("is-open")) startStrokeEntryIconAnimation();
+      });
+
       var strokeMask = document.getElementById("strokeMask");
       var strokeSheet = document.getElementById("strokeSheet");
       var strokeDone = document.getElementById("strokeDone");
@@ -19554,6 +20374,27 @@
         ctx.restore();
       }
 
+      // 抠图原图（美图按原照片画布返回）常带大块透明边距：先裁到真实内容，保证食物居中、大小一致
+      function cutoutSourceBox(source) {
+        var sw = source.naturalWidth || source.width || 0;
+        var sh = source.naturalHeight || source.height || 0;
+        if (!sw || !sh) return null;
+        if (source.__picktimeContentBox && source.__picktimeContentBox.sw === sw && source.__picktimeContentBox.sh === sh) {
+          return source.__picktimeContentBox;
+        }
+        var box = null;
+        try {
+          var probe = cutoutCanvas(sw, sh);
+          probe.getContext("2d").drawImage(source, 0, 0);
+          box = cutoutCropBox(probe, 0);
+        } catch (e) {
+          box = null;
+        }
+        if (!box || box.sw <= 0 || box.sh <= 0) box = { sx: 0, sy: 0, sw: sw, sh: sh };
+        try { source.__picktimeContentBox = box; } catch (e) {}
+        return box;
+      }
+
       // style: glow=系统默认（黄色光芒+白色描边）| dashed=浅灰虚线 | white=纯白实线 | double=内虚线外实线双层
       // wantPath=true 时额外返回轮廓路径，用于选中描边时的轮廓动画
       function buildCutoutCanvas(source, contentMax, pad, style, wantPath) {
@@ -19561,15 +20402,18 @@
         var sw = source.naturalWidth || source.width;
         var sh = source.naturalHeight || source.height;
         var side = contentMax + pad * 2;
+        var srcBox = cutoutSourceBox(source) || { sx: 0, sy: 0, sw: sw, sh: sh };
+        var cw = Math.max(1, srcBox.sw);
+        var ch = Math.max(1, srcBox.sh);
         // 小图也放大到内容区（否则低分辨率抠图在各页面显示过小）
-        var scale = Math.min(4, contentMax / Math.max(sw, sh));
-        var iw = Math.max(1, Math.round(sw * scale));
-        var ih = Math.max(1, Math.round(sh * scale));
+        var scale = Math.min(4, contentMax / Math.max(cw, ch));
+        var iw = Math.max(1, Math.round(cw * scale));
+        var ih = Math.max(1, Math.round(ch * scale));
         var ox = Math.round(pad + (contentMax - iw) / 2);
         var oy = Math.round(pad + (contentMax - ih));
 
         var base = cutoutCanvas(iw, ih);
-        base.getContext("2d").drawImage(source, 0, 0, iw, ih);
+        base.getContext("2d").drawImage(source, srcBox.sx, srcBox.sy, srcBox.sw, srcBox.sh, 0, 0, iw, ih);
 
         var sil = cutoutCanvas(iw, ih);
         var sctx = sil.getContext("2d");
@@ -20002,23 +20846,27 @@
       }
 
       // 仅抠图：不调用热量与营养分析，热量营养由用户手动填写
-      // 登录用户优先走后端美图抠图（用户自己的密钥），失败再回退本机抠图
-      function startCutoutOnly(blob, stopProgress) {
+      // 默认模式在美图失败时可回退本机抠图；勾选 meituOnly 时严格只走美图 API
+      function startCutoutOnly(blob, stopProgress, meituOnly) {
         stopProgress();
         cutoutSetText("正在抠图，请稍候...");
-        cutoutViaServer(blob).catch(function (err) {
-          var api = window.__picktimeApi;
-          if (err && err.code === "MEITU_KEY_INVALID" && api) {
-            return api.showLimitDialog("invalidKey").then(function (choice) {
-              if (choice === "go") {
-                api.goApiSetting();
-                return null;
-              }
-              return cutoutViaU2net(blob);
-            });
-          }
-          return cutoutViaU2net(blob);
-        }).then(function (url) {
+        var cutoutTask = cutoutViaServer(blob);
+        if (!meituOnly) {
+          cutoutTask = cutoutTask.catch(function (err) {
+            var api = window.__picktimeApi;
+            if (err && err.code === "MEITU_KEY_INVALID" && api) {
+              return api.showLimitDialog("invalidKey").then(function (choice) {
+                if (choice === "go") {
+                  api.goApiSetting();
+                  return null;
+                }
+                return cutoutViaU2net(blob);
+              });
+            }
+            return cutoutViaU2net(blob);
+          });
+        }
+        cutoutTask.then(function (url) {
           if (!url) {
             cameraProcessing = false;
             cameraCloseOverlay();
@@ -20028,11 +20876,27 @@
           cutoutSetText("即将完成...");
           window.setTimeout(function () {
             cameraProcessing = false;
-            openCutSheet(url, { calories: 0, names: [], nutrients: null, cutout: null });
+            openCutSheet(url, { calories: 0, names: ["未命名"], nutrients: null, cutout: null, cutoutOnly: true });
             window.setTimeout(cameraCloseOverlay, 420);
           }, 700);
-        }).catch(function () {
+        }).catch(function (err) {
           stopProgress();
+          if (meituOnly && err && window.__picktimeApi) {
+            if (err.code === "MEITU_KEY_INVALID") {
+              stopCameraLoadingFailed();
+              window.__picktimeApi.showLimitDialog("invalidKey").then(function (choice) {
+                if (choice === "go") window.__picktimeApi.goApiSetting();
+              });
+              return;
+            }
+            if (err.code === "MEITU_REQUIRED") {
+              stopCameraLoadingFailed();
+              window.__picktimeApi.showLimitDialog("expired").then(function (choice) {
+                if (choice === "go") window.__picktimeApi.goApiSetting();
+              });
+              return;
+            }
+          }
           cutoutOnlyFailed();
         });
       }
@@ -20112,6 +20976,17 @@
         var jobId = "j" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
         cutoutSetText("Thinking...");
         var stopProgress = cutoutTrackProgress(jobId);
+        if (cameraCutoutOnly && cameraCutoutOnly.checked) {
+          var cutoutApi = window.__picktimeApi;
+          var cutoutApiReady = cutoutApi && cutoutApi.refresh ? cutoutApi.refresh(true) : Promise.resolve();
+          cutoutApiReady.then(function () {
+            startCutoutOnly(blob, stopProgress, true);
+          }).catch(function () {
+            stopProgress();
+            cutoutOnlyFailed();
+          });
+          return;
+        }
         resolveRecognitionMode().then(function (mode) {
           if (mode === "abort") {
             stopProgress();
@@ -20211,12 +21086,16 @@
         cameraClose.addEventListener("click", cameraCloseOverlay);
 
         cameraFlip.addEventListener("click", function () {
+          hapticFeedback(8);
           cameraStartStream(cameraFacing === "environment" ? "user" : "environment");
         });
+        attachIOSSwitchHaptic(cameraFlip);
 
         cameraAlbum.addEventListener("click", function () {
+          hapticFeedback(8);
           cameraAlbumInput.click();
         });
+        attachIOSSwitchHaptic(cameraAlbum);
 
         cameraAlbumInput.addEventListener("change", function () {
           var file = cameraAlbumInput.files && cameraAlbumInput.files[0];
@@ -20226,14 +21105,31 @@
         });
 
         cameraShutter.addEventListener("click", function () {
+          hapticFeedback(10);
           if (!cameraStream || !cameraVideo.videoWidth) return;
           cameraProcessSource(cameraVideo, cameraGuideCrop());
         });
+        attachIOSSwitchHaptic(cameraShutter);
+
+        if (cameraCutoutOnly) {
+          cameraCutoutOnly.addEventListener("change", function () {
+            hapticFeedback(8);
+          });
+          // iOS：真实 checkbox 无原生触感，用 switch 覆盖层触发并手动切换
+          var cutoutLabel = cameraCutoutOnly.closest("label");
+          if (cutoutLabel) {
+            attachIOSSwitchHaptic(cutoutLabel, function () {
+              cameraCutoutOnly.checked = !cameraCutoutOnly.checked;
+              cameraCutoutOnly.dispatchEvent(new Event("change", { bubbles: true }));
+            });
+          }
+        }
 
         cutMask.addEventListener("click", closeCutSheet);
 
         document.addEventListener("keydown", function (event) {
           if (event.key !== "Escape") return;
+          if (cutDateSheet && cutDateSheet.classList.contains("is-open")) { closeCutDateSheet(false); return; }
           if (cutSheet.classList.contains("is-open")) { closeCutSheet(); return; }
           if (cameraOverlay.classList.contains("is-open")) cameraCloseOverlay();
         });
@@ -21280,14 +22176,19 @@
         onboardingDoodle.classList.toggle("is-open");
       });
 
-      // 记录存储先就绪（IndexedDB + 旧数据迁移），再同步服务器、渲染
+      // 记录存储先就绪（IndexedDB + 旧数据迁移），再同步服务器、渲染；
+      // 首页内容就绪后关闭启动页（离线/接口异常由启动页内置兜底计时器处理）
       initRecordsStore().then(function () {
         if (window.__picktimeApplyDemoMode) window.__picktimeApplyDemoMode();
+        var homeReady;
         if (isLoggedInUser()) {
-          syncThenMigrateRecords();
+          homeReady = syncThenMigrateRecords();
         } else {
-          migrateRecordImages();
+          homeReady = migrateRecordImages();
         }
+        Promise.resolve(homeReady).catch(function () {}).then(function () {
+          if (window.__picktimeHideSplash) window.__picktimeHideSplash();
+        });
       });
 
       if ("serviceWorker" in navigator) {

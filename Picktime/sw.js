@@ -1,4 +1,4 @@
-const CACHE = "picktime-v401";
+const CACHE = "picktime-v413";
 const ASSETS = [
   "/",
   "/index.html",
@@ -11,6 +11,16 @@ const ASSETS = [
   "/icons/icon-512.png",
   "/icons/icon-maskable-512.png",
   "/icons/apple-touch-icon.png",
+  "/images/splash-appicon.png",
+  "/images/splash-bg.webp",
+  "/images/splash-capy-party.png?v=2",
+  "/images/splash-capy-cry.png",
+  "/images/splash-capy-love.png",
+  "/images/splash-food-takoyaki.png",
+  "/images/splash-food-onigiri.png",
+  "/images/splash-food-fries.png",
+  "/images/splash-sparkle-yellow.png?v=3",
+  "/images/splash-sparkle-pink.png?v=3",
   "/icons/nav-home.png",
   "/icons/nav-swipe.png",
   "/icons/nav-data.png",
