@@ -2334,9 +2334,31 @@
       justify-content: center;
     }
 
-    .calendar-card.onboarding__calendar {
-      width: min(88vw, 350px);
+    .onboarding__calendar-wrap {
+      position: relative;
       flex: none;
+      width: min(88vw, 350px);
+    }
+
+    .calendar-card.onboarding__calendar {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      flex: none;
+    }
+
+    /* 日历右下角的邮戳印章：倾斜 9°，上半部分压在日历下面，下半部分露出 */
+    .onboarding__calendar-seal {
+      position: absolute;
+      top: 100%;
+      left: -70px;
+      z-index: 0;
+      width: min(46vw, 176px);
+      height: auto;
+      transform: translateY(-34%) rotate(9deg);
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
     }
 
     .onboarding {
@@ -3901,7 +3923,7 @@
       height: 80px;
       border-radius: 50%;
       background-color: #ffffff;
-      background-image: url("/images/default-avatar.png");
+      background-image: url("/images/mock-avatar.png?v=1");
       box-shadow:
         0 4px 16px rgba(0, 0, 0, 0.15),
         0 1px 4px rgba(0, 0, 0, 0.10),
@@ -3920,6 +3942,12 @@
 
     .profile-avatar.has-image {
       color: transparent;
+    }
+
+    /* 模拟头像：拾光 logo 缩小居中，不贴圆边 */
+    .profile-avatar:not(.has-image) {
+      background-size: 76%;
+      background-repeat: no-repeat;
     }
 
     .profile-name-row {
@@ -7560,6 +7588,59 @@
     #forgotOverlay { z-index: 1003; }
     #phoneOverlay { z-index: 1003; }
 
+    /* 登录中弹窗 */
+    .login-loading {
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(14, 17, 22, 0.28);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 200ms var(--ease), visibility 200ms var(--ease);
+    }
+
+    .login-loading.is-open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .login-loading__card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      min-width: 144px;
+      padding: 42px 32px 40px;
+      border-radius: 16px;
+      background: #3a3f46;
+      box-shadow: 0 10px 34px rgba(0, 0, 0, 0.3);
+    }
+
+    .login-loading__spinner {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, 0.28);
+      border-top-color: #ffffff;
+      animation: login-loading-spin 720ms linear infinite;
+    }
+
+    @keyframes login-loading-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .login-loading__text {
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      color: #ffffff;
+    }
+
     #forgotOverlay .form {
       padding-top: 16px;
     }
@@ -7962,7 +8043,7 @@
       </div>
     </div>
     <div class="menu-footer">
-      <div class="menu-footer__version">v1.4.3</div>
+      <div class="menu-footer__version">v1.5.2</div>
       <div class="menu-footer__copyright">© PickTime版权所有</div>
     </div>
   </aside>
@@ -8025,6 +8106,14 @@
       </div>
     </form>
     <p class="login-agreement">点击登录，即表示同意<a class="login-agreement__link" id="openPrivacy" role="button" tabindex="0">《隐私政策》</a>和<a class="login-agreement__link" id="openTerms" role="button" tabindex="0">《服务条款》</a></p>
+  </div>
+
+  <!-- 登录中弹窗 -->
+  <div class="login-loading" id="loginLoading" aria-hidden="true">
+    <div class="login-loading__card" role="status" aria-live="polite">
+      <span class="login-loading__spinner" aria-hidden="true"></span>
+      <span class="login-loading__text">加载中...</span>
+    </div>
   </div>
 
   <!-- 隐私政策 / 服务条款 -->
@@ -8403,8 +8492,8 @@
       <div class="about-logo-wrap">
         <img class="about-logo" src="/icons/apple-touch-icon.png" alt="拾光" />
       </div>
-      <p class="about-meta"><strong>版本：</strong>v1.4.3</p>
-      <p class="about-meta"><strong>更新日期：</strong>2026.09.22</p>
+      <p class="about-meta"><strong>版本：</strong>v1.5.2</p>
+      <p class="about-meta"><strong>更新日期：</strong>2026.09.27</p>
 
       <h4>产品简介</h4>
       <p>拾光（PickTime）是一款专注于饮食记录与健康参考的应用，支持拍照记录饮食、智能抠图、AI 热量与营养分析、体脂率参考、饮食时间线与数据统计，帮助你用照片记录每一餐，也记录生活的温度。</p>
@@ -8552,6 +8641,8 @@
   </template>
   <template id="docChangelogTpl">
     <h1>拾光更新日志</h1>
+    <h4>v1.5.2 <span class="doc-version-date">2026.09.27</span></h4>
+    <p>修复已知问题，提升使用稳定性。</p>
     <h4>v1.4.3 <span class="doc-version-date">2026.09.22</span></h4>
     <p><strong>新增「仅抠图」模式</strong></p>
     <p>拍照页新增「仅抠图」复选框：勾选后只做智能抠图、跳过热量与营养识别，适合只想把食物抠出来的场景；热量与营养可在添加详情页手动填写。</p>
@@ -8812,6 +8903,7 @@
           "重置失败。": "Reset failed.",
           "请输入用户名或手机号。": "Please enter your username or phone.",
           "登录失败，请重试。": "Sign in failed. Please try again.",
+          "登录中…": "Signing in…",
           "发送失败，请重试。": "Failed to send. Please try again.",
           "注册失败，请重试。": "Registration failed. Please try again.",
           "验证码错误。": "Invalid verification code.",
@@ -9067,8 +9159,9 @@
           "v1.3.7 更新": "v1.3.7 Update",
           "新版本 v1.3.7 已发布：首页点击抠图可放大查看并显示 AI 小贴士，新增背景虚化、上下拖动与统一显示尺寸；抠图结果弹窗支持向下拖动关闭；修复小贴士不显示、更新日志未翻译等问题。可在「菜单 → 更新日志」查看详情。": "Version v1.3.7 is out: tap a cutout on the home page to enlarge it with an AI tip, plus background blur, drag to reposition and a unified display size; the cutout result sheet can be closed by dragging down; fixes for missing tips and untranslated changelog entries. See Menu -> Changelog for details.",
           "v1.4.3 更新": "v1.4.3 Update",
-          "新版本 v1.4.3 已发布：新增「仅抠图」模式与「个性描边」功能，滑动页按钮位置调整，账号安全弹窗换新插图，拍照页新增多处触感反馈，并修复已知问题。可在「菜单 → 更新日志」查看详情。": "Version v1.4.3 is out: new \"Cutout only\" mode and \"Custom Outline\", repositioned buttons on the swipe page, new artwork in the Account & Security dialogs, more haptics on the camera page, plus bug fixes. See Menu -> Changelog for details.",
-          "新增「仅抠图」模式": "New \"Cutout Only\" Mode",
+           "新版本 v1.4.3 已发布：新增「仅抠图」模式与「个性描边」功能，滑动页按钮位置调整，账号安全弹窗换新插图，拍照页新增多处触感反馈，并修复已知问题。可在「菜单 → 更新日志」查看详情。": "Version v1.4.3 is out: new \"Cutout only\" mode and \"Custom Outline\", repositioned buttons on the swipe page, new artwork in the Account & Security dialogs, more haptics on the camera page, plus bug fixes. See Menu -> Changelog for details.",
+           "修复已知问题，提升使用稳定性。": "Fixed known issues and improved stability.",
+           "新增「仅抠图」模式": "New \"Cutout Only\" Mode",
           "拍照页新增「仅抠图」复选框：勾选后只做智能抠图、跳过热量与营养识别，适合只想把食物抠出来的场景；热量与营养可在添加详情页手动填写。": "The camera page now has a \"Cutout only\" checkbox: when checked, only the smart cutout runs and calorie/nutrition recognition is skipped - perfect when you just want the food cut out. Calories and nutrition can be filled in manually on the add-detail page.",
           "新增「个性描边」": "New \"Custom Outline\"",
           "抠图结果弹窗新增「个性描边」入口（「询问 AI」旁的齿轮按钮），内置 13 种描边样式，每张样式卡片会播放「从无到有描出轮廓」的预览动画；选中后自动重新生成带描边的成品图，随时可恢复系统默认描边。": "The cutout result sheet now has a \"Custom Outline\" entry (the gear button next to \"Ask AI\") with 13 outline styles; each style card plays a \"drawing the outline from scratch\" preview animation. Selecting one re-renders the cutout with that outline, and you can restore the default outline at any time.",
@@ -9332,6 +9425,7 @@
           "重置失败。": "リセットに失敗しました。",
           "请输入用户名或手机号。": "ユーザー名または電話番号を入力してください。",
           "登录失败，请重试。": "ログインに失敗しました。もう一度お試しください。",
+          "登录中…": "ログイン中…",
           "发送失败，请重试。": "送信に失敗しました。もう一度お試しください。",
           "注册失败，请重试。": "登録に失敗しました。もう一度お試しください。",
           "验证码错误。": "認証コードが正しくありません。",
@@ -9587,8 +9681,9 @@
           "v1.3.7 更新": "v1.3.7 アップデート",
           "新版本 v1.3.7 已发布：首页点击抠图可放大查看并显示 AI 小贴士，新增背景虚化、上下拖动与统一显示尺寸；抠图结果弹窗支持向下拖动关闭；修复小贴士不显示、更新日志未翻译等问题。可在「菜单 → 更新日志」查看详情。": "v1.3.7 を公開しました：ホームで切り抜きをタップすると拡大表示と AI ヒントが表示され、背景ぼかし・上下ドラッグ・表示サイズの統一に対応；切り抜き結果シートは下にドラッグして閉じられます；ヒントが表示されない問題や更新履歴の未翻訳を修正しました。詳しくは「メニュー → 更新履歴」をご覧ください。",
           "v1.4.3 更新": "v1.4.3 アップデート",
-          "新版本 v1.4.3 已发布：新增「仅抠图」模式与「个性描边」功能，滑动页按钮位置调整，账号安全弹窗换新插图，拍照页新增多处触感反馈，并修复已知问题。可在「菜单 → 更新日志」查看详情。": "v1.4.3 を公開しました：新機能「切り抜きのみ」モードと「オリジナル縁取り」、スワイプページのボタン位置調整、アカウントとセキュリティのダイアログに新しいイラスト、撮影ページの触感フィードバック追加、既知の問題を修正。詳しくは「メニュー → 更新履歴」をご覧ください。",
-          "新增「仅抠图」模式": "「切り抜きのみ」モードを追加",
+           "新版本 v1.4.3 已发布：新增「仅抠图」模式与「个性描边」功能，滑动页按钮位置调整，账号安全弹窗换新插图，拍照页新增多处触感反馈，并修复已知问题。可在「菜单 → 更新日志」查看详情。": "v1.4.3 を公開しました：新機能「切り抜きのみ」モードと「オリジナル縁取り」、スワイプページのボタン位置調整、アカウントとセキュリティのダイアログに新しいイラスト、撮影ページの触感フィードバック追加、既知の問題を修正。詳しくは「メニュー → 更新履歴」をご覧ください。",
+           "修复已知问题，提升使用稳定性。": "既知の問題を修正し、使用の安定性を向上しました。",
+           "新增「仅抠图」模式": "「切り抜きのみ」モードを追加",
           "拍照页新增「仅抠图」复选框：勾选后只做智能抠图、跳过热量与营养识别，适合只想把食物抠出来的场景；热量与营养可在添加详情页手动填写。": "撮影ページに「切り抜きのみ」チェックボックスを追加：オンにするとスマート切り抜きのみを行い、カロリーと栄養の認識をスキップします。料理だけを切り抜きたいときに便利で、カロリーと栄養は追加詳細ページで手入力できます。",
           "新增「个性描边」": "「オリジナル縁取り」を追加",
           "抠图结果弹窗新增「个性描边」入口（「询问 AI」旁的齿轮按钮），内置 13 种描边样式，每张样式卡片会播放「从无到有描出轮廓」的预览动画；选中后自动重新生成带描边的成品图，随时可恢复系统默认描边。": "切り抜き結果シートに「オリジナル縁取り」の入口（「AIに聞く」の隣の歯車ボタン）を追加し、13種類の縁取りスタイルを用意しました。各スタイルカードでは「輪郭が描かれていく」プレビューアニメーションを再生します。選択すると縁取り付きの画像が再生成され、いつでもデフォルトの縁取りに戻せます。",
@@ -9852,6 +9947,7 @@
           "重置失败。": "재설정 실패.",
           "请输入用户名或手机号。": "사용자 이름 또는 전화번호를 입력해 주세요.",
           "登录失败，请重试。": "로그인 실패. 다시 시도해 주세요.",
+          "登录中…": "로그인 중…",
           "发送失败，请重试。": "전송 실패. 다시 시도해 주세요.",
           "注册失败，请重试。": "가입 실패. 다시 시도해 주세요.",
           "验证码错误。": "인증번호가 올바르지 않습니다.",
@@ -10107,8 +10203,9 @@
           "v1.3.7 更新": "v1.3.7 업데이트",
           "新版本 v1.3.7 已发布：首页点击抠图可放大查看并显示 AI 小贴士，新增背景虚化、上下拖动与统一显示尺寸；抠图结果弹窗支持向下拖动关闭；修复小贴士不显示、更新日志未翻译等问题。可在「菜单 → 更新日志」查看详情。": "v1.3.7이 출시되었습니다: 홈에서 누끼를 탭하면 확대 보기와 AI 팁이 표시되고, 배경 흐림·위아래 드래그·표시 크기 통일을 지원합니다; 누끼 결과 시트는 아래로 드래그해 닫을 수 있습니다; 팁이 표시되지 않던 문제와 업데이트 내역 미번역 문제를 수정했습니다. 자세한 내용은 '메뉴 → 업데이트 내역'에서 확인하세요.",
           "v1.4.3 更新": "v1.4.3 업데이트",
-          "新版本 v1.4.3 已发布：新增「仅抠图」模式与「个性描边」功能，滑动页按钮位置调整，账号安全弹窗换新插图，拍照页新增多处触感反馈，并修复已知问题。可在「菜单 → 更新日志」查看详情。": "v1.4.3이 출시되었습니다: '누끼만' 모드와 '커스텀 테두리' 기능 추가, 스와이프 페이지 버튼 위치 조정, 계정 및 보안 다이얼로그 새 일러스트, 촬영 페이지 햅틱 피드백 추가, 알려진 문제 수정. 자세한 내용은 '메뉴 → 업데이트 내역'에서 확인하세요.",
-          "新增「仅抠图」模式": "'누끼만' 모드 추가",
+           "新版本 v1.4.3 已发布：新增「仅抠图」模式与「个性描边」功能，滑动页按钮位置调整，账号安全弹窗换新插图，拍照页新增多处触感反馈，并修复已知问题。可在「菜单 → 更新日志」查看详情。": "v1.4.3이 출시되었습니다: '누끼만' 모드와 '커스텀 테두리' 기능 추가, 스와이프 페이지 버튼 위치 조정, 계정 및 보안 다이얼로그 새 일러스트, 촬영 페이지 햅틱 피드백 추가, 알려진 문제 수정. 자세한 내용은 '메뉴 → 업데이트 내역'에서 확인하세요.",
+           "修复已知问题，提升使用稳定性。": "알려진 문제를 수정하고 사용 안정성을 개선했습니다.",
+           "新增「仅抠图」模式": "'누끼만' 모드 추가",
           "拍照页新增「仅抠图」复选框：勾选后只做智能抠图、跳过热量与营养识别，适合只想把食物抠出来的场景；热量与营养可在添加详情页手动填写。": "촬영 페이지에 '누끼만' 체크박스를 추가했습니다: 체크하면 스마트 누끼만 실행하고 칼로리·영양 인식은 건너뜁니다. 음식만 누끼 따고 싶을 때 유용하며, 칼로리와 영양은 추가 상세 페이지에서 직접 입력할 수 있습니다.",
           "新增「个性描边」": "'커스텀 테두리' 추가",
           "抠图结果弹窗新增「个性描边」入口（「询问 AI」旁的齿轮按钮），内置 13 种描边样式，每张样式卡片会播放「从无到有描出轮廓」的预览动画；选中后自动重新生成带描边的成品图，随时可恢复系统默认描边。": "누끼 결과 시트에 '커스텀 테두리' 입구('AI에게 묻기' 옆 톱니바퀴 버튼)를 추가하고 13가지 테두리 스타일을 제공합니다. 각 스타일 카드는 '윤곽이 그려지는' 미리보기 애니메이션을 재생하며, 선택하면 테두리가 적용된 이미지가 다시 생성되고 언제든 기본 테두리로 되돌릴 수 있습니다.",
@@ -10721,11 +10818,12 @@
       window.__picktimeAuth = {
         isLoggedIn: function () {
           try {
-            return !!(getAuthToken() || localStorage.getItem("picktime-login") || sessionStorage.getItem("picktime-login"));
+            return !!getAuthToken();
           } catch (e) {
             return false;
           }
-        }
+        },
+        version: function () { return authSessionVersion; }
       };
       function setLoginMessage(text, hint) {
         if (!errorEl) return;
@@ -10733,25 +10831,36 @@
         errorEl.classList.toggle("is-show", !!text);
         errorEl.classList.toggle("is-hint", !!hint);
       }
+      var loginLoadingEl = document.getElementById("loginLoading");
+      function showLoginLoading() {
+        if (!loginLoadingEl) return;
+        loginLoadingEl.classList.add("is-open");
+        loginLoadingEl.setAttribute("aria-hidden", "false");
+      }
+      function hideLoginLoading() {
+        if (!loginLoadingEl) return;
+        loginLoadingEl.classList.remove("is-open");
+        loginLoadingEl.setAttribute("aria-hidden", "true");
+      }
       function updateMenuProfile() {
         var nameEl = document.getElementById("menuProfileName");
         var avatarEl = document.getElementById("menuProfileAvatar");
         var loginLabel = document.getElementById("menuLoginLabel");
         var menuBtn = document.getElementById("menuLoginBtn");
+        var loggedIn = false;
+        try { loggedIn = !!getAuthToken(); } catch (e) {}
         if (loginLabel) {
-          var loggedIn = false;
-          try { loggedIn = !!(getAuthToken() || localStorage.getItem("picktime-login") || sessionStorage.getItem("picktime-login")); } catch (e) {}
           loginLabel.textContent = loggedIn ? t("退出账号") : t("登录");
           if (menuBtn) menuBtn.classList.toggle("menu-item--danger", loggedIn);
         }
         if (nameEl) {
           var savedName = null;
-          try { savedName = localStorage.getItem("picktime-nickname"); } catch (e) {}
-          nameEl.textContent = savedName || t("PickTime 用户");
+          try { if (loggedIn) savedName = localStorage.getItem("picktime-nickname"); } catch (e) {}
+          nameEl.textContent = savedName || (loggedIn ? t("PickTime 用户") : t("请先登录"));
         }
         if (avatarEl) {
           var savedAvatar = null;
-          try { savedAvatar = localStorage.getItem("picktime-avatar"); } catch (e) {}
+          try { if (loggedIn) savedAvatar = localStorage.getItem("picktime-avatar"); } catch (e) {}
           avatarEl.style.backgroundImage = savedAvatar ? "url('" + savedAvatar + "')" : "";
         }
       }
@@ -10807,15 +10916,13 @@
       if (menuLoginBtn) {
         menuLoginBtn.addEventListener("click", function () {
           var loggedIn = false;
-          try { loggedIn = !!(getAuthToken() || localStorage.getItem("picktime-login") || sessionStorage.getItem("picktime-login")); } catch (e) {}
+          try { loggedIn = !!getAuthToken(); } catch (e) {}
           closeMenu();
           if (loggedIn) {
             clearAuthSession();
             var loginLabel = document.getElementById("menuLoginLabel");
             if (loginLabel) loginLabel.textContent = t("登录");
             menuLoginBtn.classList.remove("menu-item--danger");
-            if (window.__picktimeClearRecords) window.__picktimeClearRecords();
-            if (window.__picktimeClearLocalProfile) window.__picktimeClearLocalProfile();
             if (window.__picktimeApplyProfileMode) window.__picktimeApplyProfileMode();
             if (window.__picktimeApplyDemoMode) window.__picktimeApplyDemoMode();
           }
@@ -11059,7 +11166,7 @@
       // ===== 通用设置：API调用（登录 + 72小时试用 + 服务端加密存储）=====
       var apiState = { loaded: false, at: 0, loggedIn: false, trialActive: true, vip: false, hasApiKey: false, apiEnabled: true, apiKeyMasked: "", hasMeituKey: false, meituAkMasked: "" };
       function isLoggedInNow() {
-        try { return !!(getAuthToken() || localStorage.getItem("picktime-login") || sessionStorage.getItem("picktime-login")); } catch (e) { return false; }
+        try { return !!getAuthToken(); } catch (e) { return false; }
       }
       function resetApiState() {
         apiState = { loaded: true, at: Date.now(), loggedIn: false, trialActive: true, vip: false, hasApiKey: false, apiEnabled: true, apiKeyMasked: "", hasMeituKey: false, meituAkMasked: "" };
@@ -11068,10 +11175,13 @@
         return new Promise(function (resolve) {
           if (!isLoggedInNow()) { resetApiState(); updateApiRow(); resolve(apiState); return; }
           if (apiState.loaded && !force && Date.now() - apiState.at < 60000) { resolve(apiState); return; }
+          var token = getAuthToken();
+          var version = authSessionVersion;
           authFetch("/api/user/api-setting").then(function (res) {
             if (!res.ok) throw new Error("HTTP " + res.status);
             return res.json();
           }).then(function (data) {
+            if (!isCurrentAuthSession(token, version)) { resolve(apiState); return; }
             apiState = {
               loaded: true, at: Date.now(), loggedIn: true,
               trialActive: !!data.trialActive,
@@ -11086,6 +11196,7 @@
             updateApiRow();
             resolve(apiState);
           }).catch(function () {
+            if (!isCurrentAuthSession(token, version)) { resolve(apiState); return; }
             apiState.loaded = true;
             apiState.at = Date.now();
             apiState.loggedIn = true;
@@ -11181,6 +11292,8 @@
       function postApiSetting(payload, onDone) {
         var save = document.getElementById("apiSheetSave");
         var clear = document.getElementById("apiSheetClear");
+        var token = getAuthToken();
+        var version = authSessionVersion;
         if (save) save.disabled = true;
         if (clear) clear.disabled = true;
         authFetch("/api/user/api-setting", {
@@ -11192,6 +11305,7 @@
             return { ok: res.ok, data: data };
           });
         }).then(function (r) {
+          if (!isCurrentAuthSession(token, version)) return;
           if (r.ok && r.data && r.data.ok) {
             apiState.loaded = true;
             apiState.at = Date.now();
@@ -11209,6 +11323,7 @@
             onDone((r.data && r.data.error) || t("保存失败，请重试"));
           }
         }).catch(function () {
+          if (!isCurrentAuthSession(token, version)) return;
           if (onDone) onDone(t("保存失败，请检查网络后重试"));
         }).then(function () {
           if (save) save.disabled = false;
@@ -11626,10 +11741,19 @@
         });
       }
       var AUTH_TOKEN_KEY = "picktime-token";
+      var authSessionVersion = 0;
       function getAuthToken() {
         try { return localStorage.getItem(AUTH_TOKEN_KEY) || sessionStorage.getItem(AUTH_TOKEN_KEY) || ""; } catch (e) { return ""; }
       }
+      function isCurrentAuthSession(token, version) {
+        return !!token && version === authSessionVersion && token === getAuthToken();
+      }
       function setAuthSession(token, remember) {
+        if (token !== getAuthToken()) {
+          if (window.__picktimeClearLocalProfile) window.__picktimeClearLocalProfile();
+          if (window.__picktimeClearRecords) window.__picktimeClearRecords();
+        }
+        authSessionVersion++;
         try {
           if (remember) {
             localStorage.setItem(AUTH_TOKEN_KEY, token);
@@ -11646,12 +11770,18 @@
         try { refreshApiState(true); } catch (e) {}
       }
       function clearAuthSession() {
+        authSessionVersion++;
         try {
           localStorage.removeItem(AUTH_TOKEN_KEY);
           sessionStorage.removeItem(AUTH_TOKEN_KEY);
           localStorage.removeItem("picktime-login");
           sessionStorage.removeItem("picktime-login");
         } catch (e) {}
+        window.__picktimeServerProfile = null;
+        if (window.__picktimeClearLocalProfile) window.__picktimeClearLocalProfile();
+        if (window.__picktimeClearRecords) window.__picktimeClearRecords();
+        if (window.__picktimeApplyProfileMode) window.__picktimeApplyProfileMode();
+        updateMenuProfile();
         try { resetApiState(); updateApiRow(); } catch (e) {}
       }
       function authFetch(url, options) {
@@ -11700,6 +11830,7 @@
           }
           var submitBtn = form.querySelector(".button-submit");
           if (submitBtn) submitBtn.disabled = true;
+          showLoginLoading();
           fetch("/api/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -11707,6 +11838,7 @@
           }).then(function (res) {
             return res.json().then(function (data) { return { ok: res.ok, data: data }; });
           }).then(function (r) {
+            hideLoginLoading();
             if (submitBtn) submitBtn.disabled = false;
             if (!r.ok || !r.data || !r.data.ok) {
               setLoginMessage((r.data && r.data.error) || i18nT("登录失败，请重试。"), false);
@@ -11714,6 +11846,7 @@
             }
             finishLogin(r.data);
           }).catch(function () {
+            hideLoginLoading();
             if (submitBtn) submitBtn.disabled = false;
             setLoginMessage(i18nT("网络错误，请重试。"), false);
           });
@@ -11978,6 +12111,7 @@
           }
           var submitBtn = qqForm.querySelector(".button-submit");
           if (submitBtn) submitBtn.disabled = true;
+          showLoginLoading();
           fetch("/api/auth/qq-login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -11985,6 +12119,7 @@
           }).then(function (res) {
             return res.json().then(function (data) { return { ok: res.ok, data: data }; });
           }).then(function (r) {
+            hideLoginLoading();
             if (submitBtn) submitBtn.disabled = false;
             if (!r.ok || !r.data || !r.data.ok) {
               setQqMessage((r.data && r.data.error) || i18nT("验证码错误。"), false);
@@ -11993,6 +12128,7 @@
             setQqMessage("");
             finishLogin(r.data);
           }).catch(function () {
+            hideLoginLoading();
             if (submitBtn) submitBtn.disabled = false;
             setQqMessage(i18nT("网络错误，请重试。"), false);
           });
@@ -12150,6 +12286,7 @@
           }
           var submitBtn = phoneForm.querySelector(".button-submit");
           if (submitBtn) submitBtn.disabled = true;
+          showLoginLoading();
           fetch("/api/auth/phone-login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -12157,6 +12294,7 @@
           }).then(function (res) {
             return res.json().then(function (data) { return { ok: res.ok, data: data }; });
           }).then(function (r) {
+            hideLoginLoading();
             if (submitBtn) submitBtn.disabled = false;
             if (!r.ok || !r.data || !r.data.ok) {
               setPhoneMessage((r.data && r.data.error) || i18nT("登录失败，请重试。"), false);
@@ -12165,6 +12303,7 @@
             setPhoneMessage("");
             finishLogin(r.data);
           }).catch(function () {
+            hideLoginLoading();
             if (submitBtn) submitBtn.disabled = false;
             setPhoneMessage(i18nT("网络错误，请重试。"), false);
           });
@@ -12398,17 +12537,20 @@
         applyLanguage(currentLang);
       }
       function loadAccountInfo() {
-        if (!getAuthToken()) { applyAccountUser(null); return; }
+        var token = getAuthToken();
+        var version = authSessionVersion;
+        if (!token) { applyAccountUser(null); return; }
         authFetch("/api/auth/me").then(function (res) {
           return res.json();
         }).then(function (data) {
+          if (!isCurrentAuthSession(token, version)) return;
           if (data && data.ok && data.user) {
             applyAccountUser(data.user);
           } else {
             clearAuthSession();
             applyAccountUser(null);
           }
-        }).catch(function () { applyAccountUser(null); });
+        }).catch(function () { if (isCurrentAuthSession(token, version)) applyAccountUser(null); });
       }
       function initAccountPage() {
         if (getAuthToken()) {
@@ -12680,10 +12822,15 @@
 
       function initLanguage() {
         applyLanguage(currentLang);
-        if (window.__picktimeAuth && window.__picktimeAuth.isLoggedIn()) {
+        var token = getAuthToken();
+        var version = authSessionVersion;
+        if (token) {
           authFetch("/api/auth/me").then(function (res) {
-            return res.json();
-          }).then(function (data) {
+            return res.json().then(function (data) { return { status: res.status, data: data }; });
+          }).then(function (result) {
+            if (!isCurrentAuthSession(token, version)) return;
+            if (result.status === 401) { clearAuthSession(); return; }
+            var data = result.data;
             if (!data || !data.ok || !data.user) return;
             if (data.user.language && data.user.language !== currentLang) {
               applyLanguage(data.user.language);
@@ -13416,13 +13563,16 @@
         <div class="onboarding__title" data-i18n-skip>岁岁朝朝<br />用笔记拾起每一天的浪漫</div>
         <div class="onboarding__subtitle" data-i18n-skip>你的拾光记录都在这里</div>
       </div>
-      <section class="calendar-card calendar-card--grid onboarding__calendar" aria-hidden="true">
-        <div class="calendar-card__grid" aria-hidden="true"></div>
-        <div class="calendar-weekdays" aria-hidden="true">
-          <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
-        </div>
-        <div class="calendar-grid" id="onboardingCalGrid"></div>
-      </section>
+      <div class="onboarding__calendar-wrap">
+        <img class="onboarding__calendar-seal" src="/images/seal.png?v=2" alt="" aria-hidden="true" draggable="false" />
+        <section class="calendar-card calendar-card--grid onboarding__calendar" aria-hidden="true">
+          <div class="calendar-card__grid" aria-hidden="true"></div>
+          <div class="calendar-weekdays" aria-hidden="true">
+            <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+          </div>
+          <div class="calendar-grid" id="onboardingCalGrid"></div>
+        </section>
+      </div>
       <button class="onboarding__start onboarding__finish" id="onboardingFinish2" type="button" data-i18n-skip>开始使用</button>
     </div>
     <button class="onboarding__prev is-hidden" id="onboardingPrev" type="button" data-i18n-skip>上一页</button>
@@ -13494,6 +13644,8 @@
       // pending=启动中 | idb=IndexedDB（大容量）| local=localStorage 兜底
       var recordsStorageMode = "pending";
       var recordsDBPromise = null;
+      var recordsGeneration = 0;
+      var recordsSyncRun = 0;
 
       // 旧版本数据（localStorage）：仅用于首次迁移读取
       function legacyLoadRecords() {
@@ -13554,6 +13706,19 @@
         });
       }
 
+      function idbClearRecords() {
+        return openRecordsDB().then(function (db) {
+          if (!db) return;
+          return new Promise(function (resolve, reject) {
+            var tx = db.transaction(RECORDS_DB_STORE, "readwrite");
+            tx.objectStore(RECORDS_DB_STORE).clear();
+            tx.oncomplete = function () { resolve(); };
+            tx.onerror = function () { reject(tx.error || new Error("idb clear failed")); };
+            tx.onabort = function () { reject(tx.error || new Error("idb clear aborted")); };
+          });
+        });
+      }
+
       // 增量写入：新增/图片变化的 put，被删除的 delete，避免每次全量重写
       function idbApplyDiff(prevList, nextList) {
         return openRecordsDB().then(function (db) {
@@ -13590,11 +13755,13 @@
 
       // 启动时载入：IndexedDB 为主，localStorage 旧数据自动迁移并清空释放配额
       function initRecordsStore() {
+        var generation = recordsGeneration;
         if (navigator.storage && navigator.storage.persist) {
           navigator.storage.persist().catch(function () {});
         }
         var legacy = legacyLoadRecords();
         return openRecordsDB().then(function (db) {
+          if (generation !== recordsGeneration) return null;
           if (!db) {
             recordsStorageMode = "local";
             recordsCache = legacy;
@@ -13602,6 +13769,7 @@
           }
           recordsStorageMode = "idb";
           return idbGetAll(db).then(function (idbList) {
+            if (generation !== recordsGeneration) return null;
             var seen = {};
             var merged = [];
             var i;
@@ -13619,7 +13787,7 @@
             });
           });
         }).catch(function () {
-          if (!recordsCache) recordsCache = legacy;
+          if (generation === recordsGeneration && !recordsCache) recordsCache = legacy;
         });
       }
 
@@ -13823,12 +13991,14 @@
       }
 
       function clearCachedRecords() {
-        var prev = recordsCache || [];
+        recordsGeneration++;
+        recordsSyncRun++;
+        recordsSyncing = false;
         recordsCache = [];
         try {
           localStorage.removeItem(RECORDS_KEY);
         } catch (e) {}
-        if (recordsStorageMode !== "local") idbApplyDiff(prev, []).catch(function () {});
+        idbClearRecords().catch(function () {});
         updateWeekRings();
         renderStatsPlaceholderPics();
         renderStatsSubpageItems();
@@ -13847,6 +14017,11 @@
       }
 
       var recordsSyncing = false;
+
+      function isCurrentRecordsSync(token, version, run) {
+        return run === recordsSyncRun && token === recordsAuthToken() &&
+          window.__picktimeAuth && version === window.__picktimeAuth.version();
+      }
 
       function recordPayload(record) {
         return {
@@ -13882,8 +14057,12 @@
       function syncRecordsFromServer() {
         if (!isLoggedInUser() || recordsSyncing) return Promise.resolve(false);
         recordsSyncing = true;
+        var token = recordsAuthToken();
+        var version = window.__picktimeAuth.version();
+        var run = ++recordsSyncRun;
         var localRecords = loadRecords();
         return fetchServerRecords().then(function (r) {
+          if (!isCurrentRecordsSync(token, version, run)) return false;
           if (!r.ok || !r.data || !r.data.ok) throw new Error("fetch failed");
           var serverRecords = r.data.records || [];
           var serverIds = {};
@@ -13895,6 +14074,7 @@
             }
           }
           if (!pendingUploads.length) {
+            if (!isCurrentRecordsSync(token, version, run)) return false;
             recordsSyncing = false;
             var changed = recordsSignature(localRecords) !== recordsSignature(serverRecords);
             cacheRecords(serverRecords);
@@ -13902,7 +14082,9 @@
             return true;
           }
           return Promise.all(pendingUploads).then(function () {
+            if (!isCurrentRecordsSync(token, version, run)) return false;
             return fetchServerRecords().then(function (r2) {
+              if (!isCurrentRecordsSync(token, version, run)) return false;
               recordsSyncing = false;
               if (r2.ok && r2.data && r2.data.ok) {
                 var merged = r2.data.records || [];
@@ -13914,7 +14096,7 @@
             });
           });
         }).catch(function () {
-          recordsSyncing = false;
+          if (run === recordsSyncRun) recordsSyncing = false;
           return false;
         });
       }
@@ -13943,10 +14125,12 @@
       };
       // 清空本机记录（含 IndexedDB），返回 Promise，供注销账号时等待完成
       window.__picktimeClearRecordsAsync = function () {
-        var prev = recordsCache || [];
+        recordsGeneration++;
+        recordsSyncRun++;
+        recordsSyncing = false;
         recordsCache = [];
         try { localStorage.removeItem(RECORDS_KEY); } catch (e) {}
-        var p = recordsStorageMode !== "local" ? idbApplyDiff(prev, []) : Promise.resolve();
+        var p = idbClearRecords();
         updateWeekRings();
         renderStatsPlaceholderPics();
         renderStatsSubpageItems();
@@ -21159,14 +21343,22 @@
 
       var statsSwitch = document.getElementById("statsSwitch");
       var statsTrack = document.getElementById("statsTrack");
+      // 记住用户上次停留的统计子页（1=日历 / 2=统计图表），下次打开直接恢复
       var statsOnPage2 = false;
+      try { statsOnPage2 = localStorage.getItem("picktime-stats-page2") === "1"; } catch (e) {}
 
       if (statsSwitch && statsTrack) {
+        if (statsOnPage2) {
+          document.body.classList.add("stats-page2");
+          statsSwitch.setAttribute("aria-pressed", "true");
+          statsSwitch.setAttribute("aria-label", i18nT("返回统计第一页"));
+        }
         statsSwitch.addEventListener("click", function () {
           statsOnPage2 = !statsOnPage2;
           document.body.classList.toggle("stats-page2", statsOnPage2);
           statsSwitch.setAttribute("aria-pressed", statsOnPage2 ? "true" : "false");
           statsSwitch.setAttribute("aria-label", statsOnPage2 ? i18nT("返回统计第一页") : i18nT("切换到统计第二页"));
+          try { localStorage.setItem("picktime-stats-page2", statsOnPage2 ? "1" : "0"); } catch (e) {}
           vibrateTap(8);
         });
         attachIOSSwitchHaptic(statsSwitch);
@@ -21219,6 +21411,8 @@
 
       // 退出登录时清空本机资料（头像/封面/昵称等），避免下一个账号或模拟账号继承上一个账号的数据
       function clearLocalProfile() {
+        window.clearTimeout(profileSyncTimer);
+        profileSyncQueue = {};
         var keys = ["picktime-nickname", "picktime-signature", "picktime-gender",
                     "picktime-height", "picktime-weight", "picktime-province",
                     "picktime-city", "picktime-birthyear", "picktime-avatar", "picktime-cover"];
@@ -21227,7 +21421,9 @@
         }
         applyAvatar("");
         applyCover("");
-        if (profileNickname) profileNickname.value = "PickTime 用户";
+        regionProvince = "";
+        regionCity = "";
+        if (profileNickname) profileNickname.value = i18nT("请先登录");
         if (profileSignature) profileSignature.value = "今天也要好好吃饭";
       }
       window.__picktimeClearLocalProfile = clearLocalProfile;
@@ -21481,7 +21677,7 @@
       }
 
       function applyServerProfile(profile) {
-        if (!profile || typeof profile !== "object") return;
+        if (!profileIsLoggedIn() || !profile || typeof profile !== "object") return;
         var keyMap = {
           nickname: "picktime-nickname",
           signature: "picktime-signature",
@@ -21648,7 +21844,7 @@
             profileNickname.value = savedName || "PickTime 用户";
             profileNickname.readOnly = false;
           } else {
-            profileNickname.value = "PickTime 用户";
+            profileNickname.value = i18nT("请先登录");
             profileNickname.readOnly = true;
           }
           fitNicknameWidth();

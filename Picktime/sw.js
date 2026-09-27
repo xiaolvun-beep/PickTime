@@ -1,4 +1,4 @@
-const CACHE = "picktime-v413";
+const CACHE = "picktime-v415";
 const ASSETS = [
   "/",
   "/index.html",
