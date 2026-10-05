@@ -2,6 +2,8 @@
 
 当前网页源码版本：**v1.5.3**。本仓库保存网页、账号服务、识别服务和安卓壳源码；安卓安装包仍单独发布，版本号以线上 `/download/version.json` 为准。
 
+当前安卓发布版：**v1.5.3**（`versionCode` 15）。旧版 App 启动时读取线上版本清单并提示更新；安装包由服务器 `/download/PickTime.apk` 提供，不纳入源码仓库。
+
 拍照记录饮食：智能抠图 + AI 食物识别（名称 / 热量 / 蛋白 / 脂肪 / 碳水 / 糖 / 纤维 / 钠），支持时间线、月历热力图、热量趋势与体脂率参考。
 
 > PickTime — snap a photo, get the food name, calories and six nutrients, and keep a warm timeline of every meal.

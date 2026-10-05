@@ -27,6 +27,7 @@ mkdir -p "$PROJECT_DIR/app/src/main/assets/www"
 rsync -a --delete \
   --exclude 'android/' \
   --exclude 'download/' \
+  --exclude 'docs/' \
   --exclude 'sw.js' \
   --exclude 'font-preview.html' \
   --exclude '*.zip' \
@@ -35,7 +36,7 @@ rsync -a --delete \
 
 # 资源包版本戳：网页内容有变化时变化，App 用它判断本地资源是否过期
 WEB_VERSION=$(cd "$WEB_DIR" && find . -type f \
-  -not -path './android/*' -not -path './download/*' \
+  -not -path './android/*' -not -path './download/*' -not -path './docs/*' \
   -not -name 'sw.js' -not -name 'font-preview.html' -not -name '*.zip' \
   -print0 | sort -z | xargs -0 md5sum | md5sum | cut -c1-12)
 echo "    webVersion = $WEB_VERSION"

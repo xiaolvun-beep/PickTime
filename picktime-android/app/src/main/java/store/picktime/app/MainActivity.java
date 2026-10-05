@@ -556,6 +556,7 @@ public class MainActivity extends Activity {
                 int latestCode = info.optInt("versionCode", BuildConfig.VERSION_CODE);
                 String latestName = info.optString("versionName", "");
                 String remoteWebVersion = info.optString("webVersion", "");
+                long apkSize = info.optLong("size", 0);
 
                 // 线上网页资源包与本地不一致：本次会话全部走网络，保证用户看到最新内容
                 if (!remoteWebVersion.isEmpty() && !remoteWebVersion.equals(BuildConfig.WEB_VERSION)) {
@@ -569,7 +570,7 @@ public class MainActivity extends Activity {
                 }
 
                 if (latestCode > BuildConfig.VERSION_CODE) {
-                    runOnUiThread(() -> showUpdateDialog(latestName));
+                    runOnUiThread(() -> showUpdateDialog(latestName, apkSize));
                 }
             } catch (Exception ignored) {
                 // 静默失败，不打扰使用
@@ -579,7 +580,7 @@ public class MainActivity extends Activity {
         }, "picktime-update-check").start();
     }
 
-    private void showUpdateDialog(String versionName) {
+    private void showUpdateDialog(String versionName, long apkSize) {
         if (isFinishing() || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed())) {
             return;
         }
@@ -599,7 +600,7 @@ public class MainActivity extends Activity {
 
         String suffix = (versionName == null || versionName.isEmpty()) ? "" : " v" + versionName;
         title.setText("发现新版本" + suffix);
-        message.setText("更新后体验最新功能，安装包约 7 MB，覆盖安装不会丢失数据。");
+        message.setText("更新后体验最新功能，" + (apkSize > 0 ? "安装包约 " + formatSize(apkSize) + "，" : "") + "覆盖安装不会丢失数据。");
 
         later.setOnClickListener(v -> {
             updateDownloadCancelled = true;
