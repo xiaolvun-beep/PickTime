@@ -1,5 +1,7 @@
 # 拾光 PickTime
 
+当前网页源码版本：**v1.5.3**。本仓库保存网页、账号服务、识别服务和安卓壳源码；安卓安装包仍单独发布，版本号以线上 `/download/version.json` 为准。
+
 拍照记录饮食：智能抠图 + AI 食物识别（名称 / 热量 / 蛋白 / 脂肪 / 碳水 / 糖 / 纤维 / 钠），支持时间线、月历热力图、热量趋势与体脂率参考。
 
 > PickTime — snap a photo, get the food name, calories and six nutrients, and keep a warm timeline of every meal.
@@ -79,8 +81,9 @@ bash deploy.sh
 | `MEITU_OPEN_AK` / `MEITU_OPEN_SK` | 美图 AI 开放平台智能抠图 |
 | `PICKTIME_DB_*` | MySQL 连接 |
 | `SMS_*` / `EMAIL_*` / `GOOGLE_*` | 手机号 / 邮箱 / Google 登录 |
+| `PICKTIME_VIP_USERS` | 额外特权账号用户名，多个用英文逗号分隔 |
 
-所有密钥都通过环境变量注入，请勿提交到仓库。
+所有密钥都通过环境变量注入，请勿提交到仓库。服务器本地文档、用户数据库、签名证书、安装包、模型权重和运行环境不在此源码备份中。
 
 ## 安卓 App
 

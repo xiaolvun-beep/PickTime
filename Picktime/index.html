@@ -6011,30 +6011,29 @@
       z-index: 1;
     }
 
-    .range-options {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding: 8px 20px 10px;
+    #rangeSheet .time-sheet__head {
+      position: relative;
     }
 
-    .range-option {
-      height: 48px;
-      border: 0;
-      border-radius: 14px;
-      background: #f4f6f9;
-      font-family: inherit;
-      font-size: 15px;
-      font-weight: 500;
-      color: var(--color-ink);
-      cursor: pointer;
-      transition: background 160ms var(--ease), color 160ms var(--ease);
+    #rangeSheet .time-sheet__title {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
     }
 
-    .range-option.is-active {
-      background: #fdf1e6;
-      color: #e8944f;
-      font-weight: 600;
+    #rangeOk {
+      margin-left: auto;
+    }
+
+    #rangeWheel {
+      width: 180px;
+    }
+
+    #rangeWheel:focus-visible {
+      outline: 2px solid #e8944f;
+      outline-offset: -2px;
+      border-radius: 12px;
     }
 
     .cover-crop-overlay {
@@ -7358,7 +7357,116 @@
     }
 
     .doc-overlay__body .settings-row__input:read-only {
+      color: #1a1a2e;
+      pointer-events: none;
+    }
+
+    .doc-overlay__body .settings-row--picker {
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .doc-overlay__body .settings-row--picker:active {
+      background: #f8f9fb;
+    }
+
+    .doc-overlay__body .settings-row--picker:focus-visible {
+      outline: 2px solid #e8944f;
+      outline-offset: 2px;
+    }
+
+    .doc-overlay__body .settings-row--picker.is-disabled {
+      cursor: default;
+    }
+
+    .doc-overlay__body .settings-row--picker.is-disabled .settings-row__input {
       color: #8e8e9a;
+    }
+
+    #profileSettingMask {
+      z-index: 1100;
+    }
+
+    #profileSettingSheet {
+      z-index: 1101;
+    }
+
+    #profileSettingSheet .time-sheet__head {
+      position: relative;
+    }
+
+    #profileSettingTitle {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: calc(100% - 140px);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    #profileSettingOk {
+      margin-left: auto;
+    }
+
+    .profile-setting__body {
+      gap: 2px;
+      align-items: center;
+    }
+
+    .profile-setting__body .wheel {
+      width: 92px;
+    }
+
+    .profile-setting__body .wheel:focus-visible {
+      outline: 2px solid #e8944f;
+      outline-offset: -2px;
+      border-radius: 12px;
+    }
+
+    .profile-setting__body.is-single .wheel {
+      width: 160px;
+    }
+
+    .profile-setting__body.is-single #profileSettingDecimalWheel {
+      display: none;
+    }
+
+    .profile-setting__unit {
+      position: relative;
+      z-index: 4;
+      min-width: 32px;
+      font-size: 15px;
+      color: #8e8e9a;
+      text-align: left;
+    }
+
+    .profile-setting__unit:empty {
+      display: none;
+    }
+
+    .profile-setting__body.is-single .profile-setting__unit:not(:empty) {
+      position: absolute;
+      left: calc(50% + 68px);
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .profile-setting__clear {
+      display: block;
+      margin: 2px auto 0;
+      padding: 10px 18px;
+      border: 0;
+      background: transparent;
+      color: #8e8e9a;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      transform: translateY(8px);
+    }
+
+    .profile-setting__clear[hidden] {
+      display: none;
     }
 
     .login-overlay ::placeholder {
@@ -7962,9 +8070,6 @@
   <!-- 菜单抽屉 -->
   <div class="menu-mask" id="menuMask" aria-hidden="true"></div>
   <aside class="menu-drawer" id="menuDrawer" aria-hidden="true">
-    <button class="menu-drawer__close" id="menuClose" type="button" aria-label="关闭">
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
-    </button>
     <div class="menu-profile">
       <div class="menu-profile__avatar" id="menuProfileAvatar"></div>
       <div class="menu-profile__name" id="menuProfileName" data-i18n-skip>PickTime 用户</div>
@@ -8043,7 +8148,7 @@
       </div>
     </div>
     <div class="menu-footer">
-      <div class="menu-footer__version">v1.5.2</div>
+      <div class="menu-footer__version">v1.5.3</div>
       <div class="menu-footer__copyright">© PickTime版权所有</div>
     </div>
   </aside>
@@ -8125,6 +8230,21 @@
       <span class="doc-overlay__title" id="docTitle">隐私政策</span>
     </header>
     <div class="doc-overlay__body" id="docBody"></div>
+  </div>
+  <div class="sheet-mask" id="profileSettingMask" aria-hidden="true"></div>
+  <div class="time-sheet" id="profileSettingSheet" role="dialog" aria-modal="true" aria-label="选择个人信息" aria-hidden="true">
+    <header class="time-sheet__head">
+      <button class="time-sheet__btn" id="profileSettingCancel" type="button">取消</button>
+      <span class="time-sheet__title" id="profileSettingTitle">身高</span>
+      <button class="time-sheet__btn time-sheet__btn--primary" id="profileSettingOk" type="button">确定</button>
+    </header>
+    <div class="time-sheet__body profile-setting__body">
+      <div class="wheel" id="profileSettingMainWheel" role="listbox" tabindex="0" aria-label="数值"></div>
+      <div class="wheel" id="profileSettingDecimalWheel" role="listbox" tabindex="0" aria-label="小数位"></div>
+      <span class="profile-setting__unit" id="profileSettingUnit" aria-hidden="true"></span>
+      <div class="wheel-highlight" aria-hidden="true"></div>
+    </div>
+    <button class="profile-setting__clear" id="profileSettingClear" type="button" hidden>清除</button>
   </div>
   <div class="sms-toast" id="smsToast" role="status" aria-live="polite"></div>
 
@@ -8492,8 +8612,8 @@
       <div class="about-logo-wrap">
         <img class="about-logo" src="/icons/apple-touch-icon.png" alt="拾光" />
       </div>
-      <p class="about-meta"><strong>版本：</strong>v1.5.2</p>
-      <p class="about-meta"><strong>更新日期：</strong>2026.09.27</p>
+      <p class="about-meta"><strong>版本：</strong>v1.5.3</p>
+      <p class="about-meta"><strong>更新日期：</strong>2026.10.05</p>
 
       <h4>产品简介</h4>
       <p>拾光（PickTime）是一款专注于饮食记录与健康参考的应用，支持拍照记录饮食、智能抠图、AI 热量与营养分析、体脂率参考、饮食时间线与数据统计，帮助你用照片记录每一餐，也记录生活的温度。</p>
@@ -8641,6 +8761,8 @@
   </template>
   <template id="docChangelogTpl">
     <h1>拾光更新日志</h1>
+    <h4>v1.5.3 <span class="doc-version-date">2026.10.05</span></h4>
+    <p>修复已知问题，提升使用稳定性。</p>
     <h4>v1.5.2 <span class="doc-version-date">2026.09.27</span></h4>
     <p>修复已知问题，提升使用稳定性。</p>
     <h4>v1.4.3 <span class="doc-version-date">2026.09.22</span></h4>
@@ -8707,27 +8829,35 @@
   </template>
   <template id="docProfileTpl">
     <div class="settings-list">
-      <div class="settings-row">
+      <div class="settings-row settings-row--picker" data-setting-id="settingHeight" role="button" tabindex="0">
         <span class="settings-row__label">身高</span>
         <div class="settings-row__field">
-          <input class="settings-row__input" id="settingHeight" type="text" inputmode="decimal" maxlength="5" placeholder="--" />
+          <input class="settings-row__input" id="settingHeight" type="text" value="" placeholder="--" readonly tabindex="-1" aria-label="身高（厘米）" />
           <span class="settings-row__unit">cm</span>
         </div>
       </div>
-      <div class="settings-row">
+      <div class="settings-row settings-row--picker" data-setting-id="settingWeight" role="button" tabindex="0">
         <span class="settings-row__label">体重</span>
         <div class="settings-row__field">
-          <input class="settings-row__input" id="settingWeight" type="text" inputmode="decimal" maxlength="5" placeholder="--" />
+          <input class="settings-row__input" id="settingWeight" type="text" value="" placeholder="--" readonly tabindex="-1" aria-label="体重（公斤）" />
           <span class="settings-row__unit">kg</span>
         </div>
       </div>
-      <div class="settings-row">
-        <span class="settings-row__label">出生年份</span>
+      <div class="settings-row settings-row--picker" data-setting-id="settingTargetWeight" role="button" tabindex="0">
+        <span class="settings-row__label">目标体重</span>
         <div class="settings-row__field">
-          <input class="settings-row__input" id="settingBirthYear" type="text" inputmode="numeric" maxlength="4" placeholder="--" />
+          <input class="settings-row__input" id="settingTargetWeight" type="text" value="" placeholder="--" readonly tabindex="-1" aria-label="目标体重（公斤）" />
+          <span class="settings-row__unit">kg</span>
         </div>
       </div>
-      <div class="settings-row">
+      <div class="settings-row settings-row--picker" data-setting-id="settingBirthYear" role="button" tabindex="0">
+        <span class="settings-row__label">出生年份</span>
+        <div class="settings-row__field">
+          <input class="settings-row__input" id="settingBirthYear" type="text" value="" placeholder="--" readonly tabindex="-1" aria-label="出生年份" />
+          <span class="settings-row__unit">年</span>
+        </div>
+      </div>
+      <div class="settings-row settings-row--picker" data-setting-id="settingGender">
         <span class="settings-row__label">性别</span>
         <button class="settings-row__gender" id="settingGender" type="button" data-gender="male">
           <img class="settings-row__gender-icon" id="settingGenderIcon" src="/images/gender-male.png" alt="" />
@@ -8919,6 +9049,7 @@
           "个人信息设置": "Personal Information",
           "身高": "Height",
           "体重": "Weight",
+          "目标体重": "Target weight",
           "出生年份": "Birth year",
           "选择城市": "Select city",
           "选择地区": "Select district",
@@ -9260,6 +9391,7 @@
           "选择日期": "Select date",
           "选择时间范围": "Select range",
           "取消": "Cancel",
+          "清除": "Clear",
           "确定": "OK",
           "近七天": "Last 7 days",
           "近30天": "Last 30 days",
@@ -9304,6 +9436,7 @@
           "估算深度信息...": "Estimating depth...",
           "正在综合计算食物重量...": "Calculating the weight...",
           "微调一下...": "Fine-tuning...",
+          "即将完成": "Almost done",
           "即将完成...": "Almost done...",
           "图片读取失败，请重试": "Failed to read the image. Please try again.",
           "图片处理失败，请重试": "Failed to process the image. Please try again.",
@@ -9441,6 +9574,7 @@
           "个人信息设置": "個人情報設定",
           "身高": "身長",
           "体重": "体重",
+          "目标体重": "目標体重",
           "出生年份": "生まれた年",
           "选择城市": "都市を選択",
           "选择地区": "地区を選択",
@@ -9782,6 +9916,7 @@
           "选择日期": "日付を選択",
           "选择时间范围": "期間を選択",
           "取消": "キャンセル",
+          "清除": "クリア",
           "确定": "決定",
           "近七天": "過去7日間",
           "近30天": "過去30日間",
@@ -9826,6 +9961,7 @@
           "估算深度信息...": "深度情報を推定しています...",
           "正在综合计算食物重量...": "料理の重さを計算しています...",
           "微调一下...": "微調整しています...",
+          "即将完成": "まもなく完了",
           "即将完成...": "まもなく完了...",
           "图片读取失败，请重试": "画像の読み込みに失敗しました。もう一度お試しください。",
           "图片处理失败，请重试": "画像の処理に失敗しました。もう一度お試しください。",
@@ -9963,6 +10099,7 @@
           "个人信息设置": "개인 정보 설정",
           "身高": "키",
           "体重": "몸무게",
+          "目标体重": "목표 체중",
           "出生年份": "출생 연도",
           "选择城市": "도시 선택",
           "选择地区": "지역 선택",
@@ -10304,6 +10441,7 @@
           "选择日期": "날짜 선택",
           "选择时间范围": "기간 선택",
           "取消": "취소",
+          "清除": "지우기",
           "确定": "확인",
           "近七天": "최근 7일",
           "近30天": "최근 30일",
@@ -10348,6 +10486,7 @@
           "估算深度信息...": "깊이 정보를 추정하는 중...",
           "正在综合计算食物重量...": "음식 무게를 계산하는 중...",
           "微调一下...": "미세 조정 중...",
+          "即将完成": "곧 완료",
           "即将完成...": "곧 완료...",
           "图片读取失败，请重试": "이미지를 읽지 못했습니다. 다시 시도해 주세요.",
           "图片处理失败，请重试": "이미지 처리에 실패했습니다. 다시 시도해 주세요.",
@@ -11035,6 +11174,7 @@
       function initProfileSettings() {
         var h = document.getElementById("settingHeight");
         var w = document.getElementById("settingWeight");
+        var tw = document.getElementById("settingTargetWeight");
         var b = document.getElementById("settingBirthYear");
         var g = document.getElementById("settingGender");
         var gIcon = document.getElementById("settingGenderIcon");
@@ -11045,19 +11185,26 @@
           if (loggedIn) {
             if (h) h.value = localStorage.getItem("picktime-height") || "";
             if (w) w.value = localStorage.getItem("picktime-weight") || "";
+            if (tw) tw.value = localStorage.getItem("picktime-target-weight") || "";
             if (b) b.value = localStorage.getItem("picktime-birthyear") || "";
             if (localStorage.getItem("picktime-gender") === "female") gender = "female";
           } else {
             if (h) h.value = "170";
             if (w) w.value = "60";
+            if (tw) tw.value = "";
             if (b) b.value = "";
           }
         } catch (e) {}
-        var fields = [h, w, b];
+        var fields = [h, w, tw, b];
         for (var fi = 0; fi < fields.length; fi++) {
           if (!fields[fi]) continue;
-          fields[fi].readOnly = !loggedIn;
+          fields[fi].readOnly = true;
           fields[fi].placeholder = "--";
+        }
+        var pickerRows = docBody.querySelectorAll(".settings-row--picker");
+        for (var pr = 0; pr < pickerRows.length; pr++) {
+          pickerRows[pr].classList.toggle("is-disabled", !loggedIn);
+          pickerRows[pr].setAttribute("aria-disabled", loggedIn ? "false" : "true");
         }
         if (g) {
           g.disabled = !loggedIn;
@@ -11065,46 +11212,192 @@
         }
         if (gIcon) gIcon.src = gender === "male" ? "/images/gender-male.png" : "/images/gender-female.png";
         if (gText) gText.textContent = gender === "male" ? t("男") : t("女");
+        if (loggedIn && window.__picktimeRefreshProfileSettings) window.__picktimeRefreshProfileSettings();
       }
       function saveProfileSetting(input) {
         if (!input || !input.id) return;
         if (!(window.__picktimeAuth && window.__picktimeAuth.isLoggedIn())) return;
         var raw = String(input.value == null ? "" : input.value).trim();
         var key = "";
+        var field = "";
         var min = 0;
         var max = 0;
         var isInt = false;
-        if (input.id === "settingHeight") { key = "picktime-height"; min = 50; max = 250; }
-        else if (input.id === "settingWeight") { key = "picktime-weight"; min = 10; max = 500; }
-        else if (input.id === "settingBirthYear") { key = "picktime-birthyear"; min = 1900; max = new Date().getFullYear(); isInt = true; }
+        if (input.id === "settingHeight") { key = "picktime-height"; field = "height"; min = 50; max = 250; }
+        else if (input.id === "settingWeight") { key = "picktime-weight"; field = "weight"; min = 10; max = 500; }
+        else if (input.id === "settingTargetWeight") { key = "picktime-target-weight"; field = "targetWeight"; min = 10; max = 500; }
+        else if (input.id === "settingBirthYear") { key = "picktime-birthyear"; field = "birthyear"; min = 1900; max = new Date().getFullYear(); isInt = true; }
         else return;
         var digits = raw.replace(/[^0-9.]/g, "");
         var n = parseFloat(digits);
         if (!digits || !isFinite(n) || n <= 0) {
           try { localStorage.removeItem(key); } catch (e) {}
           input.value = "";
+          if ((field === "birthyear" || field === "targetWeight") && window.__picktimePushProfileSetting) {
+            window.__picktimePushProfileSetting(field, 0);
+          }
           if (window.__picktimeSyncProfile) window.__picktimeSyncProfile();
           return;
         }
         if (isInt) n = Math.round(n);
+        else n = Math.round(n * 10) / 10;
         n = Math.max(min, Math.min(max, n));
         input.value = String(n);
         try { localStorage.setItem(key, String(n)); } catch (e) {}
+        if (window.__picktimePushProfileSetting) window.__picktimePushProfileSetting(field, n);
         if (window.__picktimeSyncProfile) window.__picktimeSyncProfile();
       }
-      function toggleSettingGender() {
+      function toggleSettingGender(selected) {
         var g = document.getElementById("settingGender");
         if (!g) return;
         if (!(window.__picktimeAuth && window.__picktimeAuth.isLoggedIn())) return;
-        var next = g.getAttribute("data-gender") === "female" ? "male" : "female";
+        var next = selected || (g.getAttribute("data-gender") === "female" ? "male" : "female");
         g.setAttribute("data-gender", next);
         try { localStorage.setItem("picktime-gender", next); } catch (e) {}
         var icon = document.getElementById("settingGenderIcon");
         var text = document.getElementById("settingGenderText");
         if (icon) icon.src = next === "male" ? "/images/gender-male.png" : "/images/gender-female.png";
         if (text) text.textContent = next === "male" ? t("男") : t("女");
+        if (window.__picktimePushProfileSetting) window.__picktimePushProfileSetting("gender", next);
         if (window.__picktimeSyncProfile) window.__picktimeSyncProfile();
       }
+
+      var profileSettingMask = document.getElementById("profileSettingMask");
+      var profileSettingSheet = document.getElementById("profileSettingSheet");
+      var profileSettingTitle = document.getElementById("profileSettingTitle");
+      var profileSettingMainWheel = document.getElementById("profileSettingMainWheel");
+      var profileSettingDecimalWheel = document.getElementById("profileSettingDecimalWheel");
+      var profileSettingUnit = document.getElementById("profileSettingUnit");
+      var profileSettingClear = document.getElementById("profileSettingClear");
+      var profileSettingPickerId = "";
+      var profileSettingReturnFocus = null;
+      var profilePickerItemHeight = 44;
+      var profilePickerSpecs = {
+        settingHeight: { label: "身高", min: 50, max: 250, fallback: 170, unit: "cm", decimal: true },
+        settingWeight: { label: "体重", min: 10, max: 500, fallback: 60, unit: "kg", decimal: true },
+        settingTargetWeight: { label: "目标体重", min: 10, max: 500, fallback: 60, unit: "kg", decimal: true, optional: true },
+        settingBirthYear: { label: "出生年份", min: 1900, max: function () { return new Date().getFullYear(); }, fallback: function () { return new Date().getFullYear() - 30; }, unit: "年", optional: true },
+        settingGender: { label: "性别", values: ["male", "female"] }
+      };
+
+      function profilePickerIndex(wheel) {
+        return Math.max(0, Math.min(wheel.children.length - 1, Math.round(wheel.scrollTop / profilePickerItemHeight)));
+      }
+      function updateProfilePickerWheel(wheel) {
+        var item = wheel.children[profilePickerIndex(wheel)];
+        if (wheel._activeItem !== item) {
+          if (wheel._activeItem) {
+            wheel._activeItem.classList.remove("is-active");
+            wheel._activeItem.setAttribute("aria-selected", "false");
+          }
+          if (item) {
+            item.classList.add("is-active");
+            item.setAttribute("aria-selected", "true");
+          }
+          if (wheel._activeItem) vibrateTap(5);
+          wheel._activeItem = item;
+        }
+      }
+      function fillProfilePickerWheel(wheel, values, format, selected) {
+        wheel.innerHTML = values.map(function (value) {
+          return '<div class="wheel-item" role="option" aria-selected="false" data-value="' + value + '">' + format(value) + '</div>';
+        }).join("");
+        wheel._activeItem = null;
+        var idx = Math.max(0, values.indexOf(selected));
+        wheel.scrollTop = idx * profilePickerItemHeight;
+        updateProfilePickerWheel(wheel);
+      }
+      function closeProfileSettingPicker() {
+        if (!profileSettingSheet || !profileSettingSheet.classList.contains("is-open")) return;
+        profileSettingSheet.classList.remove("is-open");
+        profileSettingMask.classList.remove("is-open");
+        profileSettingSheet.setAttribute("aria-hidden", "true");
+        profileSettingMask.setAttribute("aria-hidden", "true");
+        profileSettingPickerId = "";
+        if (profileSettingReturnFocus) profileSettingReturnFocus.focus({ preventScroll: true });
+        profileSettingReturnFocus = null;
+      }
+      function openProfileSettingPicker(id, row) {
+        var spec = profilePickerSpecs[id];
+        if (!spec || !(window.__picktimeAuth && window.__picktimeAuth.isLoggedIn())) return;
+        var input = document.getElementById(id);
+        if (!input) return;
+        profileSettingPickerId = id;
+        profileSettingReturnFocus = row;
+        profileSettingTitle.textContent = t(spec.label);
+        profileSettingSheet.setAttribute("aria-label", t(spec.label));
+        profileSettingUnit.textContent = spec.unit ? t(spec.unit) : "";
+        profileSettingClear.hidden = !spec.optional;
+        profileSettingSheet.querySelector(".profile-setting__body").classList.toggle("is-single", !spec.decimal);
+        if (spec.values) {
+          var selectedGender = input.getAttribute("data-gender") === "female" ? "female" : "male";
+          fillProfilePickerWheel(profileSettingMainWheel, spec.values, function (value) { return t(value === "male" ? "男" : "女"); }, selectedGender);
+        } else {
+          var max = typeof spec.max === "function" ? spec.max() : spec.max;
+          var fallback = typeof spec.fallback === "function" ? spec.fallback() : spec.fallback;
+          var raw = Number(input.value);
+          var selected = input.value && isFinite(raw) && raw >= spec.min && raw <= max ? raw : fallback;
+          var integers = [];
+          for (var n = spec.min; n <= max; n++) integers.push(n);
+          fillProfilePickerWheel(profileSettingMainWheel, integers, String, Math.floor(selected));
+          if (spec.decimal) {
+            fillProfilePickerWheel(profileSettingDecimalWheel, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], function (value) { return "." + value; }, Math.round(selected * 10) % 10);
+          }
+        }
+        profileSettingMask.classList.add("is-open");
+        profileSettingSheet.classList.add("is-open");
+        profileSettingMask.setAttribute("aria-hidden", "false");
+        profileSettingSheet.setAttribute("aria-hidden", "false");
+      }
+      [profileSettingMainWheel, profileSettingDecimalWheel].forEach(function (wheel) {
+        wheel.addEventListener("scroll", function () { updateProfilePickerWheel(wheel); }, { passive: true });
+        wheel.addEventListener("keydown", function (event) {
+          var idx = profilePickerIndex(wheel);
+          if (event.key === "ArrowDown") idx++;
+          else if (event.key === "ArrowUp") idx--;
+          else if (event.key === "Home") idx = 0;
+          else if (event.key === "End") idx = wheel.children.length - 1;
+          else return;
+          event.preventDefault();
+          wheel.scrollTop = Math.max(0, Math.min(wheel.children.length - 1, idx)) * profilePickerItemHeight;
+          updateProfilePickerWheel(wheel);
+        });
+        wheel.addEventListener("click", function (event) {
+          var item = event.target.closest ? event.target.closest(".wheel-item") : null;
+          if (!item) return;
+          wheel.scrollTop = Array.prototype.indexOf.call(wheel.children, item) * profilePickerItemHeight;
+          updateProfilePickerWheel(wheel);
+        });
+      });
+      document.getElementById("profileSettingCancel").addEventListener("click", closeProfileSettingPicker);
+      profileSettingMask.addEventListener("click", closeProfileSettingPicker);
+      document.getElementById("profileSettingOk").addEventListener("click", function () {
+        var id = profileSettingPickerId;
+        var spec = profilePickerSpecs[id];
+        if (!spec) return;
+        var main = profileSettingMainWheel.children[profilePickerIndex(profileSettingMainWheel)];
+        if (!main) return;
+        if (id === "settingGender") {
+          toggleSettingGender(main.getAttribute("data-value"));
+        } else {
+          var value = Number(main.getAttribute("data-value"));
+          if (spec.decimal) {
+            var decimal = profileSettingDecimalWheel.children[profilePickerIndex(profileSettingDecimalWheel)];
+            value += Number(decimal.getAttribute("data-value")) / 10;
+          }
+          document.getElementById(id).value = String(value);
+          saveProfileSetting(document.getElementById(id));
+        }
+        closeProfileSettingPicker();
+      });
+      profileSettingClear.addEventListener("click", function () {
+        var id = profileSettingPickerId;
+        if (!profilePickerSpecs[id] || !profilePickerSpecs[id].optional) return;
+        var input = document.getElementById(id);
+        input.value = "";
+        saveProfileSetting(input);
+        closeProfileSettingPicker();
+      });
       function initSettingsPage() {
         var switches = docBody ? docBody.querySelectorAll("input[data-key]") : [];
         for (var si = 0; si < switches.length; si++) {
@@ -11560,6 +11853,7 @@
       }
       function closeDoc() {
         if (!docOverlay) return;
+        closeProfileSettingPicker();
         docOverlay.classList.remove("is-open");
         docOverlay.setAttribute("aria-hidden", "true");
       }
@@ -11667,9 +11961,9 @@
       }
       if (docBody) {
         docBody.addEventListener("click", function (event) {
-          var genderBtn = event.target.closest ? event.target.closest("#settingGender") : null;
-          if (genderBtn) {
-            toggleSettingGender();
+          var pickerRow = event.target.closest ? event.target.closest(".settings-row--picker") : null;
+          if (pickerRow) {
+            openProfileSettingPicker(pickerRow.getAttribute("data-setting-id"), pickerRow);
             return;
           }
           var accRow = event.target.closest ? event.target.closest("[data-acc]") : null;
@@ -11707,9 +12001,12 @@
           else if (type === "xhs") window.location.href = "https://www.xiaohongshu.com/";
           else if (type === "weibo") openWeibo(card.getAttribute("data-value"));
         });
-        docBody.addEventListener("focusout", function (event) {
-          var el = event.target;
-          if (el && el.classList && el.classList.contains("settings-row__input")) saveProfileSetting(el);
+        docBody.addEventListener("keydown", function (event) {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          var row = event.target.closest ? event.target.closest(".settings-row--picker[role='button']") : null;
+          if (!row) return;
+          event.preventDefault();
+          openProfileSettingPicker(row.getAttribute("data-setting-id"), row);
         });
         docBody.addEventListener("change", function (event) {
           var el = event.target;
@@ -11725,7 +12022,8 @@
       if (docBack) docBack.addEventListener("click", closeDoc);
       document.addEventListener("keydown", function (event) {
         if (event.key !== "Escape") return;
-        if (accDialogOverlay && accDialogOverlay.classList.contains("is-open")) closeAccDialog();
+        if (profileSettingSheet && profileSettingSheet.classList.contains("is-open")) closeProfileSettingPicker();
+        else if (accDialogOverlay && accDialogOverlay.classList.contains("is-open")) closeAccDialog();
         else if (forgotOverlay && forgotOverlay.classList.contains("is-open")) closeForgot();
         else if (phoneOverlay && phoneOverlay.classList.contains("is-open")) closePhone();
         else if (confirmOverlay && confirmOverlay.classList.contains("is-open")) closeConfirm();
@@ -13151,13 +13449,18 @@
   <div class="sheet-mask" id="rangeMask" aria-hidden="true"></div>
   <div class="time-sheet" id="rangeSheet" role="dialog" aria-modal="true" aria-label="选择时间范围">
     <header class="time-sheet__head">
+      <button class="time-sheet__btn" id="rangeCancel" type="button">取消</button>
       <span class="time-sheet__title">选择时间范围</span>
+      <button class="time-sheet__btn time-sheet__btn--primary" id="rangeOk" type="button">确定</button>
     </header>
-    <div class="range-options" id="rangeOptions">
-      <button class="range-option" type="button" data-range="week">近七天</button>
-      <button class="range-option" type="button" data-range="month30">近30天</button>
-      <button class="range-option" type="button" data-range="half">近6个月</button>
-      <button class="range-option" type="button" data-range="year">本年</button>
+    <div class="time-sheet__body">
+      <div class="wheel" id="rangeWheel" role="listbox" tabindex="0" aria-label="时间范围">
+        <div class="wheel-item" role="option" data-range="week">近七天</div>
+        <div class="wheel-item" role="option" data-range="month30">近30天</div>
+        <div class="wheel-item" role="option" data-range="half">近6个月</div>
+        <div class="wheel-item" role="option" data-range="year">本年</div>
+      </div>
+      <div class="wheel-highlight" aria-hidden="true"></div>
     </div>
   </div>
 
@@ -17414,36 +17717,63 @@
 
       var rangeMask = document.getElementById("rangeMask");
       var rangeSheet = document.getElementById("rangeSheet");
-      var rangeOptions = document.getElementById("rangeOptions");
+      var rangeWheel = document.getElementById("rangeWheel");
 
-      if (trendLabelEl && rangeMask && rangeSheet && rangeOptions) {
-        var syncRangeOptions = function () {
-          var opts = rangeOptions.querySelectorAll(".range-option");
-          for (var i = 0; i < opts.length; i++) {
-            opts[i].classList.toggle("is-active", opts[i].getAttribute("data-range") === trendRange);
+      if (trendLabelEl && rangeMask && rangeSheet && rangeWheel) {
+        var rangeWheelIndex = function () {
+          return Math.max(0, Math.min(rangeWheel.children.length - 1, Math.round(rangeWheel.scrollTop / 44)));
+        };
+        var updateRangeWheel = function () {
+          var idx = rangeWheelIndex();
+          for (var i = 0; i < rangeWheel.children.length; i++) {
+            var active = i === idx;
+            rangeWheel.children[i].classList.toggle("is-active", active);
+            rangeWheel.children[i].setAttribute("aria-selected", active ? "true" : "false");
           }
+          wheelTickHaptic(rangeWheel, idx);
+        };
+        var closeRangeSheet = function () {
+          rangeMask.classList.remove("is-open");
+          rangeSheet.classList.remove("is-open");
+          trendLabelEl.focus({ preventScroll: true });
         };
         trendLabelEl.addEventListener("click", function () {
-          syncRangeOptions();
+          var selected = rangeWheel.querySelector('[data-range="' + trendRange + '"]');
+          var idx = selected ? Array.prototype.indexOf.call(rangeWheel.children, selected) : 0;
+          rangeWheel._wheelIdx = undefined;
+          rangeWheel.scrollTop = idx * 44;
+          updateRangeWheel();
           rangeMask.classList.add("is-open");
           rangeSheet.classList.add("is-open");
         });
-        rangeMask.addEventListener("click", function () {
-          rangeMask.classList.remove("is-open");
-          rangeSheet.classList.remove("is-open");
+        rangeWheel.addEventListener("scroll", updateRangeWheel, { passive: true });
+        rangeWheel.addEventListener("click", function (event) {
+          var item = event.target.closest ? event.target.closest(".wheel-item") : null;
+          if (!item) return;
+          rangeWheel.scrollTop = Array.prototype.indexOf.call(rangeWheel.children, item) * 44;
+          updateRangeWheel();
         });
-        rangeOptions.addEventListener("click", function (event) {
-          var btn = event.target.closest(".range-option");
-          if (!btn) return;
-          trendRange = btn.getAttribute("data-range");
+        rangeWheel.addEventListener("keydown", function (event) {
+          var idx = rangeWheelIndex();
+          if (event.key === "ArrowDown") idx++;
+          else if (event.key === "ArrowUp") idx--;
+          else if (event.key === "Home") idx = 0;
+          else if (event.key === "End") idx = rangeWheel.children.length - 1;
+          else return;
+          event.preventDefault();
+          rangeWheel.scrollTop = Math.max(0, Math.min(rangeWheel.children.length - 1, idx)) * 44;
+          updateRangeWheel();
+        });
+        document.getElementById("rangeCancel").addEventListener("click", closeRangeSheet);
+        rangeMask.addEventListener("click", closeRangeSheet);
+        document.getElementById("rangeOk").addEventListener("click", function () {
+          trendRange = rangeWheel.children[rangeWheelIndex()].getAttribute("data-range");
           renderTrend();
-          rangeMask.classList.remove("is-open");
-          rangeSheet.classList.remove("is-open");
+          closeRangeSheet();
         });
         document.addEventListener("keydown", function (event) {
           if (event.key === "Escape" && rangeSheet.classList.contains("is-open")) {
-            rangeMask.classList.remove("is-open");
-            rangeSheet.classList.remove("is-open");
+            closeRangeSheet();
           }
         });
       }
@@ -18003,6 +18333,23 @@
         });
       }
 
+      // 从统计图表页切回日历页：先清掉停留的静态抠图，
+      // 等轨道滑回（380ms）后再播放坠落动画，避免动画在屏幕外播完。
+      function dropCalendarPicsAfterSwitch() {
+        if (!calGrid) return;
+        var myId = ++calDropId;
+        var clearPics = calGrid.querySelectorAll(".calendar-cell__pic");
+        for (var cp = 0; cp < clearPics.length; cp++) clearPics[cp].remove();
+        var clearBadges = calGrid.querySelectorAll(".calendar-cell__badge");
+        for (var cb = 0; cb < clearBadges.length; cb++) clearBadges[cb].remove();
+        setTimeout(function () {
+          if (calDropId !== myId) return;
+          if (document.body.classList.contains("stats-page2")) return;
+          if (!document.body.classList.contains("is-stats")) return;
+          dropCalendarPics();
+        }, 380);
+      }
+
       if (calLabel && calPrev && calNext && calGrid) {
         var monthNames = [
           "January", "February", "March", "April", "May", "June",
@@ -18398,25 +18745,36 @@
         }
       }
 
-      // 按用户资料动态计算四餐热量目标（Mifflin-St Jeor × 活动系数，早27%/午35%/晚28%/加餐10%）
+      // 按用户资料动态计算四餐热量目标（Mifflin-St Jeor × 活动系数，按目标体重调整：减重每公斤 -50Kcal（最多 -500），增重每公斤 +40Kcal（最多 +300），早27%/午35%/晚28%/加餐10%）
       var MEAL_RATIOS = { "早餐": 0.27, "午餐": 0.35, "晚餐": 0.28, "加餐": 0.10 };
 
       function computeMealTargets() {
-        var height = 170, weight = 60, gender = "male", age = 30, activity = 1.375;
+        var height = 170, weight = 60, gender = "male", age = 30, activity = 1.375, targetWeight = 0;
         try {
           var h = parseFloat(localStorage.getItem("picktime-height"));
           var w = parseFloat(localStorage.getItem("picktime-weight"));
           var g = localStorage.getItem("picktime-gender");
+          var by = parseInt(localStorage.getItem("picktime-birthyear"), 10) || 0;
+          var current = new Date().getFullYear();
           var a = parseFloat(localStorage.getItem("picktime-age"));
           var act = parseFloat(localStorage.getItem("picktime-activity"));
+          var tw = parseFloat(localStorage.getItem("picktime-target-weight"));
           if (h > 0) height = h;
           if (w > 0) weight = w;
           if (g === "female") gender = "female";
-          if (a > 0) age = a;
+          if (by > 1900 && by <= current) age = current - by;
+          else if (a > 0) age = a;
           if (act > 0) activity = act;
+          if (tw > 0) targetWeight = tw;
         } catch (e) {}
         var bmr = 10 * weight + 6.25 * height - 5 * age + (gender === "female" ? -161 : 5);
-        var daily = Math.round(bmr * activity);
+        var daily = bmr * activity;
+        if (targetWeight > 0) {
+          var goalDiff = weight - targetWeight;
+          if (goalDiff >= 1) daily -= Math.min(500, Math.round(goalDiff * 50));
+          else if (goalDiff <= -1) daily += Math.min(300, Math.round(-goalDiff * 40));
+        }
+        daily = Math.round(daily);
         daily = Math.max(1200, Math.min(3500, daily));
         for (var i = 0; i < mealCardState.length; i++) {
           var st = mealCardState[i];
@@ -20914,15 +21272,22 @@
 
       // 登录用户：走后端美图抠图（试用期用服务端密钥，试用后用用户自己的美图密钥）
       function cutoutViaServer(blob) {
-        var api = window.__picktimeApi;
-        if (!api || !api.state() || !api.state().loggedIn) {
+        if (!recordsAuthToken()) {
           return Promise.reject(new Error("not logged in"));
         }
         return blobToDataUrl(blob).then(function (dataUrl) {
+          // iOS Safari 可解码 WebP，但不一定支持 canvas.toDataURL("image/webp") 编码。
+          var iosVersion = /(?:iPhone|iPad|iPod).*?OS (\d+)_/.exec(navigator.userAgent || "");
+          var acceptsWebp = !!(iosVersion && Number(iosVersion[1]) >= 14);
+          if (!acceptsWebp) {
+            var probe = document.createElement("canvas");
+            probe.width = probe.height = 1;
+            acceptsWebp = probe.toDataURL("image/webp").indexOf("data:image/webp") === 0;
+          }
           return recordsFetch("/api/cutout", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ image: dataUrl })
+            body: JSON.stringify({ image: dataUrl, format: acceptsWebp ? "webp" : "png" })
           });
         }).then(function (res) {
           if (!res.ok) {
@@ -20958,7 +21323,7 @@
       function cutoutSetText(text) {
         if (!cutoutLoadingText) return;
         // 快结束时（即将完成）转动速度提到 1.5 倍
-        if (window.__picktimeOrbSpeed) window.__picktimeOrbSpeed(text === "即将完成..." ? 1.5 : 1);
+        if (window.__picktimeOrbSpeed) window.__picktimeOrbSpeed(text === "即将完成" || text === "即将完成..." ? 1.5 : 1);
         var display = i18nT(text);
         if (cutoutLoadingText.textContent === display) return;
         window.clearTimeout(cutoutTextTimer);
@@ -21056,6 +21421,11 @@
       function startCutoutOnly(blob, stopProgress, meituOnly) {
         stopProgress();
         cutoutSetText("正在抠图，请稍候...");
+        var finishingStartedAt = 0;
+        var finishingTimer = window.setTimeout(function () {
+          finishingStartedAt = Date.now();
+          cutoutSetText("即将完成");
+        }, 5000);
         var cutoutTask = cutoutViaServer(blob);
         if (!meituOnly) {
           cutoutTask = cutoutTask.catch(function (err) {
@@ -21073,19 +21443,24 @@
           });
         }
         cutoutTask.then(function (url) {
+          window.clearTimeout(finishingTimer);
           if (!url) {
             cameraProcessing = false;
             cameraCloseOverlay();
             return;
           }
           stopProgress();
-          cutoutSetText("即将完成...");
+          if (!finishingStartedAt) {
+            finishingStartedAt = Date.now();
+            cutoutSetText("即将完成");
+          }
           window.setTimeout(function () {
             cameraProcessing = false;
             openCutSheet(url, { calories: 0, names: ["未命名"], nutrients: null, cutout: null, cutoutOnly: true });
             window.setTimeout(cameraCloseOverlay, 420);
-          }, 700);
+          }, Math.max(0, 860 - (Date.now() - finishingStartedAt)));
         }).catch(function (err) {
+          window.clearTimeout(finishingTimer);
           stopProgress();
           if (meituOnly && err && window.__picktimeApi) {
             if (err.code === "MEITU_KEY_INVALID") {
@@ -21183,14 +21558,7 @@
         cutoutSetText("Thinking...");
         var stopProgress = cutoutTrackProgress(jobId);
         if (cameraCutoutOnly && cameraCutoutOnly.checked) {
-          var cutoutApi = window.__picktimeApi;
-          var cutoutApiReady = cutoutApi && cutoutApi.refresh ? cutoutApi.refresh(true) : Promise.resolve();
-          cutoutApiReady.then(function () {
-            startCutoutOnly(blob, stopProgress, true);
-          }).catch(function () {
-            stopProgress();
-            cutoutOnlyFailed();
-          });
+          startCutoutOnly(blob, stopProgress, true);
           return;
         }
         resolveRecognitionMode().then(function (mode) {
@@ -21237,7 +21605,9 @@
           cw = Math.max(1, Math.min(sw - cx, crop.w));
           ch = Math.max(1, Math.min(sh - cy, crop.h));
         }
-        var maxSide = 1600;
+        // 仅抠图最终展示最长边为 640；缩小上传图，减少移动网络等待。
+        var cutoutOnlyCapture = !!(cameraCutoutOnly && cameraCutoutOnly.checked);
+        var maxSide = cutoutOnlyCapture ? 1280 : 1600;
         var scale = Math.min(1, maxSide / Math.max(cw, ch));
         var canvas = document.createElement("canvas");
         canvas.width = Math.max(1, Math.round(cw * scale));
@@ -21261,7 +21631,7 @@
           }
           cameraStopStream();
           cameraCutout(blob);
-        }, "image/jpeg", 0.88);
+        }, "image/jpeg", cutoutOnlyCapture ? 0.82 : 0.88);
       }
 
       function cameraProcessFile(file) {
@@ -21359,6 +21729,7 @@
           statsSwitch.setAttribute("aria-pressed", statsOnPage2 ? "true" : "false");
           statsSwitch.setAttribute("aria-label", statsOnPage2 ? i18nT("返回统计第一页") : i18nT("切换到统计第二页"));
           try { localStorage.setItem("picktime-stats-page2", statsOnPage2 ? "1" : "0"); } catch (e) {}
+          if (!statsOnPage2) dropCalendarPicsAfterSwitch();
           vibrateTap(8);
         });
         attachIOSSwitchHaptic(statsSwitch);
@@ -21414,7 +21785,7 @@
         window.clearTimeout(profileSyncTimer);
         profileSyncQueue = {};
         var keys = ["picktime-nickname", "picktime-signature", "picktime-gender",
-                    "picktime-height", "picktime-weight", "picktime-province",
+                    "picktime-height", "picktime-weight", "picktime-target-weight", "picktime-province",
                     "picktime-city", "picktime-birthyear", "picktime-avatar", "picktime-cover"];
         for (var i = 0; i < keys.length; i++) {
           try { localStorage.removeItem(keys[i]); } catch (e) {}
@@ -21502,7 +21873,7 @@
         var year = 0;
         try { year = parseInt(localStorage.getItem("picktime-birthyear"), 10) || 0; } catch (e) {}
         var current = new Date().getFullYear();
-        if (year > 1900 && year <= current) return current - year;
+        if (year >= 1900 && year <= current) return current - year;
         return 30;
       }
 
@@ -21571,9 +21942,9 @@
         try {
           if (profileIsLoggedIn()) {
             var h = localStorage.getItem("picktime-height");
-            if (profileHeight) profileHeight.value = h || "--";
+            if (profileHeight && document.activeElement !== profileHeight) profileHeight.value = h || "--";
             var w = localStorage.getItem("picktime-weight");
-            if (profileWeight) profileWeight.value = w || "--";
+            if (profileWeight && document.activeElement !== profileWeight) profileWeight.value = w || "--";
             var g = localStorage.getItem("picktime-gender");
             setProfileGender(g === "female" ? "female" : "male", false);
           } else {
@@ -21688,16 +22059,22 @@
           city: "picktime-city",
           avatar: "picktime-avatar",
           cover: "picktime-cover",
-          birthyear: "picktime-birthyear"
+          birthyear: "picktime-birthyear",
+          targetWeight: "picktime-target-weight"
         };
         for (var field in keyMap) {
           if (!Object.prototype.hasOwnProperty.call(keyMap, field)) continue;
           var value = profile[field];
-          if (value === undefined || value === null || value === "") continue;
+          if (value === undefined || value === null || value === "") {
+            if (field === "birthyear" || field === "targetWeight") {
+              try { localStorage.removeItem(keyMap[field]); } catch (e) {}
+            }
+            continue;
+          }
           try { localStorage.setItem(keyMap[field], String(value)); } catch (e) {}
         }
-        if (profile.nickname && profileNickname) profileNickname.value = profile.nickname;
-        if (profile.signature && profileSignature) profileSignature.value = profile.signature;
+        if (profile.nickname && profileNickname && document.activeElement !== profileNickname) profileNickname.value = profile.nickname;
+        if (profile.signature && profileSignature && document.activeElement !== profileSignature) profileSignature.value = profile.signature;
         if (profile.avatar) applyAvatar(profile.avatar);
         if (profile.cover) applyCover(profile.cover);
         if (profile.province) {
@@ -21719,6 +22096,7 @@
           gender: localStorage.getItem("picktime-gender"),
           height: parseFloat(localStorage.getItem("picktime-height")) || undefined,
           weight: parseFloat(localStorage.getItem("picktime-weight")) || undefined,
+          targetWeight: parseFloat(localStorage.getItem("picktime-target-weight")) || undefined,
           province: localStorage.getItem("picktime-province"),
           city: localStorage.getItem("picktime-city"),
           birthyear: parseInt(localStorage.getItem("picktime-birthyear"), 10) || undefined,
@@ -21738,6 +22116,119 @@
         }
         if (Object.keys(upload).length) pushProfileToServer(upload);
       }
+
+      // ===== 个人信息设置页：逐字段上传服务器（顺序保护 + 失败提示）=====
+      var profileSettingSpecs = {
+        height: { key: "picktime-height" },
+        weight: { key: "picktime-weight" },
+        targetWeight: { key: "picktime-target-weight" },
+        birthyear: { key: "picktime-birthyear" },
+        gender: { key: "picktime-gender" }
+      };
+      var profileSettingPending = {};
+      var profileSettingRunning = {};
+      var profileSettingNext = {};
+
+      function profileSettingMatches(field, expected, saved) {
+        if (Number(expected) === 0) return saved === undefined || saved === null || saved === "" || Number(saved) === 0;
+        if (field === "gender") return String(saved) === String(expected);
+        var a = Number(saved);
+        var b = Number(expected);
+        return isFinite(a) && isFinite(b) && Math.abs(a - b) < 0.001;
+      }
+
+      function profileSettingSend(field, value) {
+        var patch = {};
+        patch[field] = value;
+        profileSettingPending[field] = (profileSettingPending[field] || 0) + 1;
+        return recordsFetch("/api/auth/profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(patch)
+        }).then(function (res) {
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          return res.json();
+        }).then(function (data) {
+          if (!data || !data.ok || !data.user || !data.user.profile) throw new Error("bad-response");
+          if (!profileSettingMatches(field, value, data.user.profile[field])) throw new Error("mismatch");
+          applyServerProfile(data.user.profile);
+        }).catch(function () {
+          profileToast("资料保存失败");
+        }).then(function () {
+          profileSettingPending[field] = Math.max(0, (profileSettingPending[field] || 1) - 1);
+          if (!profileSettingPending[field]) delete profileSettingPending[field];
+        });
+      }
+
+      function pushProfileSettingToServer(field, value) {
+        if (!profileSettingSpecs[field] || !profileIsLoggedIn()) return;
+        profileSettingNext[field] = value;
+        if (profileSettingRunning[field]) return;
+        profileSettingRunning[field] = true;
+        (function next() {
+          var sent = profileSettingNext[field];
+          delete profileSettingNext[field];
+          profileSettingSend(field, sent).then(function () {
+            if (Object.prototype.hasOwnProperty.call(profileSettingNext, field)) { next(); return; }
+            delete profileSettingRunning[field];
+          });
+        })();
+      }
+
+      function updateProfileSettingsUI(profile) {
+        if (!profile || typeof profile !== "object") return;
+        var inputs = [
+          ["settingHeight", "height"],
+          ["settingWeight", "weight"],
+          ["settingTargetWeight", "targetWeight"],
+          ["settingBirthYear", "birthyear"]
+        ];
+        for (var i = 0; i < inputs.length; i++) {
+          var field = inputs[i][1];
+          if (profileSettingRunning[field]) continue;
+          var el = document.getElementById(inputs[i][0]);
+          if (!el || document.activeElement === el) continue;
+          var value = profile[field];
+          el.value = (value === undefined || value === null || value === "" || Number(value) === 0) ? "" : String(value);
+        }
+        if (!profileSettingRunning.gender) {
+          var g = document.getElementById("settingGender");
+          if (g) {
+            var gender = profile.gender === "female" ? "female" : "male";
+            g.setAttribute("data-gender", gender);
+            var icon = document.getElementById("settingGenderIcon");
+            var text = document.getElementById("settingGenderText");
+            if (icon) icon.src = gender === "male" ? "/images/gender-male.png" : "/images/gender-female.png";
+            if (text) text.textContent = translatedText(gender === "male" ? "男" : "女");
+          }
+        }
+      }
+
+      function refreshProfileSettingsFromServer() {
+        if (!profileIsLoggedIn()) return Promise.resolve();
+        return recordsFetch("/api/auth/me").then(function (res) {
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          return res.json();
+        }).then(function (data) {
+          if (!data || !data.ok || !data.user || !data.user.profile) return;
+          applyServerProfile(data.user.profile);
+          updateProfileSettingsUI(data.user.profile);
+        }).catch(function () {});
+      }
+
+      window.__picktimePushProfileSetting = pushProfileSettingToServer;
+      window.__picktimeRefreshProfileSettings = refreshProfileSettingsFromServer;
+      window.__picktimeUpdateProfileSettingsUI = updateProfileSettingsUI;
+
+      var profileSettingsVisibilityAt = 0;
+      document.addEventListener("visibilitychange", function () {
+        if (document.hidden) return;
+        var now = Date.now();
+        if (now - profileSettingsVisibilityAt < 10000) return;
+        profileSettingsVisibilityAt = now;
+        refreshProfileSettingsFromServer();
+      });
+
       window.__picktimeApplyServerProfile = applyServerProfile;
       if (window.__picktimeServerProfile) {
         var pendingServerProfile = window.__picktimeServerProfile;

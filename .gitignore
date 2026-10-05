@@ -19,6 +19,7 @@ picktime-android/local.properties
 
 # 安卓安装包（构建产物）
 Picktime/download/
+Picktime/docs/
 
 # 系统文件
 .DS_Store

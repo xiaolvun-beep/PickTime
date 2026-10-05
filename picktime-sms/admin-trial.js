@@ -13,7 +13,7 @@ let mysql;
 try {
   mysql = require('mysql2/promise');
 } catch (e) {
-  mysql = require('/home/ubuntu/purse-v2.5.3/node_modules/mysql2/promise');
+  mysql = require('/home/ubuntu/purse-v2.7.6/node_modules/mysql2/promise');
 }
 const config = require('./ecosystem.config.js');
 const env = (config.apps && config.apps[0] && config.apps[0].env) || {};

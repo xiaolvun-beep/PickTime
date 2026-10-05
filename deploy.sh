@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================
-# 拾光 PickTime v1.2.7 一键部署脚本
+# 拾光 PickTime v1.5.3 一键部署脚本
 # 适用：Ubuntu 22.04 / 24.04
 # 用法：把压缩包解压到 /home/ubuntu 后执行
 #       bash /home/ubuntu/deploy.sh
@@ -65,10 +65,10 @@ fi
 say "4/6 启动 5001 U2NET 抠图服务"
 if [ -x "$NODE_BIN/pm2" ] && [ -x "$VENV_PY" ]; then
   pm2 delete purse-bg >/dev/null 2>&1 || true
-  pm2 start "$ROOT/purse-v2.5.3/bg_service.py" --name purse-bg --interpreter "$VENV_PY" -- --port 5001 --host 127.0.0.1 >/dev/null
+  pm2 start "$ROOT/purse-v2.7.6/bg_service.py" --name purse-bg --interpreter "$VENV_PY" -- --port 5001 --host 127.0.0.1 >/dev/null
   ok "purse-bg 已启动（5001）"
 else
-  warn "手动启动：$VENV_PY $ROOT/purse-v2.5.3/bg_service.py --port 5001 --host 127.0.0.1 &"
+  warn "手动启动：$VENV_PY $ROOT/purse-v2.7.6/bg_service.py --port 5001 --host 127.0.0.1 &"
 fi
 
 say "5/6 启动 5002 账号服务 与 5003 识别服务"

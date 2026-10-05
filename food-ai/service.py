@@ -176,7 +176,8 @@ async def cutout_only(request: Request):
     meitu_ak = str(request.headers.get("x-meitu-ak") or "").strip() or None
     meitu_sk = str(request.headers.get("x-meitu-sk") or "").strip() or None
     try:
-        data_url = await asyncio.to_thread(engine.cutout_only, image_bytes, meitu_ak, meitu_sk)
+        output_format = "webp" if body.get("format") == "webp" else "png"
+        data_url = await asyncio.to_thread(engine.cutout_only, image_bytes, meitu_ak, meitu_sk, output_format)
     except AuthError as e:
         if meitu_ak or meitu_sk:
             log("美图密钥无效: %s" % e)

@@ -13,6 +13,7 @@
    → 按前端兼容格式输出（与 DashScope 返回结构一致）
 """
 import base64
+import io
 import json
 import os
 import re
@@ -21,6 +22,7 @@ import time
 
 import cv2
 import numpy as np
+from PIL import Image
 
 from . import meitu, meitu_open, qwen, whiten
 from .nutrition import NutritionDB, normalize, strip_qualifier
@@ -322,7 +324,7 @@ class RecognitionEngine:
         return result
 
     # ---------- 仅抠图（不识别） ----------
-    def cutout_only(self, image_bytes, meitu_ak=None, meitu_sk=None):
+    def cutout_only(self, image_bytes, meitu_ak=None, meitu_sk=None, output_format="png"):
         """只走美图抠图，返回 dataURL；失败返回 None（由调用方决定回退）。"""
         arr = np.frombuffer(image_bytes, dtype=np.uint8)
         img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
@@ -345,6 +347,17 @@ class RecognitionEngine:
         if not png:
             return None
         _debug_save("last_cutout.png", png)
+        if output_format == "webp":
+            try:
+                image = Image.open(io.BytesIO(png)).convert("RGBA")
+                buffer = io.BytesIO()
+                image.save(buffer, format="WEBP", lossless=True, method=4)
+                webp = buffer.getvalue()
+                if len(webp) < len(png):
+                    self.log("[cutout] 回传无损 WebP %d→%d 字节" % (len(png), len(webp)))
+                    return "data:image/webp;base64," + base64.b64encode(webp).decode()
+            except Exception as exc:  # noqa: BLE001
+                self.log("[cutout] WebP 编码失败，回传 PNG: %s" % exc)
         return "data:image/png;base64," + base64.b64encode(png).decode()
 
     # ---------- 组装 ----------

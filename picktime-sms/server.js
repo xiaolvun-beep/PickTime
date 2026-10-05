@@ -1,6 +1,6 @@
 /**
  * PickTime 短信验证码 + 账号服务（阿里云 Dypnsapi，与 Purse 相同实现）
- * 启动: NODE_PATH=/home/ubuntu/purse-v2.5.3/node_modules node server.js
+ * 启动: NODE_PATH=/home/ubuntu/purse-v2.7.6/node_modules node server.js
  * 端口: 127.0.0.1:5002
  *
  * 登录规则（与 Purse 对齐）：
@@ -399,7 +399,7 @@ function maskApiKey(plain) {
 // trialEndsAt 为可选的覆盖值（后台控制某账号是否继续免费）：0/空 表示按注册时间计算
 // VIP_USERS：永久特权账号（一直走服务端额度，抠图/AI 助手不限时；且允许打开并保存 API 设置）
 const TRIAL_MS = 72 * 60 * 60 * 1000;
-const VIP_USERS = new Set(['xiaolvyo']);
+const VIP_USERS = new Set(['xiaolvyo', ...String(process.env.PICKTIME_VIP_USERS || '').split(',').map(s => s.trim()).filter(Boolean)]);
 function isVipUser(u) {
   return !!(u && VIP_USERS.has(String(u.name || '').trim()));
 }
@@ -827,11 +827,17 @@ app.post('/api/auth/profile', requireAuth, (req, res) => {
     const w = Number(body.weight);
     if (isFinite(w) && w >= 10 && w <= 500) next.weight = Math.round(w * 10) / 10;
   }
+  if (body.targetWeight !== undefined) {
+    const tw = Number(body.targetWeight);
+    if (isFinite(tw) && tw > 0 && tw <= 500) next.targetWeight = Math.round(tw * 10) / 10;
+    else if (isFinite(tw) && tw === 0) delete next.targetWeight;
+  }
   if (body.province !== undefined) next.province = clip(body.province, 40);
   if (body.city !== undefined) next.city = clip(body.city, 40);
   if (body.birthyear !== undefined) {
     const y = Number(body.birthyear);
     if (isFinite(y) && y >= 1900 && y <= 2100) next.birthyear = Math.round(y);
+    else if (isFinite(y) && y === 0) delete next.birthyear;
   }
   const image = (v) => {
     const s = String(v == null ? '' : v);
@@ -1011,8 +1017,8 @@ function recordNumber(value, max) {
   return Math.min(max, Math.round(n * 10) / 10);
 }
 
-function rowToRecord(r) {
-  return {
+function rowToRecord(r, summary) {
+  const record = {
     id: r.id,
     ts: Number(r.ts) || 0,
     date: r.date_key || '',
@@ -1028,13 +1034,40 @@ function rowToRecord(r) {
       sodium: Number(r.sodium) || 0,
     },
     note: r.note || '',
-    image: r.image || '',
   };
+  if (summary === true) record.hasImage = !!Number(r.has_image);
+  else record.image = r.image || '';
+  return record;
 }
 
 app.get('/api/records', requireAuth, async (req, res) => {
   if (!dbReady || !pool) return res.status(503).json({ error: '数据库暂不可用，请稍后再试' });
   try {
+    if (req.query.images === '1') {
+      let ids;
+      try { ids = JSON.parse(req.query.ids); } catch (e) {}
+      if (!Array.isArray(ids) || ids.length < 1 || ids.length > 3 ||
+          ids.some(id => typeof id !== 'string' || !id.trim() || id !== id.trim() || id.length > 64 || /[\x00-\x1f\x7f]/.test(id))) {
+        return res.status(400).json({ error: '无效的记录 ID' });
+      }
+      const uniqueIds = [...new Set(ids)];
+      const placeholders = uniqueIds.map(() => '?').join(', ');
+      const [rows] = await pool.query(
+        'SELECT id, image FROM records WHERE user_id = ? AND id IN (' + placeholders + ')',
+        [req.user.id, ...uniqueIds]
+      );
+      return res.json({ ok: true, records: rows.map(r => ({ id: r.id, image: r.image || '' })), selectiveImages: true });
+    }
+
+    if (req.query.summary === '1') {
+      const [rows] = await pool.query(
+        'SELECT id, ts, date_key, meal, name, kcal, protein, fat, carbs, sugar, fiber, sodium, note, ' +
+        'LENGTH(image) > 0 AS has_image FROM records WHERE user_id = ? ORDER BY ts ASC',
+        [req.user.id]
+      );
+      return res.json({ ok: true, records: rows.map(r => rowToRecord(r, true)), selectiveImages: true });
+    }
+
     const [rows] = await pool.query(
       'SELECT id, ts, date_key, meal, name, kcal, protein, fat, carbs, sugar, fiber, sodium, note, image ' +
       'FROM records WHERE user_id = ? ORDER BY ts ASC',
