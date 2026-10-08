@@ -287,6 +287,7 @@ async function initDb() {
       'fiber DECIMAL(10,1) NOT NULL DEFAULT 0,' +
       'sodium DECIMAL(10,1) NOT NULL DEFAULT 0,' +
       'note VARCHAR(255) NOT NULL DEFAULT \'\',' +
+      'cutout_only TINYINT(1) NOT NULL DEFAULT 0,' +
       'image MEDIUMTEXT,' +
       'created_at BIGINT NOT NULL,' +
       'PRIMARY KEY (user_id, id),' +
@@ -294,6 +295,13 @@ async function initDb() {
       'KEY idx_records_user_date (user_id, date_key)' +
       ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
     );
+    try {
+      await pool.query('ALTER TABLE records ADD COLUMN cutout_only TINYINT(1) NOT NULL DEFAULT 0');
+      await pool.query("UPDATE records SET cutout_only = 1 WHERE name = '未命名' AND kcal = 0 AND protein = 0 AND fat = 0 AND carbs = 0 AND sugar = 0 AND fiber = 0 AND sodium = 0");
+      console.log('[数据库] records 表已新增 cutout_only 列');
+    } catch (e) {
+      if (!e || e.code !== 'ER_DUP_FIELDNAME') throw e;
+    }
     await pool.query(
       'CREATE TABLE IF NOT EXISTS cutout_positions (' +
       'user_id VARCHAR(40) NOT NULL,' +
@@ -337,6 +345,49 @@ async function initDb() {
         console.error('[数据库] 添加 rotate 列失败:', e && e.message);
       }
     }
+    await pool.query(
+      'CREATE TABLE IF NOT EXISTS folder_photos (' +
+      'user_id VARCHAR(40) NOT NULL,' +
+      'record_id VARCHAR(64) NOT NULL,' +
+      'date_key VARCHAR(20) NOT NULL DEFAULT \'\',' +
+      'saved_at BIGINT NOT NULL,' +
+      'image MEDIUMTEXT,' +
+      'note TEXT,' +
+      'note_updated_at BIGINT NOT NULL DEFAULT 0,' +
+      'created_at BIGINT NOT NULL,' +
+      'PRIMARY KEY (user_id, record_id),' +
+      'KEY idx_folder_photos_user_date (user_id, date_key)' +
+      ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+    );
+    try {
+      await pool.query('ALTER TABLE folder_photos ADD COLUMN note TEXT');
+    } catch (e) {
+      if (!e || e.code !== 'ER_DUP_FIELDNAME') throw e;
+    }
+    try {
+      await pool.query('ALTER TABLE folder_photos ADD COLUMN note_updated_at BIGINT NOT NULL DEFAULT 0');
+    } catch (e) {
+      if (!e || e.code !== 'ER_DUP_FIELDNAME') throw e;
+    }
+    // 原图删除墓碑：删除后禁止旧设备/迟到的上传把它“复活”
+    await pool.query(
+      'CREATE TABLE IF NOT EXISTS folder_photo_tombstones (' +
+      'user_id VARCHAR(40) NOT NULL,' +
+      'record_id VARCHAR(64) NOT NULL,' +
+      'deleted_at BIGINT NOT NULL,' +
+      'PRIMARY KEY (user_id, record_id)' +
+      ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+    );
+    await pool.query(
+      'CREATE TABLE IF NOT EXISTS daily_cutout_usage (' +
+      'user_id VARCHAR(40) NOT NULL,' +
+      'date_key DATE NOT NULL,' +
+      'used_count INT NOT NULL DEFAULT 0,' +
+      'PRIMARY KEY (user_id, date_key)' +
+      ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+    );
+    pool.query('DELETE FROM folder_photo_tombstones WHERE deleted_at < ?', [Date.now() - 90 * 24 * 3600 * 1000])
+      .catch(function (e) { console.error('[数据库] 清理原图墓碑失败:', e && e.message); });
     dbReady = true;
     const [rows] = await pool.query('SELECT * FROM users');
     if (rows.length > 0) {
@@ -395,23 +446,39 @@ function maskApiKey(plain) {
   return s.slice(0, 4) + '****' + s.slice(-4);
 }
 
-// 新用户注册后免费试用 72 小时（完整功能）
-// trialEndsAt 为可选的覆盖值（后台控制某账号是否继续免费）：0/空 表示按注册时间计算
-// VIP_USERS：永久特权账号（一直走服务端额度，抠图/AI 助手不限时；且允许打开并保存 API 设置）
-const TRIAL_MS = 72 * 60 * 60 * 1000;
-const VIP_USERS = new Set(['xiaolvyo', ...String(process.env.PICKTIME_VIP_USERS || '').split(',').map(s => s.trim()).filter(Boolean)]);
-function isVipUser(u) {
-  return !!(u && VIP_USERS.has(String(u.name || '').trim()));
+// 免费额度按北京时间自然日、用户 ID 计算。数据库原子更新防止并发请求超额。
+const DAILY_CUTOUT_LIMIT = 5;
+function cutoutDateKey() {
+  return new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().slice(0, 10);
 }
-function trialInfo(u) {
-  if (isVipUser(u)) {
-    return { trialActive: true, trialEndsAt: Date.now() + 100 * 365 * 24 * 3600 * 1000, vip: true };
+async function dailyCutoutUsed(userId, dateKey) {
+  if (!dbReady || !pool) throw new Error('数据库暂不可用');
+  const [rows] = await pool.query(
+    'SELECT used_count FROM daily_cutout_usage WHERE user_id = ? AND date_key = ?',
+    [userId, dateKey]
+  );
+  return rows.length ? Number(rows[0].used_count) || 0 : 0;
+}
+async function reserveFreeCutout(userId, dateKey) {
+  if (!dbReady || !pool) throw new Error('数据库暂不可用');
+  await pool.query('INSERT IGNORE INTO daily_cutout_usage (user_id, date_key, used_count) VALUES (?, ?, 0)', [userId, dateKey]);
+  const [result] = await pool.query(
+    'UPDATE daily_cutout_usage SET used_count = used_count + 1 WHERE user_id = ? AND date_key = ? AND used_count < ?',
+    [userId, dateKey, DAILY_CUTOUT_LIMIT]
+  );
+  return result.affectedRows === 1;
+}
+async function releaseFreeCutout(userId, dateKey) {
+  try {
+    await pool.query(
+      'UPDATE daily_cutout_usage SET used_count = GREATEST(used_count - 1, 0) WHERE user_id = ? AND date_key = ?',
+      [userId, dateKey]
+    );
+  } catch (e) {
+    console.error('[免费额度] 退回失败:', e.message);
   }
-  const start = Number(u && u.createdAt) || Date.now();
-  const override = Number(u && u.trialEndsAtOverride) || 0;
-  const endsAt = override > 0 ? override : start + TRIAL_MS;
-  return { trialActive: Date.now() < endsAt, trialEndsAt: endsAt, vip: false };
 }
+const DAILY_CUTOUT_ERROR = { error: '今日 5 次免费抠图已用完，请到「通用设置 → API调用」填写自己的美图密钥后继续使用', code: 'DAILY_CUTOUT_LIMIT' };
 
 // ===== 密码哈希（scrypt，无需额外依赖）=====
 function hashPassword(password) {
@@ -800,6 +867,12 @@ app.get('/api/auth/me', requireAuth, (req, res) => {
   res.json({ ok: true, user: publicUser(req.user) });
 });
 
+// 轻量读取账号壁纸，供网页/App 与小程序前台同步，避免反复传输头像和封面。
+app.get('/api/auth/wallpaper', requireAuth, (req, res) => {
+  const wallpaper = req.user.profile && req.user.profile.wallpaper;
+  res.json({ ok: true, wallpaper: ['default', 'cream', 'soft', 'warm'].includes(wallpaper) ? wallpaper : 'default' });
+});
+
 app.post('/api/auth/language', requireAuth, (req, res) => {
   const lang = String((req.body && req.body.language) || '').trim();
   if (['zh-CN', 'en', 'ja', 'ko'].indexOf(lang) === -1) {
@@ -834,6 +907,12 @@ app.post('/api/auth/profile', requireAuth, (req, res) => {
   }
   if (body.province !== undefined) next.province = clip(body.province, 40);
   if (body.city !== undefined) next.city = clip(body.city, 40);
+  if (body.wallpaper !== undefined) {
+    if (typeof body.wallpaper !== 'string' || !['default', 'cream', 'soft', 'warm'].includes(body.wallpaper)) {
+      return res.status(400).json({ error: '不支持的壁纸' });
+    }
+    next.wallpaper = body.wallpaper;
+  }
   if (body.birthyear !== undefined) {
     const y = Number(body.birthyear);
     if (isFinite(y) && y >= 1900 && y <= 2100) next.birthyear = Math.round(y);
@@ -1034,6 +1113,7 @@ function rowToRecord(r, summary) {
       sodium: Number(r.sodium) || 0,
     },
     note: r.note || '',
+    cutoutOnly: !!Number(r.cutout_only),
   };
   if (summary === true) record.hasImage = !!Number(r.has_image);
   else record.image = r.image || '';
@@ -1061,7 +1141,7 @@ app.get('/api/records', requireAuth, async (req, res) => {
 
     if (req.query.summary === '1') {
       const [rows] = await pool.query(
-        'SELECT id, ts, date_key, meal, name, kcal, protein, fat, carbs, sugar, fiber, sodium, note, ' +
+        'SELECT id, ts, date_key, meal, name, kcal, protein, fat, carbs, sugar, fiber, sodium, note, cutout_only, ' +
         'LENGTH(image) > 0 AS has_image FROM records WHERE user_id = ? ORDER BY ts ASC',
         [req.user.id]
       );
@@ -1069,7 +1149,7 @@ app.get('/api/records', requireAuth, async (req, res) => {
     }
 
     const [rows] = await pool.query(
-      'SELECT id, ts, date_key, meal, name, kcal, protein, fat, carbs, sugar, fiber, sodium, note, image ' +
+      'SELECT id, ts, date_key, meal, name, kcal, protein, fat, carbs, sugar, fiber, sodium, note, cutout_only, image ' +
       'FROM records WHERE user_id = ? ORDER BY ts ASC',
       [req.user.id]
     );
@@ -1102,19 +1182,20 @@ app.post('/api/records', requireAuth, async (req, res) => {
     fiber: recordNumber(nutrients.fiber, 100000),
     sodium: recordNumber(nutrients.sodium, 1000000),
     note: String(body.note || '').slice(0, 255),
+    cutoutOnly: body.cutoutOnly ? 1 : 0,
     image: image,
   };
   try {
     await pool.query(
-      'INSERT INTO records (id, user_id, ts, date_key, meal, name, kcal, protein, fat, carbs, sugar, fiber, sodium, note, image, created_at) ' +
-      'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ' +
+      'INSERT INTO records (id, user_id, ts, date_key, meal, name, kcal, protein, fat, carbs, sugar, fiber, sodium, note, cutout_only, image, created_at) ' +
+      'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ' +
       'ON DUPLICATE KEY UPDATE ts = VALUES(ts), date_key = VALUES(date_key), meal = VALUES(meal), name = VALUES(name), ' +
       'kcal = VALUES(kcal), protein = VALUES(protein), fat = VALUES(fat), carbs = VALUES(carbs), sugar = VALUES(sugar), ' +
-      'fiber = VALUES(fiber), sodium = VALUES(sodium), note = VALUES(note), image = VALUES(image)',
+      'fiber = VALUES(fiber), sodium = VALUES(sodium), note = VALUES(note), cutout_only = VALUES(cutout_only), image = VALUES(image)',
       [
         record.id, req.user.id, record.ts, record.date, record.meal, record.name, record.kcal,
         record.protein, record.fat, record.carbs, record.sugar, record.fiber, record.sodium,
-        record.note, record.image, Date.now(),
+        record.note, record.cutoutOnly, record.image, Date.now(),
       ]
     );
     res.json({ ok: true, record: record });
@@ -1130,6 +1211,13 @@ app.delete('/api/records/:id', requireAuth, async (req, res) => {
   if (!id) return res.status(400).json({ error: '缺少记录 id' });
   try {
     await pool.query('DELETE FROM records WHERE user_id = ? AND id = ?', [req.user.id, id]);
+    // 记录删了就一并删除文件夹原图，并留墓碑防止旧设备把它“复活”
+    await pool.query(
+      'INSERT INTO folder_photo_tombstones (user_id, record_id, deleted_at) VALUES (?, ?, ?) ' +
+      'ON DUPLICATE KEY UPDATE deleted_at = VALUES(deleted_at)',
+      [req.user.id, id, Date.now()]
+    );
+    await pool.query('DELETE FROM folder_photos WHERE user_id = ? AND record_id = ?', [req.user.id, id]);
     res.json({ ok: true });
   } catch (e) {
     console.error('[记录] 删除失败:', e.message);
@@ -1140,6 +1228,13 @@ app.delete('/api/records/:id', requireAuth, async (req, res) => {
 app.delete('/api/records', requireAuth, async (req, res) => {
   if (!dbReady || !pool) return res.status(503).json({ error: '数据库暂不可用，请稍后再试' });
   try {
+    await pool.query(
+      'INSERT INTO folder_photo_tombstones (user_id, record_id, deleted_at) ' +
+      'SELECT user_id, record_id, ? FROM folder_photos WHERE user_id = ? ' +
+      'ON DUPLICATE KEY UPDATE deleted_at = VALUES(deleted_at)',
+      [Date.now(), req.user.id]
+    );
+    await pool.query('DELETE FROM folder_photos WHERE user_id = ?', [req.user.id]);
     await pool.query('DELETE FROM records WHERE user_id = ?', [req.user.id]);
     res.json({ ok: true });
   } catch (e) {
@@ -1206,14 +1301,166 @@ app.post('/api/positions', requireAuth, async (req, res) => {
   }
 });
 
+// ===== 统计页文件夹原图（按用户存 MySQL，换设备可恢复）=====
+const FOLDER_IMAGE_MAX = 3200000;
+
+app.get('/api/folder-photos', requireAuth, async (req, res) => {
+  if (!dbReady || !pool) return res.status(503).json({ error: '数据库暂不可用，请稍后再试' });
+  const date = String((req.query && req.query.date) || '').trim().slice(0, 20);
+  try {
+    const params = [req.user.id];
+    let sql = 'SELECT record_id, date_key, saved_at, note, note_updated_at FROM folder_photos WHERE user_id = ?';
+    if (date) { sql += ' AND date_key = ?'; params.push(date); }
+    sql += ' ORDER BY saved_at DESC';
+    const [rows] = await pool.query(sql, params);
+    res.json({
+      ok: true,
+      photos: rows.map((r) => ({
+        recordId: r.record_id,
+        dateKey: r.date_key || '',
+        savedAt: Number(r.saved_at) || 0,
+        note: r.note || '',
+        noteUpdatedAt: Number(r.note_updated_at) || 0,
+      })),
+    });
+  } catch (e) {
+    console.error('[文件夹原图] 读取列表失败:', e.message);
+    res.status(503).json({ error: '读取失败，请稍后再试' });
+  }
+});
+
+app.get('/api/folder-photos/:recordId', requireAuth, async (req, res) => {
+  if (!dbReady || !pool) return res.status(503).json({ error: '数据库暂不可用，请稍后再试' });
+  const recordId = String((req.params && req.params.recordId) || '').trim().slice(0, 64);
+  if (!recordId) return res.status(400).json({ error: '缺少记录 id' });
+  try {
+    const [rows] = await pool.query(
+      'SELECT record_id, date_key, saved_at, image, note, note_updated_at FROM folder_photos WHERE user_id = ? AND record_id = ?',
+      [req.user.id, recordId]
+    );
+    if (!rows.length) return res.status(404).json({ error: '原图不存在' });
+    const r = rows[0];
+    res.json({
+      ok: true,
+      photo: {
+        recordId: r.record_id,
+        dateKey: r.date_key || '',
+        savedAt: Number(r.saved_at) || 0,
+        image: r.image || '',
+        note: r.note || '',
+        noteUpdatedAt: Number(r.note_updated_at) || 0,
+      },
+    });
+  } catch (e) {
+    console.error('[文件夹原图] 读取失败:', e.message);
+    res.status(503).json({ error: '读取失败，请稍后再试' });
+  }
+});
+
+app.post('/api/folder-photos', requireAuth, async (req, res) => {
+  if (!dbReady || !pool) return res.status(503).json({ error: '数据库暂不可用，请稍后再试' });
+  const body = req.body || {};
+  const recordId = String(body.recordId || '').trim().slice(0, 64);
+  if (!recordId) return res.status(400).json({ error: '缺少记录 id' });
+  const image = String(body.image || '');
+  if (!image) return res.status(400).json({ error: '缺少原图数据' });
+  if (image.length > FOLDER_IMAGE_MAX) return res.status(413).json({ error: '原图数据过大' });
+  const dateKey = String(body.dateKey || '').slice(0, 20);
+  const savedAt = Number(body.savedAt) || Date.now();
+  try {
+    // 有删除墓碑时拒绝写入，防止旧设备把已删除的原图重新上传“复活”
+    const [result] = await pool.query(
+      'INSERT INTO folder_photos (user_id, record_id, date_key, saved_at, image, created_at) ' +
+      'SELECT ?, ?, ?, ?, ?, ? FROM DUAL WHERE NOT EXISTS (' +
+      'SELECT 1 FROM folder_photo_tombstones WHERE user_id = ? AND record_id = ?) ' +
+      'ON DUPLICATE KEY UPDATE date_key = VALUES(date_key), saved_at = VALUES(saved_at), image = VALUES(image)',
+      [req.user.id, recordId, dateKey, savedAt, image, Date.now(), req.user.id, recordId]
+    );
+    if (!result || !result.affectedRows) return res.status(409).json({ error: '原图已删除，请勿重新上传' });
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('[文件夹原图] 保存失败:', e.message);
+    res.status(503).json({ error: '保存失败，请稍后再试' });
+  }
+});
+
+app.put('/api/folder-photos/:recordId/note', requireAuth, async (req, res) => {
+  if (!dbReady || !pool) return res.status(503).json({ error: '数据库暂不可用，请稍后再试' });
+  const recordId = String((req.params && req.params.recordId) || '').trim().slice(0, 64);
+  if (!recordId) return res.status(400).json({ error: '缺少记录 id' });
+  const note = String((req.body && req.body.note) || '');
+  if (note.length > 5000) return res.status(413).json({ error: '文字过长' });
+  const updatedAt = Number(req.body && req.body.updatedAt);
+  if (!Number.isSafeInteger(updatedAt) || updatedAt <= 0) return res.status(400).json({ error: '缺少有效更新时间' });
+  try {
+    const [result] = await pool.query(
+      'UPDATE folder_photos SET note = ?, note_updated_at = ? ' +
+      'WHERE user_id = ? AND record_id = ? AND note_updated_at <= ?',
+      [note, updatedAt, req.user.id, recordId, updatedAt]
+    );
+    if (result.affectedRows) return res.json({ ok: true, noteUpdatedAt: updatedAt });
+    const [rows] = await pool.query(
+      'SELECT note_updated_at FROM folder_photos WHERE user_id = ? AND record_id = ?',
+      [req.user.id, recordId]
+    );
+    if (!rows.length) return res.status(404).json({ error: '原图不存在' });
+    res.json({ ok: true, stale: true, noteUpdatedAt: Number(rows[0].note_updated_at) || 0 });
+  } catch (e) {
+    console.error('[文件夹背面文字] 保存失败:', e.message);
+    res.status(503).json({ error: '保存失败，请稍后再试' });
+  }
+});
+
+app.delete('/api/folder-photos/:recordId', requireAuth, async (req, res) => {
+  if (!dbReady || !pool) return res.status(503).json({ error: '数据库暂不可用，请稍后再试' });
+  const recordId = String((req.params && req.params.recordId) || '').trim().slice(0, 64);
+  if (!recordId) return res.status(400).json({ error: '缺少记录 id' });
+  try {
+    await pool.query(
+      'INSERT INTO folder_photo_tombstones (user_id, record_id, deleted_at) VALUES (?, ?, ?) ' +
+      'ON DUPLICATE KEY UPDATE deleted_at = VALUES(deleted_at)',
+      [req.user.id, recordId, Date.now()]
+    );
+    await pool.query('DELETE FROM folder_photos WHERE user_id = ? AND record_id = ?', [req.user.id, recordId]);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('[文件夹原图] 删除失败:', e.message);
+    res.status(503).json({ error: '删除失败，请稍后再试' });
+  }
+});
+
+app.delete('/api/folder-photos', requireAuth, async (req, res) => {
+  if (!dbReady || !pool) return res.status(503).json({ error: '数据库暂不可用，请稍后再试' });
+  try {
+    await pool.query(
+      'INSERT INTO folder_photo_tombstones (user_id, record_id, deleted_at) ' +
+      'SELECT user_id, record_id, ? FROM folder_photos WHERE user_id = ? ' +
+      'ON DUPLICATE KEY UPDATE deleted_at = VALUES(deleted_at)',
+      [Date.now(), req.user.id]
+    );
+    await pool.query('DELETE FROM folder_photos WHERE user_id = ?', [req.user.id]);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('[文件夹原图] 清空失败:', e.message);
+    res.status(503).json({ error: '清空失败，请稍后再试' });
+  }
+});
+
 // ===== API 调用设置（用户自己的 Qwen API Key + 美图抠图密钥，加密存储）=====
-function apiSettingPayload(u) {
-  const trial = trialInfo(u);
+async function apiSettingPayload(u) {
+  const dateKey = cutoutDateKey();
+  const used = await dailyCutoutUsed(u.id, dateKey);
+  const remaining = Math.max(0, DAILY_CUTOUT_LIMIT - used);
   return {
     ok: true,
-    trialActive: trial.trialActive,
-    trialEndsAt: trial.trialEndsAt,
-    vip: !!trial.vip,
+    trialActive: remaining > 0,
+    trialEndsAt: Date.parse(dateKey + 'T16:00:00Z'),
+    vip: false,
+    freeCutoutLimit: DAILY_CUTOUT_LIMIT,
+    freeCutoutsRemaining: remaining,
+    dailyCutoutLimit: DAILY_CUTOUT_LIMIT,
+    dailyCutoutUsed: used,
+    dailyCutoutRemaining: remaining,
     hasApiKey: !!u.apiKeyEnc,
     apiKeyMasked: maskApiKey(decryptApiKey(u.apiKeyEnc)),
     hasMeituKey: !!(u.meituAkEnc && u.meituSkEnc),
@@ -1222,21 +1469,18 @@ function apiSettingPayload(u) {
   };
 }
 
-app.get('/api/user/api-setting', requireAuth, (req, res) => {
-  res.json(apiSettingPayload(req.user));
+app.get('/api/user/api-setting', requireAuth, async (req, res) => {
+  res.set('Cache-Control', 'private, no-store');
+  try { res.json(await apiSettingPayload(req.user)); }
+  catch (e) { res.status(503).json({ error: '额度查询失败，请稍后再试' }); }
 });
 
-app.post('/api/user/api-setting', requireAuth, (req, res) => {
+app.post('/api/user/api-setting', requireAuth, async (req, res) => {
+  res.set('Cache-Control', 'private, no-store');
   const u = req.user;
-  const trial = trialInfo(u);
   const body = req.body || {};
   const wantsKey = Object.prototype.hasOwnProperty.call(body, 'apiKey');
   const wantsToggle = Object.prototype.hasOwnProperty.call(body, 'apiEnabled');
-
-  // 试用期内不可填写/修改，试用结束后开放（VIP 账号始终允许）
-  if (trial.trialActive && !trial.vip) {
-    return res.status(403).json({ error: '免费试用期间无需填写，试用结束后可设置自己的 API', code: 'TRIAL_ACTIVE' });
-  }
 
   if (wantsKey) {
     const raw = String(body.apiKey == null ? '' : body.apiKey).trim();
@@ -1284,30 +1528,33 @@ app.post('/api/user/api-setting', requireAuth, (req, res) => {
   saveUsers();
   console.log('[API设置] %s 更新: hasKey=%s hasMeitu=%s enabled=%s', u.name,
     !!u.apiKeyEnc, !!(u.meituAkEnc && u.meituSkEnc), u.apiEnabled !== false);
-  res.json(apiSettingPayload(u));
+  try { res.json(await apiSettingPayload(u)); }
+  catch (e) { res.status(503).json({ error: '设置已保存，额度查询失败，请刷新重试' }); }
 });
 
-// ===== 拍照识别代理：校验登录与试用期，按需注入用户自己的 Qwen / 美图 Key =====
+// ===== 拍照识别代理：服务端免费额度每天 5 次；自带美图和 Qwen 密钥无限使用 =====
 app.post('/api/recognize', requireAuth, async (req, res) => {
   const u = req.user;
-  const trial = trialInfo(u);
   let userKey = '';
-  let meituAk = '';
-  let meituSk = '';
-
-  if (!trial.trialActive) {
-    if (u.apiEnabled === false) {
-      return res.status(403).json({ error: '已关闭 API 调用，仅使用抠图功能', code: 'API_DISABLED' });
-    }
-    meituAk = decryptApiKey(u.meituAkEnc);
-    meituSk = decryptApiKey(u.meituSkEnc);
-    if (!meituAk || !meituSk) {
-      return res.status(403).json({ error: '免费试用已结束，请填写自己的美图抠图密钥后继续使用', code: 'MEITU_REQUIRED' });
-    }
+  const meituAk = decryptApiKey(u.meituAkEnc);
+  const meituSk = decryptApiKey(u.meituSkEnc);
+  const ownMeitu = !!(meituAk && meituSk);
+  if (u.apiEnabled === false) {
+    return res.status(403).json({ error: '已关闭 API 调用，仅使用抠图功能', code: 'API_DISABLED' });
+  }
+  if (ownMeitu) {
     userKey = decryptApiKey(u.apiKeyEnc);
     if (!userKey) {
       return res.status(403).json({ error: '未填写 Qwen API，仅可使用抠图功能', code: 'QWEN_REQUIRED' });
     }
+  }
+
+  const dateKey = cutoutDateKey();
+  let reserved = false;
+  if (!ownMeitu) {
+    try { reserved = await reserveFreeCutout(u.id, dateKey); }
+    catch (e) { return res.status(503).json({ error: '额度服务暂不可用，请稍后再试' }); }
+    if (!reserved) return res.status(429).json(DAILY_CUTOUT_ERROR);
   }
 
   const controller = new AbortController();
@@ -1324,10 +1571,20 @@ app.post('/api/recognize', requireAuth, async (req, res) => {
       signal: controller.signal,
     });
     const text = await upstream.text();
+    let hasCutout = false;
+    if (upstream.ok) {
+      try {
+        const payload = JSON.parse(text);
+        const content = payload.choices && payload.choices[0] && payload.choices[0].message && payload.choices[0].message.content;
+        hasCutout = !!(content && JSON.parse(content).cutout);
+      } catch (e) {}
+    }
+    if (reserved && !hasCutout) { await releaseFreeCutout(u.id, dateKey); reserved = false; }
     res.status(upstream.status);
     res.type(upstream.headers.get('content-type') || 'application/json');
     res.send(text);
   } catch (e) {
+    if (reserved) await releaseFreeCutout(u.id, dateKey);
     const aborted = e && e.name === 'AbortError';
     console.error('[识别代理] 失败:', e && e.message);
     res.status(aborted ? 504 : 502).json({ error: aborted ? '识别超时，请重试' : '识别服务暂不可用，请稍后再试' });
@@ -1336,19 +1593,18 @@ app.post('/api/recognize', requireAuth, async (req, res) => {
   }
 });
 
-// ===== 仅抠图代理：试用期用服务端美图密钥；试用结束后必须用用户自己的美图密钥 =====
+// ===== 仅抠图代理：与完整识别共用每日免费额度；自带美图密钥无限使用 =====
 app.post('/api/cutout', requireAuth, async (req, res) => {
   const u = req.user;
-  const trial = trialInfo(u);
-  let meituAk = '';
-  let meituSk = '';
-
-  if (!trial.trialActive) {
-    meituAk = decryptApiKey(u.meituAkEnc);
-    meituSk = decryptApiKey(u.meituSkEnc);
-    if (!meituAk || !meituSk) {
-      return res.status(403).json({ error: '免费试用已结束，请填写自己的美图抠图密钥后继续使用', code: 'MEITU_REQUIRED' });
-    }
+  const meituAk = decryptApiKey(u.meituAkEnc);
+  const meituSk = decryptApiKey(u.meituSkEnc);
+  const ownMeitu = !!(meituAk && meituSk);
+  const dateKey = cutoutDateKey();
+  let reserved = false;
+  if (!ownMeitu) {
+    try { reserved = await reserveFreeCutout(u.id, dateKey); }
+    catch (e) { return res.status(503).json({ error: '额度服务暂不可用，请稍后再试' }); }
+    if (!reserved) return res.status(429).json(DAILY_CUTOUT_ERROR);
   }
 
   const controller = new AbortController();
@@ -1364,13 +1620,49 @@ app.post('/api/cutout', requireAuth, async (req, res) => {
       signal: controller.signal,
     });
     const text = await upstream.text();
+    if (!upstream.ok && reserved) { await releaseFreeCutout(u.id, dateKey); reserved = false; }
     res.status(upstream.status);
     res.type(upstream.headers.get('content-type') || 'application/json');
     res.send(text);
   } catch (e) {
+    if (reserved) await releaseFreeCutout(u.id, dateKey);
     const aborted = e && e.name === 'AbortError';
     console.error('[抠图代理] 失败:', e && e.message);
     res.status(aborted ? 504 : 502).json({ error: aborted ? '抠图超时，请重试' : '抠图服务暂不可用，请稍后再试' });
+  } finally {
+    clearTimeout(timer);
+  }
+});
+
+// 本机模型兜底也按同一额度计数，避免直接请求绕过限制。
+app.post('/api/cutout-local', requireAuth, async (req, res) => {
+  const u = req.user;
+  const ownMeitu = !!(decryptApiKey(u.meituAkEnc) && decryptApiKey(u.meituSkEnc));
+  const dateKey = cutoutDateKey();
+  let reserved = false;
+  if (!ownMeitu) {
+    try { reserved = await reserveFreeCutout(u.id, dateKey); }
+    catch (e) { return res.status(503).json({ error: '额度服务暂不可用，请稍后再试' }); }
+    if (!reserved) return res.status(429).json(DAILY_CUTOUT_ERROR);
+  }
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 180000);
+  try {
+    const upstream = await fetch('http://127.0.0.1:5001/remove-bg?quality=standard', {
+      method: 'POST',
+      headers: { 'Content-Type': req.headers['content-type'] || 'application/octet-stream' },
+      body: req,
+      duplex: 'half',
+      signal: controller.signal,
+    });
+    const image = Buffer.from(await upstream.arrayBuffer());
+    if (!upstream.ok && reserved) { await releaseFreeCutout(u.id, dateKey); reserved = false; }
+    res.status(upstream.status);
+    res.type(upstream.headers.get('content-type') || 'application/octet-stream');
+    res.send(image);
+  } catch (e) {
+    if (reserved) await releaseFreeCutout(u.id, dateKey);
+    res.status(e && e.name === 'AbortError' ? 504 : 502).json({ error: '本机抠图失败，请重试' });
   } finally {
     clearTimeout(timer);
   }

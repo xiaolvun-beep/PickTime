@@ -1,7 +1,9 @@
-const CACHE = "picktime-v415";
+const CACHE = "picktime-v436";
 const ASSETS = [
   "/",
   "/index.html",
+  "/stats-folder.css?v=20261007-12",
+  "/stats-folder.js?v=20261007-12",
   "/vendor/thinking-orbs-engine.es.js",
   "/fonts/ruanti-Medium-v5.woff2",
   "/fonts/onboarding-title.woff2?v=7",
@@ -12,6 +14,9 @@ const ASSETS = [
   "/icons/icon-maskable-512.png",
   "/icons/apple-touch-icon.png",
   "/images/splash-appicon.png",
+  "/images/wallpapers/cream-paper.jpg",
+  "/images/wallpapers/soft-paper.jpg",
+  "/images/wallpapers/warm-paper.jpg",
   "/images/splash-bg.webp",
   "/images/splash-capy-party.png?v=2",
   "/images/splash-capy-cry.png",

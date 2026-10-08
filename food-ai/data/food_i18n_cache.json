@@ -142,7 +142,32 @@
   "奶油": "Cream",
   "炒土豆块": "Stir-Fried Potato Cubes",
   "玉米热狗": "Corn Hot Dog",
-  "Corn Hot Dog": "Corn Dog"
+  "Corn Hot Dog": "Corn Dog",
+  "Iced Milk Coffee (Iced Latte)": "Iced Milk Coffee",
+  "Soy Milk & Fried Dough": "Soy Milk and Fried Dough",
+  "Chaoshan Beef": "Chaozhou-style Beef",
+  "Scrambled Eggs with Tomato": "Tomato and Egg Scramble",
+  "Stir-fried Cauliflower": "Stir-Fried Cauliflower",
+  "Curry Omurice": "Curry Omelette Rice",
+  "Tamagoyaki": "Japanese-Style Omelette",
+  "未命名": "Unnamed",
+  "泰奶咸法酪": "Thai Milk Salted Cheese",
+  "芝士奶茶": "Cheese Milk Tea",
+  "咸奶油美式": "Salty Cream American",
+  "拿铁": "Latte",
+  "香蕉酸奶碗": "Banana Yogurt Bowl",
+  "煎鸡胸肉": "Pan-Seared Chicken Breast",
+  "茉莉奶白": "White Jasmine Milk",
+  "Pan-Seared Chicken Breast": "Searing Chicken Breast",
+  "White Jasmine Milk": "Jasmine Milk",
+  "抹茶奶绿": "Matcha Milk Green Tea",
+  "一日三春": "Three Meals a Day",
+  "滑蛋牛肉饭": "Beef and Egg Rice",
+  "云焦卡美罗": "Yunjiao Kameiluo",
+  "柠檬水": "Lemon Water",
+  "减脂餐": "Light Meal",
+  "蒸土豆": "Steamed Potato",
+  "清炒生菜": "Sautéed Lettuce"
  },
  "ja": {
   "生日蛋糕": "バースデーケーキ",
@@ -308,7 +333,14 @@
   "枣": "ザボン",
   "橙子": "ミカン",
   "冬枣": "ドンザオ",
-  "三文鱼饭 bowl": "サーモンごはん"
+  "三文鱼饭 bowl": "サーモンごはん",
+  "玉米热狗": "コーンドッグ",
+  "イチゴミルクのアイスブロック": "いちごミルクのアイスブロック",
+  "葡萄": "ぶどう",
+  "加奶冰咖啡（冰拿铁）": "ミルク入りアイスコーヒー（アイスラテ）",
+  "青提": "グリーンレーズン",
+  "鸡胸肉": "鶏むね肉",
+  "西兰花...": "ブロッコリー"
  },
  "ko": {
   "生日蛋糕": "생일 케이크",
@@ -384,6 +416,10 @@
   "소고기 롤": "소고기롤",
   "타마고야키": "달걀요리",
   "커리 크랩": "커리 게",
-  "玉米热狗": "콘핫도그"
+  "玉米热狗": "콘핫도그",
+  "三文鱼饭 bowl": "연어밥 볼",
+  "青椒肉末...": "파프리카 돼지고기 다진 것...",
+  "虾仁...": "새우살...",
+  "牛排...": "스테이크..."
  }
 }

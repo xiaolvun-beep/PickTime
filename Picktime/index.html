@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-visual" />
-  <title>PickTime</title>
+  <title>PickTime拾光</title>
   <script>if ("scrollRestoration" in history) history.scrollRestoration = "manual";</script>
   <script>
     document.documentElement.classList.add("splash-on");
@@ -26,7 +26,101 @@
   <link rel="preload" as="font" type="font/woff2" href="/fonts/onboarding-title.woff2?v=7" crossorigin />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="PickTime" />
+  <meta name="apple-mobile-web-app-title" content="PickTime拾光" />
+  <script>
+    (function () {
+      var key = "picktime-wallpaper-v1";
+      var pendingKey = "picktime-wallpaper-pending-v1";
+      var images = {
+        cream: "/images/wallpapers/cream-paper.jpg",
+        soft: "/images/wallpapers/soft-paper.jpg",
+        warm: "/images/wallpapers/warm-paper.jpg"
+      };
+      var selected = "default";
+      var dirty = false;
+      var saveTimer = 0;
+      var revision = 0;
+      function valid(id) { return id === "default" || Object.prototype.hasOwnProperty.call(images, id); }
+      function accountId() {
+        try {
+          var token = localStorage.getItem("picktime-token") || sessionStorage.getItem("picktime-token") || "";
+          return token ? token.split(".")[0] : "";
+        } catch (e) { return ""; }
+      }
+      function apply(id) {
+        selected = Object.prototype.hasOwnProperty.call(images, id) ? id : "default";
+        document.documentElement.classList.toggle("has-wallpaper", selected !== "default");
+        if (selected === "default") document.documentElement.style.removeProperty("--picktime-wallpaper-image");
+        else document.documentElement.style.setProperty("--picktime-wallpaper-image", 'url("' + images[selected] + '")');
+        return selected;
+      }
+      function store(id) { try { localStorage.setItem(key, id); } catch (e) {} }
+      function markDirty() {
+        dirty = true;
+        try { localStorage.setItem(pendingKey, JSON.stringify({ account: accountId(), wallpaper: selected })); } catch (e) {}
+        queueSave();
+      }
+      function queueSave() {
+        clearTimeout(saveTimer);
+        if (!dirty || !window.__picktimeAuth || !window.__picktimeAuth.isLoggedIn()) return;
+        saveTimer = setTimeout(function () {
+          if (dirty && window.__picktimeAuth && window.__picktimeAuth.isLoggedIn() && window.__picktimePushProfileSetting) {
+            window.__picktimePushProfileSetting("wallpaper", selected);
+          }
+        }, 350);
+      }
+      try { apply(localStorage.getItem(key)); } catch (e) { apply("default"); }
+      try {
+        var pending = JSON.parse(localStorage.getItem(pendingKey) || "null");
+        if (pending && pending.account && pending.account === accountId() && valid(pending.wallpaper)) {
+          apply(pending.wallpaper);
+          dirty = true;
+        } else {
+          localStorage.removeItem(pendingKey);
+        }
+      } catch (e) {}
+      window.__picktimeWallpaper = {
+        get: function () { return selected; },
+        getRevision: function () { return revision; },
+        isValid: valid,
+        isDirty: function () { return dirty; },
+        set: function (id) {
+          var previous = selected;
+          var value = apply(id);
+          if (value !== previous) revision++;
+          store(value);
+          if (value !== previous && window.__picktimeAuth && window.__picktimeAuth.isLoggedIn()) {
+            markDirty();
+          }
+          return value;
+        },
+        sync: function () { revision++; markDirty(); },
+        retry: queueSave,
+        markSynced: function (id) {
+          if (selected !== id) return;
+          if (dirty) revision++;
+          dirty = false;
+          try { localStorage.removeItem(pendingKey); } catch (e) {}
+        },
+        fromAccount: function (id) {
+          if (!valid(id) || dirty) return;
+          if (selected !== id) revision++;
+          apply(id);
+          store(selected);
+          if (window.__picktimeRefreshWallpaperUI) window.__picktimeRefreshWallpaperUI();
+        },
+        resetLocal: function () {
+          clearTimeout(saveTimer);
+          revision++;
+          dirty = false;
+          apply("default");
+          try { localStorage.removeItem(key); } catch (e) {}
+          try { localStorage.removeItem(pendingKey); } catch (e) {}
+          if (window.__picktimeRefreshWallpaperUI) window.__picktimeRefreshWallpaperUI();
+        }
+      };
+    })();
+  </script>
   <style>
     :root {
       --color-ink: #0e1116;
@@ -206,14 +300,13 @@
       height: 26px;
       padding: 0;
       border: 0;
-      border-radius: 50%;
-      background: #f2f4f7;
+      background: transparent;
       color: var(--color-mist);
       display: inline-flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: background 160ms var(--ease), color 160ms var(--ease);
+      transition: color 160ms var(--ease), opacity 160ms var(--ease);
     }
 
     .home-switch svg {
@@ -228,7 +321,7 @@
     }
 
     .home-switch:active {
-      background: #e6eaf0;
+      opacity: 0.5;
       color: var(--color-ink);
     }
 
@@ -4927,14 +5020,13 @@
       height: 26px;
       padding: 0;
       border: 0;
-      border-radius: 50%;
-      background: #f2f4f7;
+      background: transparent;
       color: var(--color-mist);
       display: inline-flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: background 160ms var(--ease), color 160ms var(--ease);
+      transition: color 160ms var(--ease), opacity 160ms var(--ease);
     }
 
     .stats-switch svg {
@@ -4949,7 +5041,7 @@
     }
 
     .stats-switch:active {
-      background: #e6eaf0;
+      opacity: 0.5;
       color: var(--color-ink);
     }
 
@@ -5827,7 +5919,7 @@
       opacity: 0.5;
     }
 
-    /* 未登录 / 试用期内：API 框整体置灰不可点击 */
+    /* 未登录时 API 框置灰 */
     .doc-overlay__body .api-row.is-disabled {
       opacity: 0.55;
     }
@@ -6622,6 +6714,47 @@
       font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
     }
 
+    .doc-overlay__body.is-about {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .doc-overlay__body.is-about .about-page {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .doc-overlay__body.is-about .about-hero {
+      flex: none;
+      padding: 14px 22px 12px;
+      background: #ffffff;
+    }
+
+    .doc-overlay__body.is-about .about-hero .about-logo-wrap {
+      margin: 0 0 8px;
+    }
+
+    .doc-overlay__body.is-about .about-hero .about-meta:last-child {
+      margin-bottom: 0;
+    }
+
+    .doc-overlay__body.is-about .about-scroll {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      padding: 16px 22px calc(40px + env(safe-area-inset-bottom));
+    }
+
+    .doc-overlay__body.is-about .about-scroll > h4:first-child {
+      margin-top: 0;
+    }
+
     .doc-overlay__body h1 {
       margin: 0 0 6px;
       font-size: 20px;
@@ -7112,10 +7245,138 @@
       line-height: 1.6;
     }
 
+    .doc-overlay__body .settings-overview,
     .doc-overlay__body .switch-list {
       display: flex;
       flex-direction: column;
       gap: 12px;
+    }
+
+    .doc-overlay__body .settings-overview[hidden],
+    .doc-overlay__body .settings-detail[hidden] {
+      display: none;
+    }
+
+    .doc-overlay__body .appearance-detail {
+      margin: 0 -22px;
+    }
+
+    .doc-overlay__body .appearance-hint {
+      margin: 0 22px 18px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #6b7280;
+    }
+
+    .doc-overlay__body .wallpaper-carousel {
+      --wallpaper-card-width: min(66vw, 260px);
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      overscroll-behavior-x: contain;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding: 8px calc((100% - var(--wallpaper-card-width)) / 2) 18px;
+    }
+
+    .doc-overlay__body .wallpaper-carousel::-webkit-scrollbar {
+      display: none;
+    }
+
+    .doc-overlay__body .wallpaper-option {
+      flex: 0 0 var(--wallpaper-card-width);
+      width: var(--wallpaper-card-width);
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #1a1a2e;
+      font: inherit;
+      text-align: center;
+      scroll-snap-align: center;
+      scroll-snap-stop: always;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .doc-overlay__body .wallpaper-option__preview {
+      position: relative;
+      display: block;
+      width: 100%;
+      aspect-ratio: 9 / 16;
+      overflow: hidden;
+      border-radius: 24px;
+      background: #ffffff;
+      border: 1px solid rgba(30, 35, 45, 0.10);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.10);
+    }
+
+    .doc-overlay__body .wallpaper-option__preview img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .doc-overlay__body .wallpaper-option__preview::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      border: 3px solid transparent;
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    .doc-overlay__body .wallpaper-option.is-selected .wallpaper-option__preview::after {
+      border-color: #7d9b5f;
+    }
+
+    .doc-overlay__body .wallpaper-option__name {
+      display: block;
+      margin-top: 16px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .doc-overlay__body .wallpaper-option.is-selected .wallpaper-option__name {
+      color: #66834b;
+      font-weight: 650;
+    }
+
+    .doc-overlay__body .wallpaper-option:focus-visible .wallpaper-option__preview::after {
+      border-color: #2e7def;
+    }
+
+    .doc-overlay__body .settings-nav-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      padding: 22px 20px;
+      border-radius: 24px;
+      background: #ffffff;
+      border: 1px solid #eef0f2;
+      box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+      color: #1a1a2e;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 500;
+      text-align: left;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .doc-overlay__body .settings-nav-card:active {
+      background: #fafbfc;
+    }
+
+    .doc-overlay__body .settings-nav-card__arrow {
+      width: 16px;
+      height: 16px;
+      flex: none;
+      color: #c3c9d1;
     }
 
     .doc-overlay__body .switch-row {
@@ -7493,6 +7754,11 @@
       transition: 0.2s ease-in-out;
     }
 
+    /* 图标固定 20×20：带「获取验证码」按钮的行里不被 flex 压缩，与其它输入框图标一致 */
+    .login-overlay .inputForm > svg {
+      flex: none;
+    }
+
     .login-overlay .input {
       margin-left: 10px;
       border-radius: 10px;
@@ -7537,12 +7803,12 @@
 
     .sms-toast {
       position: fixed;
-      top: calc(20px + env(safe-area-inset-top));
+      top: calc(56px + env(safe-area-inset-top));
       left: 50%;
       z-index: 1010;
       max-width: 86vw;
-      padding: 12px 18px;
-      border-radius: 14px;
+      padding: 10px 22px;
+      border-radius: 999px;
       background: rgba(21, 23, 23, 0.92);
       color: #ffffff;
       font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -7799,6 +8065,18 @@
       transition: opacity 420ms ease;
     }
 
+    /* 视口变高后，锁定高度下方也随启动页一起淡出。 */
+    .splash::before {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      height: 100vh;
+      background: #ffffff;
+      pointer-events: none;
+    }
+
     .splash.is-hide {
       opacity: 0;
       pointer-events: none;
@@ -8007,7 +8285,47 @@
         animation: none;
       }
     }
+
+    html.has-wallpaper {
+      background-color: #f8f5ef;
+      background-image: var(--picktime-wallpaper-image);
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+
+    html.has-wallpaper body,
+    html.has-wallpaper .home-second,
+    html.has-wallpaper .stats-page,
+    html.has-wallpaper .week-page,
+    html.has-wallpaper .me-page {
+      background: transparent;
+    }
+
+    html.has-wallpaper .stats-page,
+    html.has-wallpaper .week-page,
+    html.has-wallpaper .me-page,
+    html.has-wallpaper .page-title {
+      transition: none;
+    }
+
+    html.has-wallpaper body::before {
+      content: none;
+    }
+
+    html.has-wallpaper .home-header {
+      background: transparent;
+    }
+
+    /* 启动页高度锁定时，视口底部露出的区域也使用启动页底色。 */
+    html.splash-on.has-wallpaper {
+      background-image: none;
+      background-color: #ffffff;
+    }
+
   </style>
+  <link rel="stylesheet" href="/stats-folder.css?v=20261007-12" />
 </head>
 <body class="is-home-entering">
   <!-- 启动页：背景图 + 底部圆角 logo 容器 + 应用名，首页内容就绪后淡出 -->
@@ -8029,6 +8347,7 @@
       <div class="splash__name">PickTime拾光</div>
     </div>
   </div>
+  <script src="/stats-folder.js?v=20261007-12"></script>
   <script>
     (function () {
       var splashEl = document.getElementById("splashScreen");
@@ -8148,7 +8467,7 @@
       </div>
     </div>
     <div class="menu-footer">
-      <div class="menu-footer__version">v1.5.3</div>
+      <div class="menu-footer__version">v1.5.6</div>
       <div class="menu-footer__copyright">© PickTime版权所有</div>
     </div>
   </aside>
@@ -8425,13 +8744,13 @@
     </div>
   </div>
 
-  <!-- 限免结束 / 未登录：智能分析提示 -->
+  <!-- 免费额度用尽 / 未登录提示 -->
   <div class="api-limit-overlay" id="apiLimitOverlay" aria-hidden="true">
     <div class="api-limit-panel" role="dialog" aria-modal="true" aria-labelledby="apiLimitTitle">
-      <div class="api-limit-title" id="apiLimitTitle">免费试用已结束</div>
+      <div class="api-limit-title" id="apiLimitTitle">今日免费抠图次数已用完</div>
       <div class="api-limit-text" id="apiLimitText"></div>
       <div class="api-limit-actions">
-        <button class="api-limit-btn api-limit-btn--ghost" id="apiLimitGhost" type="button">仅抠图使用</button>
+        <button class="api-limit-btn api-limit-btn--ghost" id="apiLimitGhost" type="button">暂不</button>
         <button class="api-limit-btn api-limit-btn--primary" id="apiLimitPrimary" type="button">去填写 API</button>
       </div>
     </div>
@@ -8609,11 +8928,14 @@
   </template>
   <template id="docAboutTpl">
     <div class="about-page">
-      <div class="about-logo-wrap">
-        <img class="about-logo" src="/icons/apple-touch-icon.png" alt="拾光" />
+      <div class="about-hero">
+        <div class="about-logo-wrap">
+          <img class="about-logo" src="/icons/apple-touch-icon.png" alt="拾光" />
+        </div>
+        <p class="about-meta"><strong>版本：</strong>v1.5.6</p>
+        <p class="about-meta"><strong>更新日期：</strong>2026.10.08</p>
       </div>
-      <p class="about-meta"><strong>版本：</strong>v1.5.3</p>
-      <p class="about-meta"><strong>更新日期：</strong>2026.10.05</p>
+      <div class="about-scroll">
 
       <h4>产品简介</h4>
       <p>拾光（PickTime）是一款专注于饮食记录与健康参考的应用，支持拍照记录饮食、智能抠图、AI 热量与营养分析、体脂率参考、饮食时间线与数据统计，帮助你用照片记录每一餐，也记录生活的温度。</p>
@@ -8622,7 +8944,7 @@
       <p>拍照记录饮食 · 智能抠图 · AI 热量与营养分析（蛋白/脂肪/碳水/糖/纤维/钠） · 饮食时间线 · 月历与热力图统计 · 热量趋势 · 体脂率参考 · 封面与头像自定义 · 多语言（简体中文 / English / 日本語 / 한국어） · 支持添加到主屏幕与安卓 App</p>
 
       <h4>AI 服务说明</h4>
-      <p>热量与营养分析由第三方 AI 服务提供，抠图由美图 AI 提供。新注册用户享 3 天免费试用；试用结束后，请在「通用设置 → API调用」填写自己的美图抠图密钥（必填，可在 meituhub.cn 注册获取），可仅使用抠图功能并手动填写热量与营养；同时填写 Qwen API 即可自动识别热量与营养。</p>
+      <p>热量与营养分析由第三方 AI 服务提供，抠图由美图 AI 提供。每位用户每天可免费抠图 5 次（北京时间零点重置）；如需不限次数，请在「通用设置 → API调用」填写自己的美图抠图密钥（可在 meituhub.cn 注册获取）。仅填写美图密钥可抠图并手动填写营养；同时填写 Qwen API 可自动识别热量与营养。</p>
 
       <h4>开发者</h4>
       <p>拾光由独立开发者精心打造，致力于提供简洁、温暖、有仪式感的饮食记录体验，让记录美食变成一件轻松愉快的小事。</p>
@@ -8637,6 +8959,7 @@
       <p class="about-copyright">拾光 版权所有</p>
       <p class="about-copyright-sub">Copyright © 拾光 PickTime. All Rights Reserved</p>
       <p class="about-copyright-sub">联系我们：PickTimeStore@outlook.com</p>
+      </div>
     </div>
   </template>
   <template id="docContactTpl">
@@ -8707,37 +9030,80 @@
     </div>
   </template>
   <template id="docSettingsTpl">
-    <div class="switch-list">
+    <div class="settings-overview" id="settingsOverview">
+      <button class="settings-nav-card" type="button" data-settings-section="system">
+        <span>系统设置</span>
+        <svg class="settings-nav-card__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button class="settings-nav-card" type="button" data-settings-section="personal">
+        <span>个性化设置</span>
+        <svg class="settings-nav-card__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button class="settings-nav-card" type="button" data-settings-section="appearance">
+        <span>外观设置</span>
+        <svg class="settings-nav-card__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+    <div class="switch-list settings-detail" data-settings-detail="system" hidden>
       <div class="switch-row">
-        <span class="switch-row__label">启用消息通知</span>
+        <label class="switch-row__label" for="switchNotify">启用消息通知</label>
         <div class="checkbox-wrapper-41">
           <input type="checkbox" id="switchNotify" data-key="picktime-switch-notify" checked />
         </div>
       </div>
       <div class="switch-row">
-        <span class="switch-row__label">地理位置权限</span>
+        <label class="switch-row__label" for="switchLocation">地理位置权限</label>
         <div class="checkbox-wrapper-41">
           <input type="checkbox" id="switchLocation" data-key="picktime-switch-location" checked />
         </div>
       </div>
       <div class="switch-row">
-        <span class="switch-row__label">动作与方向权限</span>
+        <label class="switch-row__label" for="switchMotion">动作与方向权限</label>
         <div class="checkbox-wrapper-41">
           <input type="checkbox" id="switchMotion" data-key="picktime-switch-motion" checked />
         </div>
       </div>
+    </div>
+    <div class="switch-list settings-detail" data-settings-detail="personal" hidden>
       <div class="switch-row">
-        <span class="switch-row__label">震动反馈</span>
+        <label class="switch-row__label" for="switchHaptic">震动反馈</label>
         <div class="checkbox-wrapper-41">
           <input type="checkbox" id="switchHaptic" data-key="picktime-switch-haptic" checked />
         </div>
       </div>
+      <div class="switch-row">
+        <label class="switch-row__label" for="switchRefreshUi">数据刷新</label>
+        <div class="checkbox-wrapper-41">
+          <input type="checkbox" id="switchRefreshUi" data-key="picktime-switch-refresh-ui" />
+        </div>
+      </div>
       <div class="api-row" id="apiRowBtn" role="button" tabindex="0">
-        <span class="api-row__label">API调用</span>
+        <span class="api-row__label" id="apiRowLabel">API调用</span>
         <span class="api-row__value" id="apiRowValue"></span>
         <div class="checkbox-wrapper-41">
-          <input type="checkbox" id="switchApi" data-key="picktime-switch-api" checked />
+          <input type="checkbox" id="switchApi" data-key="picktime-switch-api" aria-labelledby="apiRowLabel" checked />
         </div>
+      </div>
+    </div>
+    <div class="appearance-detail settings-detail" data-settings-detail="appearance" hidden>
+      <p class="appearance-hint">左右滑动，停在哪张就自动应用</p>
+      <div class="wallpaper-carousel" id="wallpaperCarousel" role="group" aria-label="壁纸选择">
+        <button class="wallpaper-option" type="button" data-wallpaper="default" aria-pressed="false">
+          <span class="wallpaper-option__preview"></span>
+          <span class="wallpaper-option__name">默认外观</span>
+        </button>
+        <button class="wallpaper-option" type="button" data-wallpaper="cream" aria-pressed="false">
+          <span class="wallpaper-option__preview"><img src="/images/wallpapers/cream-paper.jpg" alt="" /></span>
+          <span class="wallpaper-option__name">奶油纸纹</span>
+        </button>
+        <button class="wallpaper-option" type="button" data-wallpaper="soft" aria-pressed="false">
+          <span class="wallpaper-option__preview"><img src="/images/wallpapers/soft-paper.jpg" alt="" /></span>
+          <span class="wallpaper-option__name">柔和纸纹</span>
+        </button>
+        <button class="wallpaper-option" type="button" data-wallpaper="warm" aria-pressed="false">
+          <span class="wallpaper-option__preview"><img src="/images/wallpapers/warm-paper.jpg" alt="" /></span>
+          <span class="wallpaper-option__name">暖色纸纹</span>
+        </button>
       </div>
     </div>
   </template>
@@ -8761,6 +9127,14 @@
   </template>
   <template id="docChangelogTpl">
     <h1>拾光更新日志</h1>
+    <h4>v1.5.6 <span class="doc-version-date">2026.10.08</span></h4>
+    <p><strong>统计页新增「文件夹」</strong></p>
+    <p>统计页日期卡片旁新增文件夹：保存记录前，在抠图结果页点亮食物名称旁的「相册纸」按钮，这张原图就会一起收进文件夹（不开则只保存抠图成品）。点击文件夹翻开相册，按日期浏览全部原图，最新的排在前面；点开大图后再次轻点，翻到照片背面，还可以写下一段文字（最多 5000 字），点右上角 ✓ 保存。原图按账号保存在本机并同步到账号，换设备登录也能看到；删除记录或注销账号时会一并清理。</p>
+    <p><strong>新增「外观设置」</strong></p>
+    <p>通用设置改为「系统设置 / 个性化设置 / 外观设置」三个入口，找设置更清楚。「外观设置」内置默认外观、奶油纸纹、柔和纸纹、暖色纸纹 4 款壁纸，左右滑动、停在哪张就自动应用；壁纸会应用到首页、滑动页、统计页、我的页面与手账外层背景，登录后跟随账号同步，多设备保持同一款外观。</p>
+    <p><strong>修复已知问题</strong></p>
+    <p>修复删除记录后可能在同步时被云端「复活」、上传失败的记录不再重试、本机缺失的抠图不会补齐等同步问题，刷新更快更可靠；退出或注销账号时一并清理本机的原图与同步标记，避免串号；修复日历图片坠落动画飞出统计页、切换分页后残留动画，以及保存记录时日期与时间可能不一致的问题。</p>
+    <p>修复仅抠图记录在首页、统计页仍显示 0Kcal，AI 小贴士可能套用其它食物文案，抠图结果页食物名称不居中、登录页输入框图标被「获取验证码」按钮挤压、启动页在部分屏幕底部露白等界面问题，并优化未登录时 API 设置入口的置灰提示与资料同步稳定性。</p>
     <h4>v1.5.3 <span class="doc-version-date">2026.10.05</span></h4>
     <p>修复已知问题，提升使用稳定性。</p>
     <h4>v1.5.2 <span class="doc-version-date">2026.09.27</span></h4>
@@ -8823,7 +9197,7 @@
     <p><strong>账号与安全</strong></p>
     <p>支持手机号验证码、QQ 邮箱、Google 三种方式登录，可绑定手机号/邮箱、设置密保、找回与修改密码。</p>
     <p><strong>AI 额度说明</strong></p>
-    <p>新注册用户享 3 天免费试用；试用结束后，请在「通用设置 → API调用」填写自己的美图抠图密钥（必填），可仅使用抠图功能并手动填写热量与营养；同时填写 Qwen API 即可自动识别热量与营养。</p>
+    <p>每位用户每天可免费抠图 5 次（北京时间零点重置）。在「通用设置 → API调用」填写自己的美图密钥后可不限次抠图；同时填写 Qwen API 可自动识别热量与营养。</p>
     <p><strong>多语言与体验</strong></p>
     <p>支持简体中文、English、日本語、한국어 四种语言；支持添加到主屏幕（PWA）与安卓 App 沉浸式体验。</p>
   </template>
@@ -9098,17 +9472,37 @@
           "我已知晓，并确认删除": "I understand, delete all data",
           "确定要删除所有历史数据吗？此操作不可恢复。": "Delete all history data? This cannot be undone.",
           "通用设置": "General Settings",
+          "系统设置": "System Settings",
+          "个性化设置": "Personalization",
+          "外观设置": "Appearance",
+          "壁纸选择": "Wallpaper selection",
+          "左右滑动，停在哪张就自动应用": "Swipe to a wallpaper to apply it automatically",
+          "默认外观": "Default appearance",
+          "奶油纸纹": "Cream paper",
+          "柔和纸纹": "Soft paper",
+          "暖色纸纹": "Warm paper",
+          "震动反馈": "Haptic feedback",
+          "数据刷新": "Data Refresh",
+          "立即同步": "Sync now",
+          "数据同步中…": "Syncing…",
+          "数据已同步": "Data synced",
+          "同步失败，请检查网络": "Sync failed. Please check your network.",
           "启用消息通知": "Enable notifications",
           "地理位置权限": "Location permission",
           "动作与方向权限": "Motion & orientation permission",
           "API调用": "API access",
+          "今日剩余": "Remaining today",
+          "今日免费抠图次数已用完": "Today’s free cutouts are used up",
+          "每位用户每天可免费抠图 5 次，今日额度已用完。": "Each user gets 5 free cutouts per day. You have used all 5 today.",
+          "在「通用设置 → API调用」填写自己的美图密钥后，抠图次数不限；同时填写 Qwen API 可继续自动识别热量与营养。": "Enter your Meitu keys in General Settings → API access for unlimited cutouts. Add a Qwen API key for automatic calorie and nutrition analysis.",
+          "API 已保存": "API saved",
+          "拍照抠图与热量分析需要登录账号，每人每天免费 5 次。": "Sign in to cut out photos and analyze calories. Each user gets 5 free cutouts a day.",
           "未设置": "Not set",
           "已设置": "Set",
           "请输入 API": "Enter API",
           "API 仅保存在本机浏览器，不会上传。": "The API is stored only in this browser and is never uploaded.",
           "保存": "Save",
           "登录后使用智能分析": "Sign in to use smart analysis",
-          "拍照识别热量与营养分析需要登录账号后使用。": "Calorie and nutrition analysis requires signing in to your account.",
           "你也可以先只抠图，热量与营养手动填写。": "You can also continue with cutout only and fill in calories and nutrition manually.",
           "仅抠图使用": "Cutout only",
           "去登录": "Sign in",
@@ -9129,7 +9523,7 @@
           "请输入 Qwen API Key": "Enter Qwen API key",
           "Qwen API 将加密保存在服务器，仅用于你自己的识别请求。": "Your Qwen API key is encrypted on the server and used only for your own recognition requests.",
           "清除已保存的 Qwen API": "Clear saved Qwen API",
-          "美图抠图密钥（必填）": "Meitu cutout keys (required)",
+          "美图抠图密钥（不限次使用）": "Meitu cutout keys (unlimited cutouts)",
           "美图抠图密钥将加密保存在服务器，仅用于你自己的抠图请求。可前往 meituhub.cn 注册获取。": "Your Meitu keys are encrypted on the server and used only for your own cutout requests. Get them at meituhub.cn.",
           "清除已保存的美图密钥": "Clear saved Meitu keys",
           "美图 AccessKey 和 SecretKey 需要成对填写": "Meitu AccessKey and SecretKey must be entered together",
@@ -9291,8 +9685,14 @@
           "新版本 v1.3.7 已发布：首页点击抠图可放大查看并显示 AI 小贴士，新增背景虚化、上下拖动与统一显示尺寸；抠图结果弹窗支持向下拖动关闭；修复小贴士不显示、更新日志未翻译等问题。可在「菜单 → 更新日志」查看详情。": "Version v1.3.7 is out: tap a cutout on the home page to enlarge it with an AI tip, plus background blur, drag to reposition and a unified display size; the cutout result sheet can be closed by dragging down; fixes for missing tips and untranslated changelog entries. See Menu -> Changelog for details.",
           "v1.4.3 更新": "v1.4.3 Update",
            "新版本 v1.4.3 已发布：新增「仅抠图」模式与「个性描边」功能，滑动页按钮位置调整，账号安全弹窗换新插图，拍照页新增多处触感反馈，并修复已知问题。可在「菜单 → 更新日志」查看详情。": "Version v1.4.3 is out: new \"Cutout only\" mode and \"Custom Outline\", repositioned buttons on the swipe page, new artwork in the Account & Security dialogs, more haptics on the camera page, plus bug fixes. See Menu -> Changelog for details.",
-           "修复已知问题，提升使用稳定性。": "Fixed known issues and improved stability.",
-           "新增「仅抠图」模式": "New \"Cutout Only\" Mode",
+            "修复已知问题，提升使用稳定性。": "Fixed known issues and improved stability.",
+            "统计页新增「文件夹」": "New \"Folder\" on the Stats Page",
+            "统计页日期卡片旁新增文件夹：保存记录前，在抠图结果页点亮食物名称旁的「相册纸」按钮，这张原图就会一起收进文件夹（不开则只保存抠图成品）。点击文件夹翻开相册，按日期浏览全部原图，最新的排在前面；点开大图后再次轻点，翻到照片背面，还可以写下一段文字（最多 5000 字），点右上角 ✓ 保存。原图按账号保存在本机并同步到账号，换设备登录也能看到；删除记录或注销账号时会一并清理。": "A folder now sits beside the date card on the stats page: before saving a record, tap the \"album paper\" button next to the food name on the cutout result sheet and the original photo is kept in the folder too (otherwise only the cutout is saved). Tap the folder to open the album and browse all originals by date, newest first; tap a photo to enlarge it, then tap again to flip it over and write a note on the back (up to 5,000 characters), and tap ✓ at the top-right to save. Originals are kept on this device and synced to your account, so they follow you to other devices; deleting a record or your account clears them as well.",
+            "新增「外观设置」": "New \"Appearance\" Settings",
+            "通用设置改为「系统设置 / 个性化设置 / 外观设置」三个入口，找设置更清楚。「外观设置」内置默认外观、奶油纸纹、柔和纸纹、暖色纸纹 4 款壁纸，左右滑动、停在哪张就自动应用；壁纸会应用到首页、滑动页、统计页、我的页面与手账外层背景，登录后跟随账号同步，多设备保持同一款外观。": "General Settings now has three entries - System Settings, Personalization and Appearance - so options are easier to find. Appearance includes four wallpapers: Default, Cream Paper, Soft Paper and Warm Paper. Swipe left or right and the wallpaper you stop on is applied instantly; it covers the Home, Swipe, Stats, Me pages and the journal background, and syncs with your account so all devices share the same look.",
+            "修复删除记录后可能在同步时被云端「复活」、上传失败的记录不再重试、本机缺失的抠图不会补齐等同步问题，刷新更快更可靠；退出或注销账号时一并清理本机的原图与同步标记，避免串号；修复日历图片坠落动画飞出统计页、切换分页后残留动画，以及保存记录时日期与时间可能不一致的问题。": "Fixed sync issues where deleted records could come back from the cloud, failed uploads were not retried, and missing cutouts were not restored - refreshing is now faster and more reliable; signing out or deleting your account now also clears local originals and pending sync markers to prevent data mix-ups; fixed the calendar photo drop animation flying out of the stats page or lingering after switching panes, and the date/time mismatch when saving a record.",
+            "修复仅抠图记录在首页、统计页仍显示 0Kcal，AI 小贴士可能套用其它食物文案，抠图结果页食物名称不居中、登录页输入框图标被「获取验证码」按钮挤压、启动页在部分屏幕底部露白等界面问题，并优化未登录时 API 设置入口的置灰提示与资料同步稳定性。": "Fixed cutout-only records still showing 0Kcal on the Home and Stats pages, AI tips occasionally using another food's text, the food name not being centered on the cutout result sheet, the \"Get code\" button squeezing input icons on the login page, and a white gap at the bottom of the splash screen on some devices; improved the greyed-out hint for the API settings entry when signed out and the stability of profile sync.",
+            "新增「仅抠图」模式": "New \"Cutout Only\" Mode",
           "拍照页新增「仅抠图」复选框：勾选后只做智能抠图、跳过热量与营养识别，适合只想把食物抠出来的场景；热量与营养可在添加详情页手动填写。": "The camera page now has a \"Cutout only\" checkbox: when checked, only the smart cutout runs and calorie/nutrition recognition is skipped - perfect when you just want the food cut out. Calories and nutrition can be filled in manually on the add-detail page.",
           "新增「个性描边」": "New \"Custom Outline\"",
           "抠图结果弹窗新增「个性描边」入口（「询问 AI」旁的齿轮按钮），内置 13 种描边样式，每张样式卡片会播放「从无到有描出轮廓」的预览动画；选中后自动重新生成带描边的成品图，随时可恢复系统默认描边。": "The cutout result sheet now has a \"Custom Outline\" entry (the gear button next to \"Ask AI\") with 13 outline styles; each style card plays a \"drawing the outline from scratch\" preview animation. Selecting one re-renders the cutout with that outline, and you can restore the default outline at any time.",
@@ -9468,7 +9868,7 @@
           "拾光（PickTime）是一款专注于饮食记录与健康参考的应用，支持拍照记录饮食、智能抠图、AI 热量与营养分析、体脂率参考、饮食时间线与数据统计，帮助你用照片记录每一餐，也记录生活的温度。": "Shiguang (PickTime) is an app focused on food logging and health reference. It supports photo-based food logging, smart cutout, AI calorie and nutrition analysis, body-fat reference, a food timeline and data statistics - helping you record every meal and the warmth of daily life.",
           "拍照记录饮食 · 智能抠图 · AI 热量与营养分析（蛋白/脂肪/碳水/糖/纤维/钠） · 饮食时间线 · 月历与热力图统计 · 热量趋势 · 体脂率参考 · 封面与头像自定义 · 多语言（简体中文 / English / 日本語 / 한국어） · 支持添加到主屏幕与安卓 App": "Photo food logging · Smart cutout · AI calorie & nutrition analysis (protein/fat/carbs/sugar/fiber/sodium) · Food timeline · Monthly calendar & heatmap statistics · Calorie trends · Body-fat reference · Custom cover & avatar · Multi-language (简体中文 / English / 日本語 / 한국어) · Add to Home Screen & Android app",
           "AI 服务说明": "AI Service",
-          "热量与营养分析由第三方 AI 服务提供，抠图由美图 AI 提供。新注册用户享 3 天免费试用；试用结束后，请在「通用设置 → API调用」填写自己的美图抠图密钥（必填，可在 meituhub.cn 注册获取），可仅使用抠图功能并手动填写热量与营养；同时填写 Qwen API 即可自动识别热量与营养。": "Calorie and nutrition analysis is provided by third-party AI services, and cutout is powered by Meitu AI. New users get a 3-day free trial. After it ends, enter your own Meitu cutout keys (required, available at meituhub.cn) in General Settings → API access; you can use cutout only and fill in calories and nutrition manually, or also enter a Qwen API key for automatic analysis.",
+          "热量与营养分析由第三方 AI 服务提供，抠图由美图 AI 提供。每位用户每天可免费抠图 5 次（北京时间零点重置）；如需不限次数，请在「通用设置 → API调用」填写自己的美图抠图密钥（可在 meituhub.cn 注册获取）。仅填写美图密钥可抠图并手动填写营养；同时填写 Qwen API 可自动识别热量与营养。": "Calorie and nutrition analysis is provided by third-party AI services, and cutout is powered by Meitu AI. Every user gets 5 free cutouts per day, resetting at midnight China time. For unlimited cutouts, enter your own Meitu keys in General Settings → API access (available at meituhub.cn). Meitu keys alone allow cutouts with manual nutrition entry; add a Qwen API key for automatic calorie and nutrition analysis.",
           "Copyright © 拾光 PickTime. All Rights Reserved": "Copyright © Shiguang PickTime. All Rights Reserved",
           "首个正式版本": "First official release",
           "拍照即可记录饮食：支持相机拍摄与相册选图，自动完成智能抠图，并识别食物名称、数量、热量与营养成分（蛋白、脂肪、碳水、糖、纤维、钠）。": "Log your meals with a photo: take a picture or choose one from your album, and the app will automatically cut out the food and recognize its name, quantity, calories and nutrients (protein, fat, carbs, sugar, fiber, sodium).",
@@ -9479,7 +9879,7 @@
           "支持昵称、个性签名、封面、头像、身高体重体脂率与地区性别设置，并依据身高体重估算体脂率（仅供参考）。": "Supports nickname, signature, cover, avatar, height/weight/body-fat and region/gender settings, and estimates body fat from height and weight (for reference only).",
           "支持手机号验证码、QQ 邮箱、Google 三种方式登录，可绑定手机号/邮箱、设置密保、找回与修改密码。": "Sign in with phone verification code, QQ email or Google. You can bind a phone number/email, set security questions, recover your account and change your password.",
           "AI 额度说明": "AI Quota",
-          "新注册用户享 3 天免费试用；试用结束后，请在「通用设置 → API调用」填写自己的美图抠图密钥（必填），可仅使用抠图功能并手动填写热量与营养；同时填写 Qwen API 即可自动识别热量与营养。": "New users get a 3-day free trial. After it ends, enter your own Meitu cutout keys (required) in General Settings → API access to use cutout and fill in calories and nutrition manually; also enter a Qwen API key for automatic calorie and nutrition analysis.",
+          "每位用户每天可免费抠图 5 次（北京时间零点重置）。在「通用设置 → API调用」填写自己的美图密钥后可不限次抠图；同时填写 Qwen API 可自动识别热量与营养。": "Every user gets 5 free cutouts per day, resetting at midnight China time. Enter your own Meitu keys in General Settings → API access for unlimited cutouts; add a Qwen API key for automatic calorie and nutrition analysis.",
           "多语言与体验": "Languages & Experience",
           "支持简体中文、English、日本語、한국어 四种语言；支持添加到主屏幕（PWA）与安卓 App 沉浸式体验。": "Supports Simplified Chinese, English, Japanese and Korean; works as a Home Screen app (PWA) and an immersive Android app.",
           "本应用提供的热量、营养成分、体脂率等信息均基于 AI 算法或通用公式估算，仅供参考，不构成专业医疗、健康或营养建议。AI 分析结果可能存在偏差，请以实际情况为准。": "Calorie, nutrition and body-fat data in this app are estimated by AI or general formulas, for reference only, and do not constitute professional medical, health or dietary advice. AI results may be inaccurate; please refer to actual conditions.",
@@ -9623,17 +10023,37 @@
           "我已知晓，并确认删除": "理解しました。すべてのデータを削除します",
           "确定要删除所有历史数据吗？此操作不可恢复。": "すべての履歴データを削除しますか？この操作は元に戻せません。",
           "通用设置": "一般設定",
+          "系统设置": "システム設定",
+          "个性化设置": "カスタマイズ設定",
+          "外观设置": "外観設定",
+          "壁纸选择": "壁紙の選択",
+          "左右滑动，停在哪张就自动应用": "左右にスワイプすると壁紙が自動で適用されます",
+          "默认外观": "標準の外観",
+          "奶油纸纹": "クリーム色の紙",
+          "柔和纸纹": "やわらかな紙",
+          "暖色纸纹": "暖色の紙",
+          "震动反馈": "触覚フィードバック",
+          "数据刷新": "データ更新",
+          "立即同步": "今すぐ同期",
+          "数据同步中…": "同期中…",
+          "数据已同步": "データを同期しました",
+          "同步失败，请检查网络": "同期に失敗しました。ネットワークを確認してください。",
           "启用消息通知": "通知を有効にする",
           "地理位置权限": "位置情報の権限",
           "动作与方向权限": "モーションと方向の権限",
           "API调用": "APIアクセス",
+          "今日剩余": "今日の残り",
+          "今日免费抠图次数已用完": "本日の無料切り抜き回数を使い切りました",
+          "每位用户每天可免费抠图 5 次，今日额度已用完。": "1人あたり毎日5回まで無料で切り抜けます。本日の回数を使い切りました。",
+          "在「通用设置 → API调用」填写自己的美图密钥后，抠图次数不限；同时填写 Qwen API 可继续自动识别热量与营养。": "「一般設定 → APIアクセス」にご自身のMeituキーを入力すると、切り抜き回数は無制限になります。Qwen APIも入力するとカロリーと栄養を自動分析できます。",
+          "API 已保存": "APIを保存しました",
+          "拍照抠图与热量分析需要登录账号，每人每天免费 5 次。": "写真の切り抜きとカロリー分析にはログインが必要です。1人あたり毎日5回無料です。",
           "未设置": "未設定",
           "已设置": "設定済み",
           "请输入 API": "APIを入力",
           "API 仅保存在本机浏览器，不会上传。": "APIは端末のブラウザにのみ保存され、アップロードされません。",
           "保存": "保存",
           "登录后使用智能分析": "スマート分析にはログインが必要です",
-          "拍照识别热量与营养分析需要登录账号后使用。": "カロリーと栄養の分析には、アカウントへのログインが必要です。",
           "你也可以先只抠图，热量与营养手动填写。": "切り抜きのみを続けて、カロリーと栄養を手入力することもできます。",
           "仅抠图使用": "切り抜きのみ",
           "去登录": "ログイン",
@@ -9654,7 +10074,7 @@
           "请输入 Qwen API Key": "Qwen APIキーを入力",
           "Qwen API 将加密保存在服务器，仅用于你自己的识别请求。": "Qwen APIキーは暗号化してサーバーに保存され、ご自身の認識リクエストにのみ使用されます。",
           "清除已保存的 Qwen API": "保存済みQwen APIを削除",
-          "美图抠图密钥（必填）": "Meitu切り抜きキー（必須）",
+          "美图抠图密钥（不限次使用）": "Meitu切り抜きキー（回数無制限）",
           "美图抠图密钥将加密保存在服务器，仅用于你自己的抠图请求。可前往 meituhub.cn 注册获取。": "Meitu切り抜きキーは暗号化してサーバーに保存され、ご自身の切り抜きリクエストにのみ使用されます。meituhub.cn で取得できます。",
           "清除已保存的美图密钥": "保存済みMeituキーを削除",
           "美图 AccessKey 和 SecretKey 需要成对填写": "MeituのAccessKeyとSecretKeyはペアで入力してください",
@@ -9816,8 +10236,14 @@
           "新版本 v1.3.7 已发布：首页点击抠图可放大查看并显示 AI 小贴士，新增背景虚化、上下拖动与统一显示尺寸；抠图结果弹窗支持向下拖动关闭；修复小贴士不显示、更新日志未翻译等问题。可在「菜单 → 更新日志」查看详情。": "v1.3.7 を公開しました：ホームで切り抜きをタップすると拡大表示と AI ヒントが表示され、背景ぼかし・上下ドラッグ・表示サイズの統一に対応；切り抜き結果シートは下にドラッグして閉じられます；ヒントが表示されない問題や更新履歴の未翻訳を修正しました。詳しくは「メニュー → 更新履歴」をご覧ください。",
           "v1.4.3 更新": "v1.4.3 アップデート",
            "新版本 v1.4.3 已发布：新增「仅抠图」模式与「个性描边」功能，滑动页按钮位置调整，账号安全弹窗换新插图，拍照页新增多处触感反馈，并修复已知问题。可在「菜单 → 更新日志」查看详情。": "v1.4.3 を公開しました：新機能「切り抜きのみ」モードと「オリジナル縁取り」、スワイプページのボタン位置調整、アカウントとセキュリティのダイアログに新しいイラスト、撮影ページの触感フィードバック追加、既知の問題を修正。詳しくは「メニュー → 更新履歴」をご覧ください。",
-           "修复已知问题，提升使用稳定性。": "既知の問題を修正し、使用の安定性を向上しました。",
-           "新增「仅抠图」模式": "「切り抜きのみ」モードを追加",
+            "修复已知问题，提升使用稳定性。": "既知の問題を修正し、使用の安定性を向上しました。",
+            "统计页新增「文件夹」": "統計ページに「フォルダ」を追加",
+            "统计页日期卡片旁新增文件夹：保存记录前，在抠图结果页点亮食物名称旁的「相册纸」按钮，这张原图就会一起收进文件夹（不开则只保存抠图成品）。点击文件夹翻开相册，按日期浏览全部原图，最新的排在前面；点开大图后再次轻点，翻到照片背面，还可以写下一段文字（最多 5000 字），点右上角 ✓ 保存。原图按账号保存在本机并同步到账号，换设备登录也能看到；删除记录或注销账号时会一并清理。": "統計ページの日付カードの横にフォルダが追加されました。記録を保存する前に、切り抜き結果ページで食べ物の名前の横にある「アルバムペーパー」ボタンを点灯すると、元の写真もフォルダに保存されます（点灯しない場合は切り抜き画像のみ保存）。フォルダをタップするとアルバムが開き、日付ごとにすべての元写真を新しい順に閲覧できます。写真をタップして拡大し、もう一度タップすると裏返して裏面にメモを書けます（最大5,000文字）。右上の✓で保存します。元写真は端末に保存されると同時にアカウントに同期されるため、別の端末でログインしても見られます。記録の削除やアカウント削除時には一緒に削除されます。",
+            "新增「外观设置」": "「外観設定」を追加",
+            "通用设置改为「系统设置 / 个性化设置 / 外观设置」三个入口，找设置更清楚。「外观设置」内置默认外观、奶油纸纹、柔和纸纹、暖色纸纹 4 款壁纸，左右滑动、停在哪张就自动应用；壁纸会应用到首页、滑动页、统计页、我的页面与手账外层背景，登录后跟随账号同步，多设备保持同一款外观。": "「一般設定」が「システム設定 / カスタマイズ設定 / 外観設定」の3つの入口に整理され、設定を探しやすくなりました。「外観設定」には標準の外観、クリーム色の紙、やわらかな紙、暖色の紙の4種類の壁紙があり、左右にスワイプして止まった壁紙が自動で適用されます。壁紙はホーム、スワイプ、統計、マイページと手帳の外側の背景に適用され、ログイン後はアカウントと同期して複数の端末で同じ外観になります。",
+            "修复删除记录后可能在同步时被云端「复活」、上传失败的记录不再重试、本机缺失的抠图不会补齐等同步问题，刷新更快更可靠；退出或注销账号时一并清理本机的原图与同步标记，避免串号；修复日历图片坠落动画飞出统计页、切换分页后残留动画，以及保存记录时日期与时间可能不一致的问题。": "削除した記録が同期時にクラウドから「復活」する、アップロードに失敗した記録が再試行されない、端末にない切り抜き画像が補完されないなどの同期問題を修正し、更新がより速く確実になりました。ログアウトやアカウント削除時に端末内の元写真と同期マーカーも一緒に削除し、アカウントの混在を防ぎます。カレンダー写真の落下アニメーションが統計ページ外に飛び出したり、ページ切り替え後に残ったりする問題、記録保存時に日付と時刻がずれることがある問題も修正しました。",
+            "修复仅抠图记录在首页、统计页仍显示 0Kcal，AI 小贴士可能套用其它食物文案，抠图结果页食物名称不居中、登录页输入框图标被「获取验证码」按钮挤压、启动页在部分屏幕底部露白等界面问题，并优化未登录时 API 设置入口的置灰提示与资料同步稳定性。": "切り抜きのみの記録がホームや統計ページで 0Kcal と表示される問題、AI ヒントが別の料理の文章を使うことがある問題、切り抜き結果ページで食べ物の名前が中央に表示されない問題、ログインページで「認証コード取得」ボタンが入力欄のアイコンを圧迫する問題、一部の端末で起動画面の下部に白い隙間が出る問題を修正し、未ログイン時のAPI設定入口のヒントとプロフィール同期の安定性を改善しました。",
+            "新增「仅抠图」模式": "「切り抜きのみ」モードを追加",
           "拍照页新增「仅抠图」复选框：勾选后只做智能抠图、跳过热量与营养识别，适合只想把食物抠出来的场景；热量与营养可在添加详情页手动填写。": "撮影ページに「切り抜きのみ」チェックボックスを追加：オンにするとスマート切り抜きのみを行い、カロリーと栄養の認識をスキップします。料理だけを切り抜きたいときに便利で、カロリーと栄養は追加詳細ページで手入力できます。",
           "新增「个性描边」": "「オリジナル縁取り」を追加",
           "抠图结果弹窗新增「个性描边」入口（「询问 AI」旁的齿轮按钮），内置 13 种描边样式，每张样式卡片会播放「从无到有描出轮廓」的预览动画；选中后自动重新生成带描边的成品图，随时可恢复系统默认描边。": "切り抜き結果シートに「オリジナル縁取り」の入口（「AIに聞く」の隣の歯車ボタン）を追加し、13種類の縁取りスタイルを用意しました。各スタイルカードでは「輪郭が描かれていく」プレビューアニメーションを再生します。選択すると縁取り付きの画像が再生成され、いつでもデフォルトの縁取りに戻せます。",
@@ -9993,7 +10419,7 @@
           "拾光（PickTime）是一款专注于饮食记录与健康参考的应用，支持拍照记录饮食、智能抠图、AI 热量与营养分析、体脂率参考、饮食时间线与数据统计，帮助你用照片记录每一餐，也记录生活的温度。": "拾光（PickTime）は、食事記録と健康の参考に特化したアプリです。写真での食事記録、スマート切り抜き、AIによるカロリーと栄養の分析、体脂肪率の参考値、食事タイムライン、データ統計に対応し、毎食の記録と日々のぬくもりを残すお手伝いをします。",
           "拍照记录饮食 · 智能抠图 · AI 热量与营养分析（蛋白/脂肪/碳水/糖/纤维/钠） · 饮食时间线 · 月历与热力图统计 · 热量趋势 · 体脂率参考 · 封面与头像自定义 · 多语言（简体中文 / English / 日本語 / 한국어） · 支持添加到主屏幕与安卓 App": "写真で食事記録 · スマート切り抜き · AIカロリー・栄養分析（タンパク質/脂質/炭水化物/糖質/食物繊維/ナトリウム） · 食事タイムライン · 月間カレンダーとヒートマップ統計 · カロリートレンド · 体脂肪率の参考値 · カバーとアバターのカスタマイズ · 多言語（简体中文 / English / 日本語 / 한국어） · ホーム画面への追加とAndroidアプリ",
           "AI 服务说明": "AIサービスについて",
-          "热量与营养分析由第三方 AI 服务提供，抠图由美图 AI 提供。新注册用户享 3 天免费试用；试用结束后，请在「通用设置 → API调用」填写自己的美图抠图密钥（必填，可在 meituhub.cn 注册获取），可仅使用抠图功能并手动填写热量与营养；同时填写 Qwen API 即可自动识别热量与营养。": "カロリーと栄養の分析はサードパーティのAIサービス、切り抜きはMeitu AIが提供します。新規登録ユーザーは3日間の無料トライアルをご利用いただけます。トライアル終了後は、「一般設定 → API呼び出し」でご自身のMeitu切り抜きキー（必須、meituhub.cnで取得可能）を入力してください。切り抜きのみを利用してカロリーと栄養を手入力することも、Qwen APIも入力して自動分析することもできます。",
+          "热量与营养分析由第三方 AI 服务提供，抠图由美图 AI 提供。每位用户每天可免费抠图 5 次（北京时间零点重置）；如需不限次数，请在「通用设置 → API调用」填写自己的美图抠图密钥（可在 meituhub.cn 注册获取）。仅填写美图密钥可抠图并手动填写营养；同时填写 Qwen API 可自动识别热量与营养。": "カロリーと栄養の分析はサードパーティのAIサービス、切り抜きはMeitu AIが提供します。すべてのユーザーは毎日5回無料で切り抜けます（中国時間の午前0時にリセット）。回数無制限で使うには「一般設定 → APIアクセス」にご自身のMeituキー（meituhub.cnで取得可能）を入力してください。Meituキーのみなら栄養を手入力でき、Qwen APIも入力すると自動分析できます。",
           "Copyright © 拾光 PickTime. All Rights Reserved": "Copyright © Shiguang PickTime. All Rights Reserved",
           "首个正式版本": "初の正式リリース",
           "拍照即可记录饮食：支持相机拍摄与相册选图，自动完成智能抠图，并识别食物名称、数量、热量与营养成分（蛋白、脂肪、碳水、糖、纤维、钠）。": "写真を撮るだけで食事を記録：カメラ撮影とアルバム選択に対応し、自動でスマート切り抜きを行い、料理名・数量・カロリー・栄養成分（タンパク質、脂質、炭水化物、糖質、食物繊維、ナトリウム）を認識します。",
@@ -10004,7 +10430,7 @@
           "支持昵称、个性签名、封面、头像、身高体重体脂率与地区性别设置，并依据身高体重估算体脂率（仅供参考）。": "ニックネーム、ひとこと、カバー、アバター、身長・体重・体脂肪率、地域・性別の設定に対応し、身長と体重から体脂肪率を推定します（参考値）。",
           "支持手机号验证码、QQ 邮箱、Google 三种方式登录，可绑定手机号/邮箱、设置密保、找回与修改密码。": "電話番号の認証コード、QQメール、Googleの3種類のログインに対応。電話番号/メールの連携、秘密の質問の設定、パスワードの再設定と変更ができます。",
           "AI 额度说明": "AI利用枠について",
-          "新注册用户享 3 天免费试用；试用结束后，请在「通用设置 → API调用」填写自己的美图抠图密钥（必填），可仅使用抠图功能并手动填写热量与营养；同时填写 Qwen API 即可自动识别热量与营养。": "新規登録ユーザーは3日間の無料トライアルをご利用いただけます。終了後は「一般設定 → API呼び出し」でご自身のMeitu切り抜きキー（必須）を入力すると、切り抜きを利用してカロリーと栄養を手入力できます。Qwen APIも入力すると自動分析が利用できます。",
+          "每位用户每天可免费抠图 5 次（北京时间零点重置）。在「通用设置 → API调用」填写自己的美图密钥后可不限次抠图；同时填写 Qwen API 可自动识别热量与营养。": "すべてのユーザーは毎日5回無料で切り抜けます（中国時間の午前0時にリセット）。「一般設定 → APIアクセス」にご自身のMeituキーを入力すると回数無制限で使えます。Qwen APIも入力するとカロリーと栄養を自動分析できます。",
           "多语言与体验": "多言語と体験",
           "支持简体中文、English、日本語、한국어 四种语言；支持添加到主屏幕（PWA）与安卓 App 沉浸式体验。": "简体中文・English・日本語・한국어の4言語に対応。ホーム画面への追加（PWA）とAndroidアプリの没入体験に対応しています。",
           "本应用提供的热量、营养成分、体脂率等信息均基于 AI 算法或通用公式估算，仅供参考，不构成专业医疗、健康或营养建议。AI 分析结果可能存在偏差，请以实际情况为准。": "本アプリが提供するカロリー、栄養成分、体脂肪率などの情報は、AIアルゴリズムまたは一般的な計算式による推定値であり、参考情報です。専門的な医療・健康・栄養指導を構成するものではありません。AIの分析結果には誤差が生じる場合があります。実際の状況をご確認ください。",
@@ -10148,17 +10574,37 @@
           "我已知晓，并确认删除": "이해했습니다. 모든 데이터를 삭제합니다",
           "确定要删除所有历史数据吗？此操作不可恢复。": "모든 기록 데이터를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
           "通用设置": "일반 설정",
+          "系统设置": "시스템 설정",
+          "个性化设置": "개인화 설정",
+          "外观设置": "화면 설정",
+          "壁纸选择": "배경화면 선택",
+          "左右滑动，停在哪张就自动应用": "좌우로 넘기면 선택한 배경화면이 자동으로 적용됩니다",
+          "默认外观": "기본 화면",
+          "奶油纸纹": "크림 종이",
+          "柔和纸纹": "부드러운 종이",
+          "暖色纸纹": "따뜻한 종이",
+          "震动反馈": "진동 피드백",
+          "数据刷新": "데이터 새로고침",
+          "立即同步": "지금 동기화",
+          "数据同步中…": "동기화 중…",
+          "数据已同步": "데이터가 동기화되었습니다",
+          "同步失败，请检查网络": "동기화에 실패했습니다. 네트워크를 확인하세요.",
           "启用消息通知": "알림 사용",
           "地理位置权限": "위치 권한",
           "动作与方向权限": "동작 및 방향 권한",
           "API调用": "API 접근",
+          "今日剩余": "오늘 남은 횟수",
+          "今日免费抠图次数已用完": "오늘 무료 누끼 횟수를 모두 사용했습니다",
+          "每位用户每天可免费抠图 5 次，今日额度已用完。": "사용자마다 하루 5회 무료 누끼를 이용할 수 있습니다. 오늘 횟수를 모두 사용했습니다.",
+          "在「通用设置 → API调用」填写自己的美图密钥后，抠图次数不限；同时填写 Qwen API 可继续自动识别热量与营养。": "「일반 설정 → API 접근」에 본인의 Meitu 키를 입력하면 누끼를 무제한 사용할 수 있습니다. Qwen API도 입력하면 칼로리와 영양을 자동 분석할 수 있습니다.",
+          "API 已保存": "API가 저장되었습니다",
+          "拍照抠图与热量分析需要登录账号，每人每天免费 5 次。": "사진 누끼 및 칼로리 분석은 로그인이 필요합니다. 사용자마다 하루 5회 무료입니다.",
           "未设置": "설정 안 됨",
           "已设置": "설정됨",
           "请输入 API": "API 입력",
           "API 仅保存在本机浏览器，不会上传。": "API는 이 브라우저에만 저장되며 업로드되지 않습니다.",
           "保存": "저장",
           "登录后使用智能分析": "스마트 분석은 로그인 후 사용할 수 있습니다",
-          "拍照识别热量与营养分析需要登录账号后使用。": "칼로리와 영양 분석은 계정 로그인 후 사용할 수 있습니다.",
           "你也可以先只抠图，热量与营养手动填写。": "누끼만 계속 사용하고 칼로리와 영양은 직접 입력할 수도 있습니다.",
           "仅抠图使用": "누끼만 사용",
           "去登录": "로그인",
@@ -10179,7 +10625,7 @@
           "请输入 Qwen API Key": "Qwen API 키 입력",
           "Qwen API 将加密保存在服务器，仅用于你自己的识别请求。": "Qwen API 키는 서버에 암호화되어 저장되며, 본인의 인식 요청에만 사용됩니다.",
           "清除已保存的 Qwen API": "저장된 Qwen API 삭제",
-          "美图抠图密钥（必填）": "Meitu 누끼 키(필수)",
+          "美图抠图密钥（不限次使用）": "Meitu 누끼 키(무제한 사용)",
           "美图抠图密钥将加密保存在服务器，仅用于你自己的抠图请求。可前往 meituhub.cn 注册获取。": "Meitu 누끼 키는 서버에 암호화되어 저장되며, 본인의 누끼 요청에만 사용됩니다. meituhub.cn에서 발급받을 수 있습니다.",
           "清除已保存的美图密钥": "저장된 Meitu 키 삭제",
           "美图 AccessKey 和 SecretKey 需要成对填写": "Meitu AccessKey와 SecretKey는 함께 입력해야 합니다",
@@ -10341,8 +10787,14 @@
           "新版本 v1.3.7 已发布：首页点击抠图可放大查看并显示 AI 小贴士，新增背景虚化、上下拖动与统一显示尺寸；抠图结果弹窗支持向下拖动关闭；修复小贴士不显示、更新日志未翻译等问题。可在「菜单 → 更新日志」查看详情。": "v1.3.7이 출시되었습니다: 홈에서 누끼를 탭하면 확대 보기와 AI 팁이 표시되고, 배경 흐림·위아래 드래그·표시 크기 통일을 지원합니다; 누끼 결과 시트는 아래로 드래그해 닫을 수 있습니다; 팁이 표시되지 않던 문제와 업데이트 내역 미번역 문제를 수정했습니다. 자세한 내용은 '메뉴 → 업데이트 내역'에서 확인하세요.",
           "v1.4.3 更新": "v1.4.3 업데이트",
            "新版本 v1.4.3 已发布：新增「仅抠图」模式与「个性描边」功能，滑动页按钮位置调整，账号安全弹窗换新插图，拍照页新增多处触感反馈，并修复已知问题。可在「菜单 → 更新日志」查看详情。": "v1.4.3이 출시되었습니다: '누끼만' 모드와 '커스텀 테두리' 기능 추가, 스와이프 페이지 버튼 위치 조정, 계정 및 보안 다이얼로그 새 일러스트, 촬영 페이지 햅틱 피드백 추가, 알려진 문제 수정. 자세한 내용은 '메뉴 → 업데이트 내역'에서 확인하세요.",
-           "修复已知问题，提升使用稳定性。": "알려진 문제를 수정하고 사용 안정성을 개선했습니다.",
-           "新增「仅抠图」模式": "'누끼만' 모드 추가",
+            "修复已知问题，提升使用稳定性。": "알려진 문제를 수정하고 사용 안정성을 개선했습니다.",
+            "统计页新增「文件夹」": "통계 페이지에 '폴더' 추가",
+            "统计页日期卡片旁新增文件夹：保存记录前，在抠图结果页点亮食物名称旁的「相册纸」按钮，这张原图就会一起收进文件夹（不开则只保存抠图成品）。点击文件夹翻开相册，按日期浏览全部原图，最新的排在前面；点开大图后再次轻点，翻到照片背面，还可以写下一段文字（最多 5000 字），点右上角 ✓ 保存。原图按账号保存在本机并同步到账号，换设备登录也能看到；删除记录或注销账号时会一并清理。": "통계 페이지 날짜 카드 옆에 폴더가 추가되었습니다. 기록을 저장하기 전에 누끼 결과 페이지에서 음식 이름 옆의 '앨범 페이퍼' 버튼을 켜면 원본 사진도 폴더에 함께 저장됩니다(켜지 않으면 누끼 이미지만 저장). 폴더를 누르면 앨범이 열리고 날짜별로 모든 원본 사진을 최신순으로 볼 수 있습니다. 사진을 눌러 크게 본 뒤 다시 누르면 뒤집어서 뒷면에 글을 남길 수 있고(최대 5,000자), 오른쪽 위 ✓를 눌러 저장합니다. 원본 사진은 기기에 저장됨과 동시에 계정에 동기화되어 다른 기기에서 로그인해도 볼 수 있으며, 기록이나 계정을 삭제하면 함께 정리됩니다.",
+            "新增「外观设置」": "'화면 설정' 추가",
+            "通用设置改为「系统设置 / 个性化设置 / 外观设置」三个入口，找设置更清楚。「外观设置」内置默认外观、奶油纸纹、柔和纸纹、暖色纸纹 4 款壁纸，左右滑动、停在哪张就自动应用；壁纸会应用到首页、滑动页、统计页、我的页面与手账外层背景，登录后跟随账号同步，多设备保持同一款外观。": "일반 설정이 '시스템 설정 / 개인화 설정 / 화면 설정' 세 가지로 정리되어 설정을 찾기 쉬워졌습니다. 화면 설정에는 기본 화면, 크림 종이, 부드러운 종이, 따뜻한 종이 4가지 배경화면이 있으며 좌우로 넘겨 멈춘 배경화면이 자동으로 적용됩니다. 배경화면은 홈, 스와이프, 통계, 마이 페이지와 다이어리 외곽 배경에 적용되고, 로그인 후에는 계정과 동기화되어 여러 기기에서 같은 화면을 사용할 수 있습니다.",
+            "修复删除记录后可能在同步时被云端「复活」、上传失败的记录不再重试、本机缺失的抠图不会补齐等同步问题，刷新更快更可靠；退出或注销账号时一并清理本机的原图与同步标记，避免串号；修复日历图片坠落动画飞出统计页、切换分页后残留动画，以及保存记录时日期与时间可能不一致的问题。": "삭제한 기록이 동기화할 때 클라우드에서 다시 살아나는 문제, 업로드에 실패한 기록이 재시도되지 않는 문제, 기기에 없는 누끼 이미지가 채워지지 않는 문제 등 동기화 문제를 수정해 새로고침이 더 빠르고 안정적으로 동작합니다. 로그아웃이나 계정 삭제 시 기기에 있는 원본 사진과 동기화 표시도 함께 정리해 계정이 섞이지 않도록 했습니다. 캘린더 사진이 통계 페이지 밖으로 날아가거나 페이지 전환 후 남는 애니메이션 문제, 기록 저장 시 날짜와 시간이 어긋날 수 있는 문제도 수정했습니다.",
+            "修复仅抠图记录在首页、统计页仍显示 0Kcal，AI 小贴士可能套用其它食物文案，抠图结果页食物名称不居中、登录页输入框图标被「获取验证码」按钮挤压、启动页在部分屏幕底部露白等界面问题，并优化未登录时 API 设置入口的置灰提示与资料同步稳定性。": "누끼만 기록이 홈과 통계 페이지에서 0Kcal로 표시되는 문제, AI 팁이 다른 음식의 문구를 사용할 수 있는 문제, 누끼 결과 페이지에서 음식 이름이 가운데 정렬되지 않는 문제, 로그인 페이지에서 '인증번호 받기' 버튼이 입력창 아이콘을 밀어내는 문제, 일부 기기에서 시작 화면 하단에 흰 여백이 생기는 문제를 수정하고, 로그아웃 상태의 API 설정 안내와 프로필 동기화 안정성을 개선했습니다.",
+            "新增「仅抠图」模式": "'누끼만' 모드 추가",
           "拍照页新增「仅抠图」复选框：勾选后只做智能抠图、跳过热量与营养识别，适合只想把食物抠出来的场景；热量与营养可在添加详情页手动填写。": "촬영 페이지에 '누끼만' 체크박스를 추가했습니다: 체크하면 스마트 누끼만 실행하고 칼로리·영양 인식은 건너뜁니다. 음식만 누끼 따고 싶을 때 유용하며, 칼로리와 영양은 추가 상세 페이지에서 직접 입력할 수 있습니다.",
           "新增「个性描边」": "'커스텀 테두리' 추가",
           "抠图结果弹窗新增「个性描边」入口（「询问 AI」旁的齿轮按钮），内置 13 种描边样式，每张样式卡片会播放「从无到有描出轮廓」的预览动画；选中后自动重新生成带描边的成品图，随时可恢复系统默认描边。": "누끼 결과 시트에 '커스텀 테두리' 입구('AI에게 묻기' 옆 톱니바퀴 버튼)를 추가하고 13가지 테두리 스타일을 제공합니다. 각 스타일 카드는 '윤곽이 그려지는' 미리보기 애니메이션을 재생하며, 선택하면 테두리가 적용된 이미지가 다시 생성되고 언제든 기본 테두리로 되돌릴 수 있습니다.",
@@ -10518,7 +10970,7 @@
           "拾光（PickTime）是一款专注于饮食记录与健康参考的应用，支持拍照记录饮食、智能抠图、AI 热量与营养分析、体脂率参考、饮食时间线与数据统计，帮助你用照片记录每一餐，也记录生活的温度。": "拾光(PickTime)은 식사 기록과 건강 참고에 초점을 맞춘 앱입니다. 사진으로 식사 기록, 스마트 누끼, AI 칼로리·영양 분석, 체지방률 참고, 식사 타임라인, 데이터 통계를 지원하여 매 끼니의 기록과 일상의 온기를 남길 수 있습니다.",
           "拍照记录饮食 · 智能抠图 · AI 热量与营养分析（蛋白/脂肪/碳水/糖/纤维/钠） · 饮食时间线 · 月历与热力图统计 · 热量趋势 · 体脂率参考 · 封面与头像自定义 · 多语言（简体中文 / English / 日本語 / 한국어） · 支持添加到主屏幕与安卓 App": "사진으로 식사 기록 · 스마트 누끼 · AI 칼로리·영양 분석(단백질/지방/탄수화물/당/식이섬유/나트륨) · 식사 타임라인 · 월간 캘린더와 히트맵 통계 · 칼로리 추세 · 체지방률 참고 · 커버와 아바타 설정 · 다국어(简体中文 / English / 日本語 / 한국어) · 홈 화면 추가 및 Android 앱",
           "AI 服务说明": "AI 서비스 안내",
-          "热量与营养分析由第三方 AI 服务提供，抠图由美图 AI 提供。新注册用户享 3 天免费试用；试用结束后，请在「通用设置 → API调用」填写自己的美图抠图密钥（必填，可在 meituhub.cn 注册获取），可仅使用抠图功能并手动填写热量与营养；同时填写 Qwen API 即可自动识别热量与营养。": "칼로리와 영양 분석은 제3자 AI 서비스가, 누끼(배경 제거)는 Meitu AI가 제공합니다. 신규 가입자는 3일 무료 체험을 이용할 수 있습니다. 체험 종료 후 '일반 설정 → API 호출'에서 본인의 Meitu 누끼 키(필수, meituhub.cn에서 발급)를 입력하세요. 누끼만 사용하고 칼로리와 영양을 직접 입력하거나, Qwen API도 입력해 자동 분석을 사용할 수 있습니다.",
+          "热量与营养分析由第三方 AI 服务提供，抠图由美图 AI 提供。每位用户每天可免费抠图 5 次（北京时间零点重置）；如需不限次数，请在「通用设置 → API调用」填写自己的美图抠图密钥（可在 meituhub.cn 注册获取）。仅填写美图密钥可抠图并手动填写营养；同时填写 Qwen API 可自动识别热量与营养。": "칼로리와 영양 분석은 제3자 AI 서비스가, 누끼는 Meitu AI가 제공합니다. 모든 사용자는 하루 5회 무료 누끼를 이용할 수 있으며 중국 시간 자정에 초기화됩니다. 무제한 사용하려면 「일반 설정 → API 접근」에 본인의 Meitu 키(meituhub.cn에서 발급)를 입력하세요. Meitu 키만 있으면 영양을 직접 입력할 수 있고 Qwen API도 입력하면 자동 분석할 수 있습니다.",
           "Copyright © 拾光 PickTime. All Rights Reserved": "Copyright © Shiguang PickTime. All Rights Reserved",
           "首个正式版本": "첫 정식 버전",
           "拍照即可记录饮食：支持相机拍摄与相册选图，自动完成智能抠图，并识别食物名称、数量、热量与营养成分（蛋白、脂肪、碳水、糖、纤维、钠）。": "사진만 찍으면 식사를 기록: 카메라 촬영과 앨범 선택을 지원하고, 자동으로 스마트 누끼를 따며 음식 이름, 수량, 칼로리, 영양 성분(단백질, 지방, 탄수화물, 당, 식이섬유, 나트륨)을 인식합니다.",
@@ -10529,7 +10981,7 @@
           "支持昵称、个性签名、封面、头像、身高体重体脂率与地区性别设置，并依据身高体重估算体脂率（仅供参考）。": "닉네임, 한 줄 소개, 커버, 아바타, 키·몸무게·체지방률, 지역·성별 설정을 지원하며 키와 몸무게로 체지방률을 추정합니다(참고용).",
           "支持手机号验证码、QQ 邮箱、Google 三种方式登录，可绑定手机号/邮箱、设置密保、找回与修改密码。": "휴대폰 인증번호, QQ 이메일, Google 세 가지 로그인을 지원합니다. 휴대폰/이메일 연동, 보안 질문 설정, 비밀번호 찾기 및 변경이 가능합니다.",
           "AI 额度说明": "AI 할당량 안내",
-          "新注册用户享 3 天免费试用；试用结束后，请在「通用设置 → API调用」填写自己的美图抠图密钥（必填），可仅使用抠图功能并手动填写热量与营养；同时填写 Qwen API 即可自动识别热量与营养。": "신규 가입자는 3일 무료 체험을 이용할 수 있습니다. 체험 종료 후 '일반 설정 → API 호출'에서 본인의 Meitu 누끼 키(필수)를 입력하면 누끼를 사용하고 칼로리와 영양을 직접 입력할 수 있습니다. Qwen API도 입력하면 자동 분석을 사용할 수 있습니다.",
+          "每位用户每天可免费抠图 5 次（北京时间零点重置）。在「通用设置 → API调用」填写自己的美图密钥后可不限次抠图；同时填写 Qwen API 可自动识别热量与营养。": "모든 사용자는 하루 5회 무료 누끼를 이용할 수 있으며 중국 시간 자정에 초기화됩니다. 「일반 설정 → API 접근」에 본인의 Meitu 키를 입력하면 무제한 사용할 수 있고, Qwen API도 입력하면 칼로리와 영양을 자동 분석할 수 있습니다.",
           "多语言与体验": "다국어 및 사용성",
           "支持简体中文、English、日本語、한국어 四种语言；支持添加到主屏幕（PWA）与安卓 App 沉浸式体验。": "중국어 간체, English, 日本語, 한국어 4개 언어를 지원합니다. 홈 화면 추가(PWA)와 Android 앱 몰입형 체험을 지원합니다.",
           "本应用提供的热量、营养成分、体脂率等信息均基于 AI 算法或通用公式估算，仅供参考，不构成专业医疗、健康或营养建议。AI 分析结果可能存在偏差，请以实际情况为准。": "본 앱에서 제공하는 칼로리, 영양 성분, 체지방률 등의 정보는 AI 알고리즘이나 일반 공식으로 추정한 참고용 정보이며, 전문적인 의료·건강·영양 조언이 아닙니다. AI 분석 결과에는 오차가 있을 수 있으니 실제 상황을 기준으로 하세요.",
@@ -10945,7 +11397,7 @@
         }
         if (docOverlay && docOverlay.classList.contains("is-open") && currentDocKind) {
           var titles = { privacy: "隐私政策", terms: "服务条款", about: "关于拾光", contact: "联系我们", lang: "多语言和翻译", notif: "消息通知", help: "帮助中心", profile: "个人信息设置", changelog: "更新日志", products: "我们的其他产品", settings: "通用设置", account: "账号与安全" };
-          if (docTitle) docTitle.textContent = t(titles[currentDocKind] || "");
+          if (docTitle) docTitle.textContent = t(currentDocKind === "settings" ? settingsSectionTitle(settingsSection) : (titles[currentDocKind] || ""));
         }
         if (langChanged && window.__picktimeRerender) window.__picktimeRerender();
       }
@@ -11074,6 +11526,13 @@
       var docBody = document.getElementById("docBody");
       var docBack = document.getElementById("docBack");
       var currentDocKind = "";
+      var settingsSection = "";
+      function settingsSectionTitle(section) {
+        if (section === "system") return "系统设置";
+        if (section === "personal") return "个性化设置";
+        if (section === "appearance") return "外观设置";
+        return "通用设置";
+      }
       var NOTIF_KEY = "picktime-messages";
       function notifUpdateMessage() {
         return {
@@ -11398,12 +11857,108 @@
         saveProfileSetting(input);
         closeProfileSettingPicker();
       });
+      // 「数据刷新」是一次性操作；清除旧版本留下的“开启”状态。
+      var REFRESH_UI_KEY = "picktime-switch-refresh-ui";
+      try { localStorage.setItem(REFRESH_UI_KEY, "0"); } catch (e) {}
+
+      function showSettingsSection(section) {
+        if (currentDocKind !== "settings" || !docBody) return;
+        settingsSection = section === "system" || section === "personal" || section === "appearance" ? section : "";
+        var overview = docBody.querySelector("#settingsOverview");
+        if (overview) overview.hidden = !!settingsSection;
+        var details = docBody.querySelectorAll("[data-settings-detail]");
+        for (var di = 0; di < details.length; di++) {
+          details[di].hidden = details[di].getAttribute("data-settings-detail") !== settingsSection;
+        }
+        if (docTitle) docTitle.textContent = t(settingsSectionTitle(settingsSection));
+        docBody.scrollTop = 0;
+        if (settingsSection === "appearance" && docBody.__centerSelectedWallpaper) {
+          requestAnimationFrame(docBody.__centerSelectedWallpaper);
+        }
+      }
+
+      function initWallpaperCarousel() {
+        var carousel = docBody ? docBody.querySelector("#wallpaperCarousel") : null;
+        var wallpaper = window.__picktimeWallpaper;
+        if (!carousel || !wallpaper) return;
+        var options = carousel.querySelectorAll("[data-wallpaper]");
+        var scrollTimer = 0;
+        function markSelected(id) {
+          for (var wi = 0; wi < options.length; wi++) {
+            var active = options[wi].getAttribute("data-wallpaper") === id;
+            options[wi].classList.toggle("is-selected", active);
+            options[wi].setAttribute("aria-pressed", active ? "true" : "false");
+          }
+        }
+        function centerOption(option, smooth) {
+          if (!option) return;
+          var left = option.getBoundingClientRect().left - carousel.getBoundingClientRect().left + carousel.scrollLeft
+            - (carousel.clientWidth - option.clientWidth) / 2;
+          carousel.scrollTo({ left: left, behavior: smooth ? "smooth" : "auto" });
+        }
+        function selectOption(option) {
+          if (!option) return;
+          var id = wallpaper.set(option.getAttribute("data-wallpaper"));
+          markSelected(id);
+        }
+        function selectCenteredOption() {
+          var center = carousel.getBoundingClientRect().left + carousel.clientWidth / 2;
+          var nearest = null;
+          var distance = Infinity;
+          for (var wi = 0; wi < options.length; wi++) {
+            var rect = options[wi].getBoundingClientRect();
+            var delta = Math.abs(rect.left + rect.width / 2 - center);
+            if (delta < distance) { distance = delta; nearest = options[wi]; }
+          }
+          selectOption(nearest);
+        }
+        for (var wi = 0; wi < options.length; wi++) {
+          options[wi].addEventListener("click", function () {
+            selectOption(this);
+            centerOption(this, true);
+          });
+        }
+        carousel.addEventListener("scroll", function () {
+          clearTimeout(scrollTimer);
+          scrollTimer = setTimeout(selectCenteredOption, 160);
+        }, { passive: true });
+        if ("onscrollend" in carousel) carousel.addEventListener("scrollend", function () {
+          clearTimeout(scrollTimer);
+          selectCenteredOption();
+        });
+        docBody.__centerSelectedWallpaper = function () {
+          var selected = wallpaper.get();
+          markSelected(selected);
+          for (var wi = 0; wi < options.length; wi++) {
+            if (options[wi].getAttribute("data-wallpaper") === selected) {
+              centerOption(options[wi], false);
+              break;
+            }
+          }
+        };
+        window.__picktimeRefreshWallpaperUI = function () {
+          if (settingsSection === "appearance") requestAnimationFrame(docBody.__centerSelectedWallpaper);
+        };
+      }
+
       function initSettingsPage() {
+        initWallpaperCarousel();
+        var sectionButtons = docBody ? docBody.querySelectorAll("[data-settings-section]") : [];
+        for (var bi = 0; bi < sectionButtons.length; bi++) {
+          sectionButtons[bi].addEventListener("click", function () {
+            showSettingsSection(this.getAttribute("data-settings-section"));
+          });
+        }
         var switches = docBody ? docBody.querySelectorAll("input[data-key]") : [];
         for (var si = 0; si < switches.length; si++) {
           if (switches[si].id === "switchApi") continue;
-          var on = true;
-          try { on = localStorage.getItem(switches[si].getAttribute("data-key")) !== "0"; } catch (e) {}
+          var on;
+          if (switches[si].id === "switchRefreshUi") {
+            on = false;
+          } else {
+            on = true;
+            try { on = localStorage.getItem(switches[si].getAttribute("data-key")) !== "0"; } catch (e) {}
+          }
           switches[si].checked = on;
         }
         for (var sh = 0; sh < switches.length; sh++) {
@@ -11412,6 +11967,7 @@
             var wrap = cb.closest ? cb.closest(".checkbox-wrapper-41") : cb.parentElement;
             if (wrap && window.__picktimeAttachHaptic) {
               window.__picktimeAttachHaptic(wrap, function () {
+                if (cb.id === "switchRefreshUi" && cb.disabled) return;
                 cb.checked = !cb.checked;
                 cb.dispatchEvent(new Event("change", { bubbles: true }));
               });
@@ -11427,10 +11983,6 @@
             if (event.target && event.target.closest && event.target.closest(".checkbox-wrapper-41")) return;
             if (!apiState.loaded || !apiState.loggedIn) {
               if (window.__picktimeToast) window.__picktimeToast(t("请先登录账号后再设置 API"));
-              return;
-            }
-            if (apiState.trialActive && !apiState.vip) {
-              if (window.__picktimeToast) window.__picktimeToast(t("免费试用期间无需填写，试用结束后可设置自己的 API"));
               return;
             }
             openApiSheet();
@@ -11456,13 +12008,13 @@
         }
       }
 
-      // ===== 通用设置：API调用（登录 + 72小时试用 + 服务端加密存储）=====
-      var apiState = { loaded: false, at: 0, loggedIn: false, trialActive: true, vip: false, hasApiKey: false, apiEnabled: true, apiKeyMasked: "", hasMeituKey: false, meituAkMasked: "" };
+      // ===== 通用设置：API调用（登录 + 每日免费额度 + 服务端加密存储）=====
+      var apiState = { loaded: false, at: 0, loggedIn: false, dailyCutoutRemaining: 0, dailyCutoutLimit: 5, hasApiKey: false, apiEnabled: true, apiKeyMasked: "", hasMeituKey: false, meituAkMasked: "" };
       function isLoggedInNow() {
         try { return !!getAuthToken(); } catch (e) { return false; }
       }
       function resetApiState() {
-        apiState = { loaded: true, at: Date.now(), loggedIn: false, trialActive: true, vip: false, hasApiKey: false, apiEnabled: true, apiKeyMasked: "", hasMeituKey: false, meituAkMasked: "" };
+        apiState = { loaded: true, at: Date.now(), loggedIn: false, dailyCutoutRemaining: 0, dailyCutoutLimit: 5, hasApiKey: false, apiEnabled: true, apiKeyMasked: "", hasMeituKey: false, meituAkMasked: "" };
       }
       function refreshApiState(force) {
         return new Promise(function (resolve) {
@@ -11477,9 +12029,8 @@
             if (!isCurrentAuthSession(token, version)) { resolve(apiState); return; }
             apiState = {
               loaded: true, at: Date.now(), loggedIn: true,
-              trialActive: !!data.trialActive,
-              vip: !!data.vip,
-              trialEndsAt: Number(data.trialEndsAt) || 0,
+              dailyCutoutRemaining: Number(data.dailyCutoutRemaining) || 0,
+              dailyCutoutLimit: Number(data.dailyCutoutLimit) || 5,
               hasApiKey: !!data.hasApiKey,
               apiEnabled: data.apiEnabled !== false,
               apiKeyMasked: data.apiKeyMasked || "",
@@ -11499,7 +12050,7 @@
         });
       }
       function apiRowEditable() {
-        return apiState.loaded && apiState.loggedIn && (!apiState.trialActive || apiState.vip);
+        return apiState.loaded && apiState.loggedIn;
       }
       function updateApiRow() {
         if (!docBody) return;
@@ -11507,6 +12058,7 @@
         if (valEl) {
           if (apiState.hasMeituKey && apiState.hasApiKey) valEl.textContent = t("已设置");
           else if (apiState.hasMeituKey) valEl.textContent = t("仅抠图使用");
+          else if (apiState.loggedIn) valEl.textContent = t("今日剩余") + " " + apiState.dailyCutoutRemaining + "/" + apiState.dailyCutoutLimit;
           else valEl.textContent = "";
         }
         var row = docBody.querySelector("#apiRowBtn");
@@ -11603,8 +12155,8 @@
             apiState.loaded = true;
             apiState.at = Date.now();
             apiState.loggedIn = true;
-            apiState.trialActive = !!r.data.trialActive;
-            apiState.vip = !!r.data.vip;
+            apiState.dailyCutoutRemaining = Number(r.data.dailyCutoutRemaining) || 0;
+            apiState.dailyCutoutLimit = Number(r.data.dailyCutoutLimit) || 5;
             apiState.hasApiKey = !!r.data.hasApiKey;
             apiState.apiKeyMasked = r.data.apiKeyMasked || "";
             apiState.apiEnabled = r.data.apiEnabled !== false;
@@ -11641,7 +12193,7 @@
         postApiSetting(payload, function (err) {
           if (err) { alert(err); return; }
           closeApiSheet();
-          if (window.__picktimeToast) window.__picktimeToast(t("API 已保存，可以继续使用完整功能"));
+          if (window.__picktimeToast) window.__picktimeToast(t("API 已保存"));
         });
       }
       function clearApiValue() {
@@ -11659,7 +12211,7 @@
         });
       }
 
-      // ===== 限免结束 / 未登录提示弹窗 =====
+      // ===== 免费额度用尽 / 未登录提示弹窗 =====
       var apiLimitOverlay = document.getElementById("apiLimitOverlay");
       var apiLimitResolve = null;
       function showApiLimitDialog(kind) {
@@ -11672,10 +12224,9 @@
           if (kind === "login") {
             if (titleEl) titleEl.textContent = t("登录后使用智能分析");
             if (textEl) {
-              textEl.innerHTML = "<p>" + escapeHtmlText(t("拍照识别热量与营养分析需要登录账号后使用。")) + "</p>"
-                + "<p>" + escapeHtmlText(t("你也可以先只抠图，热量与营养手动填写。")) + "</p>";
+              textEl.innerHTML = "<p>" + escapeHtmlText(t("拍照抠图与热量分析需要登录账号，每人每天免费 5 次。")) + "</p>";
             }
-            if (ghost) ghost.textContent = t("仅抠图使用");
+            if (ghost) ghost.textContent = t("暂不");
             if (primary) primary.textContent = t("去登录");
           } else if (kind === "meitu") {
             if (titleEl) titleEl.textContent = t("需要美图抠图密钥");
@@ -11695,12 +12246,10 @@
             if (ghost) ghost.textContent = t("使用本机抠图");
             if (primary) primary.textContent = t("重新填写密钥");
           } else {
-            if (titleEl) titleEl.textContent = t("免费试用已结束");
+            if (titleEl) titleEl.textContent = t("今日免费抠图次数已用完");
             if (textEl) {
-              textEl.innerHTML = "<p>" + escapeHtmlText(t("你的 3 天免费试用已结束。")) + "</p>"
-                + "<p>" + escapeHtmlText(t("· 完整功能：菜单 → 通用设置 → API调用，填写美图密钥 + Qwen API")) + "</p>"
-                + "<p>" + escapeHtmlText(t("· 仅抠图：只填写美图密钥，热量与营养手动填写")) + "</p>"
-                + "<p>" + escapeHtmlText(t("如有疑问，请在「联系我们」页面留言，我们将在 1-3 个工作日内回复。")) + "</p>";
+              textEl.innerHTML = "<p>" + escapeHtmlText(t("每位用户每天可免费抠图 5 次，今日额度已用完。")) + "</p>"
+                + "<p>" + escapeHtmlText(t("在「通用设置 → API调用」填写自己的美图密钥后，抠图次数不限；同时填写 Qwen API 可继续自动识别热量与营养。")) + "</p>";
             }
             if (ghost) ghost.textContent = t("暂不");
             if (primary) primary.textContent = t("去填写 API");
@@ -11734,6 +12283,7 @@
       function goToApiSetting() {
         closeMenu();
         openDoc("settings");
+        showSettingsSection("personal");
         setTimeout(function () { openApiSheet(); }, 380);
       }
       // 暴露给识别流程脚本（独立作用域）使用
@@ -11789,18 +12339,17 @@
       }
       function confirmAction() {
         if (confirmKind === "logout") {
-          clearAuthSession();
           var finishLogout = function () {
             try { localStorage.clear(); } catch (e) {}
             try { sessionStorage.clear(); } catch (e) {}
             window.location.reload();
           };
-          // 先清空本机记录（含 IndexedDB）再刷新，避免下一个账号/模拟账号看到上一个账号的数据
-          if (window.__picktimeClearRecordsAsync) {
-            window.__picktimeClearRecordsAsync().then(finishLogout).catch(finishLogout);
-          } else {
-            finishLogout();
-          }
+          // 注销账号时一并清理当前账号留在本机的原图。
+          var clearPhotos = window.PicktimeFolder ? window.PicktimeFolder.clearAccount() : Promise.resolve();
+          Promise.resolve(clearPhotos).catch(function () {}).then(function () {
+            clearAuthSession();
+            return window.__picktimeClearRecordsAsync ? window.__picktimeClearRecordsAsync() : null;
+          }).then(finishLogout, finishLogout);
           return;
         }
         try { localStorage.removeItem("picktime-messages"); } catch (e) {}
@@ -11823,6 +12372,8 @@
       function openDoc(kind) {
         if (!docOverlay || !docBody) return;
         currentDocKind = kind;
+        settingsSection = "";
+        docBody.classList.toggle("is-about", kind === "about");
         var tplMap = { privacy: "docPrivacyTpl", terms: "docTermsTpl", about: "docAboutTpl", contact: "docContactTpl", lang: "docLangTpl", help: "docHelpTpl", profile: "docProfileTpl", changelog: "docChangelogTpl", products: "docProductsTpl", settings: "docSettingsTpl", account: "docAccountTpl" };
         var titleMap = { privacy: "隐私政策", terms: "服务条款", about: "关于拾光", contact: "联系我们", lang: "多语言和翻译", notif: "消息通知", help: "帮助中心", profile: "个人信息设置", changelog: "更新日志", products: "我们的其他产品", settings: "通用设置", account: "账号与安全" };
         if (docTitle) docTitle.textContent = t(titleMap[kind] || titleMap.privacy);
@@ -11854,8 +12405,13 @@
       function closeDoc() {
         if (!docOverlay) return;
         closeProfileSettingPicker();
+        settingsSection = "";
         docOverlay.classList.remove("is-open");
         docOverlay.setAttribute("aria-hidden", "true");
+      }
+      function backDoc() {
+        if (currentDocKind === "settings" && settingsSection) showSettingsSection("");
+        else closeDoc();
       }
       var openPrivacy = document.getElementById("openPrivacy");
       var openTerms = document.getElementById("openTerms");
@@ -12012,6 +12568,22 @@
           var el = event.target;
           if (!el || !el.getAttribute || !el.getAttribute("data-key")) return;
           if (el.id === "switchApi") return; // API 开关走服务端
+          if (el.id === "switchRefreshUi") {
+            if (!el.checked) return;
+            el.disabled = true;
+            try { localStorage.setItem(REFRESH_UI_KEY, "1"); } catch (e) {}
+            var startedAt = Date.now();
+            var refresh = window.__picktimeRunHomeRefresh ? window.__picktimeRunHomeRefresh() : null;
+            Promise.resolve(refresh).catch(function () {}).then(function () {
+              // 保留一次拨码动画，随后归零；同步完成前不能重复触发。
+              window.setTimeout(function () {
+                el.checked = false;
+                el.disabled = false;
+                try { localStorage.setItem(REFRESH_UI_KEY, "0"); } catch (e) {}
+              }, Math.max(0, 550 - (Date.now() - startedAt)));
+            });
+            return;
+          }
           try { localStorage.setItem(el.getAttribute("data-key"), el.checked ? "1" : "0"); } catch (e) {}
           if (el.id === "switchHaptic") {
             if (window.__picktimeSetHapticEnabled) window.__picktimeSetHapticEnabled(el.checked);
@@ -12019,7 +12591,7 @@
           }
         });
       }
-      if (docBack) docBack.addEventListener("click", closeDoc);
+      if (docBack) docBack.addEventListener("click", backDoc);
       document.addEventListener("keydown", function (event) {
         if (event.key !== "Escape") return;
         if (profileSettingSheet && profileSettingSheet.classList.contains("is-open")) closeProfileSettingPicker();
@@ -12027,7 +12599,7 @@
         else if (forgotOverlay && forgotOverlay.classList.contains("is-open")) closeForgot();
         else if (phoneOverlay && phoneOverlay.classList.contains("is-open")) closePhone();
         else if (confirmOverlay && confirmOverlay.classList.contains("is-open")) closeConfirm();
-        else if (docOverlay && docOverlay.classList.contains("is-open")) closeDoc();
+        else if (docOverlay && docOverlay.classList.contains("is-open")) backDoc();
         else if (overlay.classList.contains("is-open")) closeLogin();
         else if (menuDrawer.classList.contains("is-open")) closeMenu();
       });
@@ -12047,9 +12619,11 @@
         return !!token && version === authSessionVersion && token === getAuthToken();
       }
       function setAuthSession(token, remember) {
-        if (token !== getAuthToken()) {
+        var previousToken = getAuthToken();
+        if (token !== previousToken) {
           if (window.__picktimeClearLocalProfile) window.__picktimeClearLocalProfile();
           if (window.__picktimeClearRecords) window.__picktimeClearRecords();
+          if (previousToken && window.__picktimeWallpaper) window.__picktimeWallpaper.resetLocal();
         }
         authSessionVersion++;
         try {
@@ -12078,6 +12652,7 @@
         window.__picktimeServerProfile = null;
         if (window.__picktimeClearLocalProfile) window.__picktimeClearLocalProfile();
         if (window.__picktimeClearRecords) window.__picktimeClearRecords();
+        if (window.__picktimeWallpaper) window.__picktimeWallpaper.resetLocal();
         if (window.__picktimeApplyProfileMode) window.__picktimeApplyProfileMode();
         updateMenuProfile();
         try { resetApiState(); updateApiRow(); } catch (e) {}
@@ -12460,6 +13035,10 @@
                   var gUser = data.user || {};
                   syncProfileNickname(gUser.name || data.name || String(data.email || "").split("@")[0]);
                   if (gUser.language) applyLanguage(gUser.language);
+                  if (gUser.profile) {
+                    if (window.__picktimeApplyServerProfile) window.__picktimeApplyServerProfile(gUser.profile);
+                    else window.__picktimeServerProfile = gUser.profile;
+                  }
                   closeLogin();
                   closeRegister();
                   closeQq();
@@ -13225,11 +13804,23 @@
           </div>
           <div class="calendar-grid" id="calGrid"></div>
         </section>
-        <section class="heatmap-card heatmap-card--placeholder" id="statsPlaceholderCard">
-          <span class="stats-placeholder__date" id="statsPlaceholderDate"></span>
-          <div class="stats-placeholder__pics" id="statsPlaceholderPics"></div>
-          <div class="stats-placeholder__empty" id="statsPlaceholderEmpty">今日暂无记录</div>
-        </section>
+        <div class="stats-placeholder-row">
+          <section class="heatmap-card heatmap-card--placeholder" id="statsPlaceholderCard">
+            <span class="stats-placeholder__date" id="statsPlaceholderDate"></span>
+            <div class="stats-placeholder__pics" id="statsPlaceholderPics"></div>
+            <div class="stats-placeholder__empty" id="statsPlaceholderEmpty">今日暂无记录</div>
+          </section>
+          <div class="stats-folder-area">
+            <button class="stats-folder-card" id="statsFolderCard" type="button" aria-label="打开文件夹">
+              <span class="stats-folder-stack">
+                <span class="stats-folder-back-shadow"><span class="stats-folder-back"></span></span>
+                <span class="stats-folder-polaroid stats-folder-polaroid-back" id="statsFolderBack"><span class="stats-folder-polaroid-image"><img alt="" /></span></span>
+                <span class="stats-folder-polaroid stats-folder-polaroid-front" id="statsFolderFront"><span class="stats-folder-polaroid-image"><img alt="" /></span></span>
+                <span class="stats-folder-front"></span>
+              </span>
+            </button>
+          </div>
+        </div>
       </div>
       <div class="stats-pane" id="statsPane2">
         <section class="heatmap-card" aria-label="活跃热力图">
@@ -13263,6 +13854,22 @@
       </div>
     </div>
   </main>
+  <div class="stats-folder-gallery" id="statsFolderGallery" aria-hidden="true">
+    <div class="stats-folder-gallery__backdrop" id="statsFolderBackdrop"></div>
+    <div class="stats-folder-gallery__head" id="statsFolderGalleryHead"><span class="stats-folder-gallery__date" id="statsFolderGalleryDate"></span></div>
+    <div class="stats-folder-gallery__scroll" id="statsFolderGalleryScroll">
+      <div class="stats-folder-gallery__grid" id="statsFolderGalleryGrid"></div>
+    </div>
+    <div class="stats-folder-gallery__return-cover" id="statsFolderReturnCover"><span class="stats-folder-front"></span></div>
+    <div class="stats-folder-viewer" id="statsFolderViewer" role="dialog" aria-modal="true" aria-label="相册预览" aria-hidden="true">
+      <div class="stats-folder-viewer__backdrop" id="statsFolderViewerBackdrop"></div>
+      <div class="stats-folder-viewer__viewport" id="statsFolderViewerViewport" tabindex="-1">
+        <div class="stats-folder-viewer__track" id="statsFolderViewerTrack"></div>
+      </div>
+      <button class="stats-folder-viewer__done" id="statsFolderViewerDone" type="button" aria-label="保存并翻回相册">✓</button>
+      <div class="stats-folder-viewer__dots" id="statsFolderViewerDots" aria-label="相册页码"></div>
+    </div>
+  </div>
 
   <div class="stats-subpage" id="statsSubpage" aria-hidden="true">
     <div class="stats-subpage__track" id="statsSubpageTrack"></div>
@@ -13523,7 +14130,7 @@
         <button class="api-sheet__clear" id="apiSheetClear" type="button" hidden>清除已保存的 Qwen API</button>
       </div>
       <div class="api-sheet__section">
-        <p class="api-sheet__label">美图抠图密钥（必填）</p>
+        <p class="api-sheet__label">美图抠图密钥（不限次使用）</p>
         <input class="api-sheet__input" id="apiSheetMeituAk" type="text" placeholder="AccessKey" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
         <input class="api-sheet__input" id="apiSheetMeituSk" type="text" placeholder="SecretKey" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
         <p class="api-sheet__hint" id="apiSheetMeituHint">美图抠图密钥将加密保存在服务器，仅用于你自己的抠图请求。可前往 meituhub.cn 注册获取。</p>
@@ -13669,7 +14276,13 @@
         <input class="cut-sheet__kcal" id="cutSheetKcal" type="text" inputmode="numeric" maxlength="8" value="0Kcal" readonly aria-label="卡路里" />
       </div>
       <div class="cut-sheet__info" id="cutSheetInfo">
-        <input class="cut-sheet__name" id="cutSheetName" type="text" maxlength="24" readonly aria-label="食物名称" />
+        <div class="cut-sheet__name-row">
+          <button class="cut-sheet__album-paper" id="cutSheetAlbumPaper" type="button" aria-label="相册纸模式" aria-pressed="false">
+            <span class="cut-sheet__album-paper-sheet"><span class="cut-sheet__album-paper-logo"><img src="/images/album-paper-logo.png?v=20261006-user" alt="" /></span></span>
+          </button>
+          <input class="cut-sheet__name" id="cutSheetName" type="text" maxlength="24" readonly aria-label="食物名称" />
+          <span class="cut-sheet__name-balance" aria-hidden="true"></span>
+        </div>
         <button class="cut-sheet__time" id="cutSheetTime" type="button" aria-haspopup="dialog" aria-expanded="false"></button>
         <div class="cut-sheet__panel">
       <div class="cut-sheet__meal" id="cutSheetMeal">
@@ -14029,13 +14642,13 @@
           var prev = {};
           var i;
           for (i = 0; i < prevList.length; i++) {
-            prev[prevList[i].id] = prevList[i].image ? prevList[i].image.length : 0;
+            prev[prevList[i].id] = (prevList[i].image ? prevList[i].image.length : 0) + '|' + recordIsCutoutOnly(prevList[i]);
           }
           var next = {};
           var puts = [];
           for (i = 0; i < nextList.length; i++) {
             var rec = nextList[i];
-            var sig = rec.image ? rec.image.length : 0;
+            var sig = (rec.image ? rec.image.length : 0) + '|' + recordIsCutoutOnly(rec);
             next[rec.id] = sig;
             if (prev[rec.id] === undefined || prev[rec.id] !== sig) puts.push(rec);
           }
@@ -14105,6 +14718,16 @@
 
       function recordDateKey(record) {
         return dateKeyOf(new Date(record.ts));
+      }
+
+      function recordIsCutoutOnly(record) {
+        if (!record) return false;
+        if (record.cutoutOnly !== undefined && record.cutoutOnly !== null) return !!record.cutoutOnly;
+        var nutrients = record.nutrients || {};
+        return (record.name === "未命名" || !record.name) && !(Number(record.kcal) || 0) &&
+          ["protein", "fat", "carbs", "sugar", "fiber", "sodium"].every(function (key) {
+            return !(Number(nutrients[key]) || 0);
+          });
       }
 
       function recordsOnDate(date) {
@@ -14264,6 +14887,68 @@
         }
       }
 
+      // 待上传/待删除标记（按账号隔离）：
+      // 只有"本机新存但还没传成功"的记录才会补传；服务器没有又不是待上传的 = 别的设备删了，本地跟着删。
+      var PENDING_UPLOADS_KEY = "picktime-pending-uploads";
+      var PENDING_DELETES_KEY = "picktime-pending-deletes";
+
+      function recordsAccountId() {
+        return recordsAuthToken().split(".")[0] || "";
+      }
+      function readPendingMap(storageKey) {
+        var account = recordsAccountId();
+        if (!account) return {};
+        try {
+          var all = JSON.parse(localStorage.getItem(storageKey) || "{}") || {};
+          var map = all[account];
+          return map && typeof map === "object" ? map : {};
+        } catch (e) { return {}; }
+      }
+      function writePendingMap(storageKey, map) {
+        var account = recordsAccountId();
+        if (!account) return map;
+        try {
+          var all = JSON.parse(localStorage.getItem(storageKey) || "{}") || {};
+          if (map && Object.keys(map).length) all[account] = map;
+          else delete all[account];
+          localStorage.setItem(storageKey, JSON.stringify(all));
+        } catch (e) {}
+        return map;
+      }
+      function loadPendingUploads() { return readPendingMap(PENDING_UPLOADS_KEY); }
+      function markRecordPendingUpload(id) {
+        if (!id) return;
+        var map = loadPendingUploads();
+        map[String(id)] = Date.now();
+        writePendingMap(PENDING_UPLOADS_KEY, map);
+      }
+      function clearRecordPendingUpload(id) {
+        if (!id) return;
+        var map = loadPendingUploads();
+        if (map[String(id)] === undefined) return;
+        delete map[String(id)];
+        writePendingMap(PENDING_UPLOADS_KEY, map);
+      }
+      function loadPendingDeletes() { return readPendingMap(PENDING_DELETES_KEY); }
+      function markRecordPendingDelete(id) {
+        if (!id) return;
+        var map = loadPendingDeletes();
+        map[String(id)] = Date.now();
+        writePendingMap(PENDING_DELETES_KEY, map);
+        clearRecordPendingUpload(id);
+      }
+      function clearRecordPendingDelete(id) {
+        if (!id) return;
+        var map = loadPendingDeletes();
+        if (map[String(id)] === undefined) return;
+        delete map[String(id)];
+        writePendingMap(PENDING_DELETES_KEY, map);
+      }
+      function clearAccountPendingRecords() {
+        writePendingMap(PENDING_UPLOADS_KEY, {});
+        writePendingMap(PENDING_DELETES_KEY, {});
+      }
+
       function recordsFetch(url, options) {
         options = options || {};
         var headers = options.headers || {};
@@ -14298,6 +14983,7 @@
         recordsSyncRun++;
         recordsSyncing = false;
         recordsCache = [];
+        clearAccountPendingRecords();
         try {
           localStorage.removeItem(RECORDS_KEY);
         } catch (e) {}
@@ -14336,6 +15022,7 @@
           kcal: record.kcal || 0,
           nutrients: record.nutrients || {},
           note: record.note || "",
+          cutoutOnly: recordIsCutoutOnly(record),
           image: record.image || ""
         };
       }
@@ -14346,12 +15033,50 @@
         });
       }
 
+      // 轻量元数据（不带图片）：刷新同步先拉这个，快很多
+      function fetchServerRecordsSummary() {
+        return recordsFetch("/api/records?summary=1").then(function (res) {
+          return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+        });
+      }
+
+      // 本机缺图的记录，分批（服务端每次最多 3 条）后台补齐
+      function fetchMissingRecordImages(ids, token, version, run) {
+        var batches = [];
+        for (var i = 0; i < ids.length; i += 3) batches.push(ids.slice(i, i + 3));
+        var chain = Promise.resolve();
+        batches.forEach(function (batch) {
+          chain = chain.then(function () {
+            if (!isCurrentRecordsSync(token, version, run)) return;
+            return recordsFetch("/api/records?images=1&ids=" + encodeURIComponent(JSON.stringify(batch))).then(function (res) {
+              return res.json();
+            }).then(function (data) {
+              if (!data || !data.ok || !Array.isArray(data.records)) return;
+              var images = {};
+              data.records.forEach(function (rec) { if (rec && rec.id && rec.image) images[String(rec.id)] = rec.image; });
+              var list = getRecords();
+              var changed = false;
+              var next = list.map(function (rec) {
+                var img = images[String(rec.id)];
+                if (img && !rec.image) { changed = true; return Object.assign({}, rec, { image: img }); }
+                return rec;
+              });
+              if (changed) {
+                cacheRecords(next);
+                if (window.__picktimeApplyDemoMode) window.__picktimeApplyDemoMode();
+              }
+            }).catch(function () {});
+          });
+        });
+        return chain;
+      }
+
       // 记录签名：用于判断同步前后数据是否变化，没变化就不重渲染（避免首页闪一下）
       function recordsSignature(list) {
         var parts = [];
         for (var i = 0; i < (list || []).length; i++) {
           var r = list[i];
-          parts.push([r.id, r.ts, r.meal, r.name, r.kcal, (r.image || "").length].join("|"));
+          parts.push([r.id, r.ts, r.meal, r.name, r.kcal, recordIsCutoutOnly(r), (r.image || "").length].join("|"));
         }
         parts.sort();
         return parts.join(";");
@@ -14364,37 +15089,84 @@
         var version = window.__picktimeAuth.version();
         var run = ++recordsSyncRun;
         var localRecords = loadRecords();
-        return fetchServerRecords().then(function (r) {
+        var mergeServerList = function (serverRecords) {
+          var localById = {};
+          var missingImageIds = [];
+          for (var li = 0; li < localRecords.length; li++) {
+            if (localRecords[li] && localRecords[li].id) localById[String(localRecords[li].id)] = localRecords[li];
+          }
+          var list = serverRecords.map(function (rec) {
+            var item = Object.assign({}, rec);
+            var hasImage = item.hasImage === true;
+            delete item.hasImage;
+            var local = localById[String(item.id)];
+            if (local && local.image) item.image = local.image;
+            else if (hasImage) missingImageIds.push(String(item.id));
+            return item;
+          });
+          return { list: list, missingImageIds: missingImageIds };
+        };
+        return fetchServerRecordsSummary().then(function (r) {
           if (!isCurrentRecordsSync(token, version, run)) return false;
           if (!r.ok || !r.data || !r.data.ok) throw new Error("fetch failed");
           var serverRecords = r.data.records || [];
+          // 本机删了但还没删成功的记录：继续补删，并在合并前剔除，避免被云端列表"复活"
+          var pendingDeleteIds = Object.keys(loadPendingDeletes());
+          pendingDeleteIds.forEach(function (id) {
+            recordsFetch("/api/records/" + encodeURIComponent(id), { method: "DELETE" }).then(function (res) {
+              if (res.ok) clearRecordPendingDelete(id);
+            }).catch(function () {});
+          });
+          if (pendingDeleteIds.length) {
+            serverRecords = serverRecords.filter(function (rec) {
+              return pendingDeleteIds.indexOf(String(rec.id)) < 0;
+            });
+          }
           var serverIds = {};
           for (var si = 0; si < serverRecords.length; si++) serverIds[serverRecords[si].id] = true;
+          var pendingUploadMap = loadPendingUploads();
+          // 只有"本机新存待上传"的记录才补传；服务端没有又不是待上传的 = 别的设备已删除，本地同步删除
           var pendingUploads = [];
           for (var li = 0; li < localRecords.length; li++) {
-            if (!serverIds[localRecords[li].id]) {
-              pendingUploads.push(uploadRecordToServer(recordPayload(localRecords[li])).catch(function () { return false; }));
+            var localRec = localRecords[li];
+            if (!localRec || !localRec.id || serverIds[String(localRec.id)]) continue;
+            if (pendingUploadMap[String(localRec.id)]) {
+              (function (rec) {
+                pendingUploads.push(uploadRecordToServer(recordPayload(rec)).then(function (ok) {
+                  if (ok) clearRecordPendingUpload(rec.id);
+                  return ok;
+                }).catch(function () { return false; }));
+              })(localRec);
             }
           }
+          var first = mergeServerList(serverRecords);
+          var finish = function (list) {
+            recordsSyncing = false;
+            var changed = recordsSignature(localRecords) !== recordsSignature(list);
+            cacheRecords(list);
+            if (changed && window.__picktimeApplyDemoMode) window.__picktimeApplyDemoMode();
+          };
           if (!pendingUploads.length) {
             if (!isCurrentRecordsSync(token, version, run)) return false;
-            recordsSyncing = false;
-            var changed = recordsSignature(localRecords) !== recordsSignature(serverRecords);
-            cacheRecords(serverRecords);
-            if (changed && window.__picktimeApplyDemoMode) window.__picktimeApplyDemoMode();
+            finish(first.list);
+            if (first.missingImageIds.length) fetchMissingRecordImages(first.missingImageIds, token, version, run);
             return true;
           }
           return Promise.all(pendingUploads).then(function () {
             if (!isCurrentRecordsSync(token, version, run)) return false;
-            return fetchServerRecords().then(function (r2) {
+            return fetchServerRecordsSummary().then(function (r2) {
               if (!isCurrentRecordsSync(token, version, run)) return false;
-              recordsSyncing = false;
-              if (r2.ok && r2.data && r2.data.ok) {
-                var merged = r2.data.records || [];
-                var changed2 = recordsSignature(localRecords) !== recordsSignature(merged);
-                cacheRecords(merged);
-                if (changed2 && window.__picktimeApplyDemoMode) window.__picktimeApplyDemoMode();
-              }
+              if (!r2.ok || !r2.data || !r2.data.ok) return false;
+              var second = mergeServerList(r2.data.records || []);
+              // 上传失败的待传记录保留在本机，下次同步再试
+              var list2Ids = {};
+              second.list.forEach(function (rec) { list2Ids[String(rec.id)] = true; });
+              localRecords.forEach(function (rec) {
+                if (rec && rec.id && pendingUploadMap[String(rec.id)] && !list2Ids[String(rec.id)]) second.list.push(rec);
+              });
+              second.list.sort(function (a, b) { return (a.ts || 0) - (b.ts || 0); });
+              finish(second.list);
+              if (second.missingImageIds.length) fetchMissingRecordImages(second.missingImageIds, token, version, run);
               return true;
             });
           });
@@ -14432,6 +15204,7 @@
         recordsSyncRun++;
         recordsSyncing = false;
         recordsCache = [];
+        clearAccountPendingRecords();
         try { localStorage.removeItem(RECORDS_KEY); } catch (e) {}
         var p = idbClearRecords();
         updateWeekRings();
@@ -14443,8 +15216,14 @@
         if (!isLoggedInUser()) return Promise.resolve(false);
         return recordsFetch("/api/records", { method: "DELETE" }).then(function (res) {
           if (!res.ok) throw new Error("HTTP " + res.status);
-          clearCachedRecords();
-          return true;
+          var folder = window.PicktimeFolder;
+          var clearCloud = folder ? Promise.resolve(folder.clearCloud()).catch(function () {}) : Promise.resolve();
+          return clearCloud.then(function () {
+            return folder ? Promise.resolve(folder.clearAccount()).catch(function () {}) : null;
+          }).then(function () {
+            clearCachedRecords();
+            return true;
+          });
         });
       };
 
@@ -14462,8 +15241,12 @@
         }
         if (!removed) return;
         cacheRecords(next);
+        if (window.PicktimeFolder) window.PicktimeFolder.remove(id).catch(function () {});
         if (isLoggedInUser()) {
-          recordsFetch("/api/records/" + encodeURIComponent(id), { method: "DELETE" }).catch(function () {});
+          markRecordPendingDelete(id);
+          recordsFetch("/api/records/" + encodeURIComponent(id), { method: "DELETE" }).then(function (res) {
+            if (res.ok) clearRecordPendingDelete(id);
+          }).catch(function () {});
         }
         // 首页时间线、数据页图表、滑动页全部重新渲染
         if (window.__picktimeApplyDemoMode) {
@@ -14529,7 +15312,7 @@
           if (!rec || !rec.image) continue;
           html += '<div class="stats-placeholder__cell">' +
             '<img class="stats-placeholder__pic" src="' + rec.image + '" alt="" loading="lazy">' +
-            '<span class="stats-placeholder__kcal">' + Math.round(Number(rec.kcal) || 0) + 'Kcal</span>' +
+            (recordIsCutoutOnly(rec) ? '' : '<span class="stats-placeholder__kcal">' + Math.round(Number(rec.kcal) || 0) + 'Kcal</span>') +
           '</div>';
           count++;
         }
@@ -14549,10 +15332,36 @@
           statsPlaceholderEmpty.textContent = i18nT("今日暂无记录");
           statsPlaceholderEmpty.style.display = count ? "none" : "flex";
         }
+        if (window.PicktimeFolder) window.PicktimeFolder.refresh(statsPickedDate);
       }
 
       if (statsPlaceholderDate) statsPlaceholderDate.textContent = i18nDate(statsPickedDate);
       renderStatsPlaceholderPics();
+
+      // 「数据刷新」拨码沿用原有同步链路，并重新读取当天 API 额度。
+      var homeRefreshing = false;
+      function runHomeRefresh() {
+        if (homeRefreshing) return Promise.resolve(false);
+        if (!isLoggedInUser()) {
+          if (window.__picktimeToast) window.__picktimeToast(i18nT("请先登录"));
+          return Promise.resolve(false);
+        }
+        homeRefreshing = true;
+        if (window.__picktimeToast) window.__picktimeToast(i18nT("数据同步中…"));
+        var jobs = [syncThenMigrateRecords()];
+        if (window.__picktimeRefreshProfileSettings) jobs.push(window.__picktimeRefreshProfileSettings());
+        if (window.__picktimeSyncPositions) jobs.push(window.__picktimeSyncPositions());
+        if (window.PicktimeFolder) jobs.push(window.PicktimeFolder.refresh(statsPickedDate));
+        if (window.__picktimeApi) jobs.push(window.__picktimeApi.refresh(true));
+        return Promise.all(jobs).then(function (results) {
+          homeRefreshing = false;
+          if (window.__picktimeToast) window.__picktimeToast(i18nT(results[0] === false ? "同步失败，请检查网络" : "数据已同步"));
+        }).catch(function () {
+          homeRefreshing = false;
+          if (window.__picktimeToast) window.__picktimeToast(i18nT("同步失败，请检查网络"));
+        });
+      }
+      window.__picktimeRunHomeRefresh = runHomeRefresh;
 
       // 从左侧滑出的二级页面（内容待加）
       var statsSubpage = document.getElementById("statsSubpage");
@@ -15782,6 +16591,8 @@
 
       function openStatsSubpage() {
         if (!statsSubpage) return;
+        calDropId = (calDropId || 0) + 1;
+        document.querySelectorAll(".stats-pane:first-child .calendar-cell__fly").forEach(function (fly) { fly.remove(); });
         renderStatsSubpageItems();
         syncStatsSubpagePosFromServer();
         setStatsSubpageDeleteMode(false);
@@ -15855,6 +16666,7 @@
           statsSubpageSyncing = false;
         });
       }
+      window.__picktimeSyncPositions = syncStatsSubpagePosFromServer;
 
       function statsSubpageClampPos(x, y, w, h, canvasW, canvasH) {
         var maxX = Math.max(0, canvasW - w);
@@ -16200,6 +17012,7 @@
             var kcalEl = document.createElement("span");
             kcalEl.className = "stats-subpage__kcal";
             kcalEl.textContent = Math.round(Number(rec2.kcal) || 0) + "Kcal";
+            kcalEl.hidden = recordIsCutoutOnly(rec2);
             item.appendChild(img);
             item.appendChild(kcalEl);
             (function (imgEl, recId, recSrc) {
@@ -16792,11 +17605,12 @@
       }
 
       // 思考中：四芒星旋转 + 「思考中...」闪光；拿到结果后两者渐渐隐藏，小贴士淡入
-      function requestCutoutTip(src) {
+      function requestCutoutTip(src, name) {
         if (!cutoutViewerTip || !src) return;
         var token = ++cutoutTipToken;
         var lang = window.__picktimeI18n ? window.__picktimeI18n.get() : "zh-CN";
-        var cacheKey = src + "|" + lang;
+        var tipName = name || "";
+        var cacheKey = src + "|" + lang + "|" + tipName;
         if (cutoutTipCache[cacheKey]) {
           renderCutoutTip(cutoutTipCache[cacheKey]);
           return;
@@ -16811,7 +17625,7 @@
           return fetch("/api/food-tip", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ image: dataUrl, lang: lang })
+            body: JSON.stringify({ image: dataUrl, lang: lang, name: tipName })
           });
         }).then(function (res) {
           return res.json().catch(function () { return {}; });
@@ -16949,7 +17763,7 @@
         cutoutViewer.classList.add("is-open");
         cutoutViewer.setAttribute("aria-hidden", "false");
         waitCutoutFont();
-        requestCutoutTip(src);
+        requestCutoutTip(src, name);
       }
 
       // 上下拖动查看器内容，方便找合适的截图位置
@@ -17098,7 +17912,7 @@
                 '<span class="side-timeline__food">' + recordName + "</span>" +
                 (recordNote ? '<span class="side-timeline__note">' + escapeRecordText(recordNote) + "</span>" : "") +
               "</div>" +
-              '<span class="side-timeline__pic"><img src="' + record.image + '" alt="' + recordName + '" loading="lazy"><span class="side-timeline__kcal">' + Math.round(Number(record.kcal) || 0) + 'Kcal</span></span>' +
+              '<span class="side-timeline__pic"><img src="' + record.image + '" alt="' + recordName + '" loading="lazy">' + (recordIsCutoutOnly(record) ? '' : '<span class="side-timeline__kcal">' + Math.round(Number(record.kcal) || 0) + 'Kcal</span>') + '</span>' +
             "</div>";
           }
           requestFoodTranslations(timelineNames);
@@ -18293,10 +19107,15 @@
               var im = document.createElement("img");
               im.src = item.src;
               im.className = "calendar-cell__fly";
-              im.style.cssText = "position:fixed;z-index:9999;width:45px;height:45px;object-fit:contain;pointer-events:none;opacity:0;left:" + item.x + "px;top:" + item.y + "px;will-change:transform;contain:layout style paint;";
-              document.body.appendChild(im);
+              var firstPane = calGrid.closest(".stats-pane");
+              if (!firstPane) return;
+              var paneRect = firstPane.getBoundingClientRect();
+              var localX = item.x - paneRect.left;
+              var localY = item.y - paneRect.top;
+              im.style.cssText = "position:absolute;z-index:20;width:45px;height:45px;object-fit:contain;pointer-events:none;opacity:0;left:" + localX + "px;top:" + localY + "px;will-change:transform;contain:layout style paint;";
+              firstPane.appendChild(im);
               im.animate([
-                { transform: "translateY(-" + item.dy + "px) scale(1)", opacity: 1 },
+                { transform: "translateY(-" + (localY + 60) + "px) scale(1)", opacity: 1 },
                 { transform: "translateY(0) scale(0.8)", opacity: 1 }
               ], { duration: 600, easing: "cubic-bezier(0.34,1.56,0.64,1)", fill: "forwards" });
               setTimeout(function () {
@@ -18920,7 +19739,7 @@
               '<img class="food-carousel__img--record" src="' + recordFood.image + '" alt="' + recordFoodName + '" loading="lazy">' +
               '<div class="food-carousel__name">' + recordFoodName + '</div>' +
               '<div class="food-carousel__time">' + recordTimeLabel(recordFood) + '</div>' +
-              '<span class="food-carousel__kcal">' + Math.round(Number(recordFood.kcal) || 0) + 'Kcal</span></div>';
+              (recordIsCutoutOnly(recordFood) ? '' : '<span class="food-carousel__kcal">' + Math.round(Number(recordFood.kcal) || 0) + 'Kcal</span>') + '</div>';
           }
           requestFoodTranslations(carouselNames);
           foodCarousel.innerHTML = recordFoodHtml;
@@ -19054,6 +19873,20 @@
       var cutSheetImage = document.getElementById("cutSheetImage");
       var cutSheetKcal = document.getElementById("cutSheetKcal");
       var cutSheetName = document.getElementById("cutSheetName");
+      var cutSheetAlbumPaper = document.getElementById("cutSheetAlbumPaper");
+      var cameraOriginalBlobPromise = null;
+      var cutOriginalBlobPromise = null;
+      var albumPaperEnabled = false;
+      function setAlbumPaperEnabled(enabled) {
+        albumPaperEnabled = !!enabled;
+        if (cutSheetAlbumPaper) {
+          cutSheetAlbumPaper.classList.toggle("is-on", albumPaperEnabled);
+          cutSheetAlbumPaper.setAttribute("aria-pressed", albumPaperEnabled ? "true" : "false");
+        }
+      }
+      if (cutSheetAlbumPaper) cutSheetAlbumPaper.addEventListener("click", function () {
+        if (cutOriginalBlobPromise) setAlbumPaperEnabled(!albumPaperEnabled);
+      });
       var cutSheetFix = document.getElementById("cutSheetFix");
       var cutSheetFixText = cutSheetFix ? cutSheetFix.querySelector("span") : null;
       var cutSheetConfirm = document.getElementById("cutSheetConfirm");
@@ -19408,6 +20241,9 @@
         cutSheetImage.src = url;
         resetCutStroke();
         cutSheetCutoutOnly = !!(result && result.cutoutOnly);
+        cutOriginalBlobPromise = cameraOriginalBlobPromise;
+        setAlbumPaperEnabled(false);
+        cutSheet.classList.toggle("is-cutout-only", cutSheetCutoutOnly);
         if (cutSheetAskAi) {
           cutSheetAskAi.classList.toggle("is-disabled", cutSheetCutoutOnly);
           cutSheetAskAi.setAttribute("aria-disabled", cutSheetCutoutOnly ? "true" : "false");
@@ -19473,6 +20309,9 @@
         cutMask.classList.remove("is-open");
         cutSheet.classList.remove("is-open");
         closeAiChat();
+        cutOriginalBlobPromise = null;
+        cameraOriginalBlobPromise = null;
+        setAlbumPaperEnabled(false);
       }
 
       // 抠图结果弹窗：向下拖动关闭
@@ -19660,7 +20499,10 @@
           if (cutSheetRawName && recordName === cutSheetDisplayName && cutSheetDisplayName !== cutSheetRawName) {
             recordName = cutSheetRawName;
           }
-          var recordTime = cutRecordDateTime ? new Date(cutRecordDateTime.getTime()) : new Date();
+          var recordTime = new Date();
+          if (cutRecordDateTime) {
+            recordTime.setFullYear(cutRecordDateTime.getFullYear(), cutRecordDateTime.getMonth(), cutRecordDateTime.getDate());
+          }
           var recordData = {
             id: "r" + recordTime.getTime() + "-" + Math.random().toString(36).slice(2, 8),
             ts: recordTime.getTime(),
@@ -19675,15 +20517,27 @@
               fiber: cutParseNumber(cutNutFiber.value),
               sodium: cutParseNumber(cutNutSodium.value)
             },
-            note: (cutSheetNote.value || "").trim()
+            note: (cutSheetNote.value || "").trim(),
+            cutoutOnly: cutSheetCutoutOnly
           };
+          var saveOriginal = albumPaperEnabled ? cutOriginalBlobPromise : null;
+          var photoOwner = recordsAuthToken().split(".")[0];
           storeRecord(recordData, cutSheetImage.src, cutoutFood).then(function (storedRecord) {
             cutSheetConfirm.disabled = false;
             closeCutSheet();
             if (window.__picktimeApplyDemoMode) window.__picktimeApplyDemoMode();
-            if (window.__picktimeToast) window.__picktimeToast(i18nT("已保存"));
+            if (saveOriginal && window.PicktimeFolder) {
+              Promise.resolve(saveOriginal).then(function (blob) {
+                return window.PicktimeFolder.save(storedRecord, blob, photoOwner);
+              }).catch(function () {
+                if (window.__picktimeToast) window.__picktimeToast("记录已保存，原图存储失败");
+              });
+            }
             if (isLoggedInUser()) {
-              uploadRecordToServer(recordPayload(storedRecord)).catch(function () {
+              markRecordPendingUpload(storedRecord.id);
+              uploadRecordToServer(recordPayload(storedRecord)).then(function (ok) {
+                if (ok) clearRecordPendingUpload(storedRecord.id);
+              }).catch(function () {
                 if (window.__picktimeToast) window.__picktimeToast(i18nT("云端同步失败，请检查网络后重试"));
               });
             }
@@ -21253,9 +22107,14 @@
       function cutoutViaU2net(blob) {
         var formData = new FormData();
         formData.append("image", blob, "food.jpg");
-        return fetch("/api/cutout-local?quality=standard", { method: "POST", body: formData })
+        return recordsFetch("/api/cutout-local?quality=standard", { method: "POST", body: formData })
           .then(function (res) {
-            if (!res.ok) throw new Error("HTTP " + res.status);
+            if (!res.ok) return res.json().catch(function () { return {}; }).then(function (data) {
+              var err = new Error(data.error || ("HTTP " + res.status));
+              err.status = res.status;
+              err.code = data.code;
+              throw err;
+            });
             return res.blob();
           })
           .then(buildCutoutWithGlow);
@@ -21270,7 +22129,7 @@
         });
       }
 
-      // 登录用户：走后端美图抠图（试用期用服务端密钥，试用后用用户自己的美图密钥）
+      // 登录用户：服务端每日额度或用户自己的美图密钥
       function cutoutViaServer(blob) {
         if (!recordsAuthToken()) {
           return Promise.reject(new Error("not logged in"));
@@ -21373,30 +22232,40 @@
         };
       }
 
-      // 判断本次识别模式：full=完整识别（试用期内或 Qwen+美图都有）/ cutout=仅抠图
-      // 试用结束后美图抠图密钥必填：只填美图 → 仅抠图（热量手填）；没填美图 → 提示去填写并中止
+      // 判断本次识别模式：免费额度内完整识别；自带美图密钥后可不限次抠图。
       function resolveRecognitionMode() {
         var api = window.__picktimeApi;
-        if (!api) return Promise.resolve("cutout");
-        return api.refresh().then(function () {
+        if (!api) return Promise.resolve("abort");
+        return api.refresh(true).then(function () {
           var st = api.state();
           if (!st.loggedIn) {
             return api.showLimitDialog("login").then(function (choice) {
               if (choice === "go") { api.goLogin(); return "abort"; }
-              return "cutout";
+              return "abort";
             });
           }
-          if (st.trialActive) return "full";
-          if (!st.hasMeituKey) {
+          if (st.hasMeituKey) {
+            return st.apiEnabled && st.hasApiKey ? "full" : "cutout";
+          }
+          if (st.dailyCutoutRemaining <= 0) {
             return api.showLimitDialog("expired").then(function (choice) {
               if (choice === "go") { api.goApiSetting(); return "abort"; }
               return "abort";
             });
           }
-          if (!st.apiEnabled) return "cutout";
-          if (st.hasApiKey) return "full";
-          return "cutout";
+          return st.apiEnabled ? "full" : "cutout";
         });
+      }
+
+      function handleCutoutLimit(err) {
+        if (!err || err.code !== "DAILY_CUTOUT_LIMIT" || !window.__picktimeApi) return false;
+        cameraProcessing = false;
+        cameraCloseOverlay();
+        window.__picktimeApi.invalidate();
+        window.__picktimeApi.showLimitDialog("expired").then(function (choice) {
+          if (choice === "go") window.__picktimeApi.goApiSetting();
+        });
+        return true;
       }
 
       function cutoutOnlyFailed() {
@@ -21439,6 +22308,7 @@
                 return cutoutViaU2net(blob);
               });
             }
+            if (err && (err.code === "DAILY_CUTOUT_LIMIT" || err.status === 401)) throw err;
             return cutoutViaU2net(blob);
           });
         }
@@ -21462,6 +22332,7 @@
         }).catch(function (err) {
           window.clearTimeout(finishingTimer);
           stopProgress();
+          if (handleCutoutLimit(err)) return;
           if (meituOnly && err && window.__picktimeApi) {
             if (err.code === "MEITU_KEY_INVALID") {
               stopCameraLoadingFailed();
@@ -21482,7 +22353,7 @@
         });
       }
 
-      // 完整识别：试用期内走服务端额度，试用期结束后使用用户自己的 API（由服务端注入）
+      // 完整识别：每日免费额度内用服务端 API；自带美图与 Qwen 密钥后不限次。
       function startFullRecognition(blob, jobId, stopProgress) {
         var navigatedAway = false;
         var calorieTask = recognizeCalories(blob, jobId).catch(function (err) {
@@ -21505,6 +22376,8 @@
                 if (choice === "go") { navigatedAway = true; api.goApiSetting(); }
               });
             }
+          } else if (err && err.code === "DAILY_CUTOUT_LIMIT") {
+            throw err;
           }
           return { calories: 0, names: [], nutrients: null, cutout: null };
         });
@@ -21541,8 +22414,9 @@
               }
             }, 700);
           })
-          .catch(function () {
+          .catch(function (err) {
             stopProgress();
+            if (handleCutoutLimit(err)) return;
             stopCameraLoadingFailed();
             alert(i18nT("抠图失败，请重试"));
           });
@@ -21557,10 +22431,6 @@
         var jobId = "j" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
         cutoutSetText("Thinking...");
         var stopProgress = cutoutTrackProgress(jobId);
-        if (cameraCutoutOnly && cameraCutoutOnly.checked) {
-          startCutoutOnly(blob, stopProgress, true);
-          return;
-        }
         resolveRecognitionMode().then(function (mode) {
           if (mode === "abort") {
             stopProgress();
@@ -21568,7 +22438,8 @@
             cameraCloseOverlay();
             return;
           }
-          if (mode === "full") startFullRecognition(blob, jobId, stopProgress);
+          if (cameraCutoutOnly && cameraCutoutOnly.checked) startCutoutOnly(blob, stopProgress, true);
+          else if (mode === "full") startFullRecognition(blob, jobId, stopProgress);
           else startCutoutOnly(blob, stopProgress);
         });
       }
@@ -21589,7 +22460,7 @@
         return { x: vw / 2 - side / 2, y: vh / 2 - side / 2, w: side, h: side };
       }
 
-      function cameraProcessSource(source, crop) {
+      function cameraProcessSource(source, crop, originalFile) {
         if (cameraProcessing) return;
         var sw = source.videoWidth || source.naturalWidth || source.width;
         var sh = source.videoHeight || source.naturalHeight || source.height;
@@ -21598,6 +22469,20 @@
           return;
         }
         cameraProcessing = true;
+        if (originalFile) {
+          cameraOriginalBlobPromise = Promise.resolve(originalFile);
+        } else {
+          var originalCanvas = document.createElement("canvas");
+          originalCanvas.width = sw;
+          originalCanvas.height = sh;
+          originalCanvas.getContext("2d").drawImage(source, 0, 0, sw, sh);
+          cameraOriginalBlobPromise = new Promise(function (resolve, reject) {
+            originalCanvas.toBlob(function (blob) {
+              if (blob) resolve(blob);
+              else resolve(null);
+            }, "image/jpeg", 0.9);
+          });
+        }
         var cx = 0, cy = 0, cw = sw, ch = sh;
         if (crop && crop.w > 0 && crop.h > 0) {
           cx = Math.max(0, Math.min(sw - 1, crop.x));
@@ -21638,7 +22523,7 @@
         var reader = new FileReader();
         reader.onload = function (e) {
           var img = new Image();
-          img.onload = function () { cameraProcessSource(img); };
+          img.onload = function () { cameraProcessSource(img, null, file); };
           img.onerror = function () { alert(i18nT("图片读取失败，请重试")); };
           img.src = e.target.result;
         };
@@ -21729,7 +22614,10 @@
           statsSwitch.setAttribute("aria-pressed", statsOnPage2 ? "true" : "false");
           statsSwitch.setAttribute("aria-label", statsOnPage2 ? i18nT("返回统计第一页") : i18nT("切换到统计第二页"));
           try { localStorage.setItem("picktime-stats-page2", statsOnPage2 ? "1" : "0"); } catch (e) {}
-          if (!statsOnPage2) dropCalendarPicsAfterSwitch();
+          if (statsOnPage2) {
+            calDropId++;
+            document.querySelectorAll(".stats-pane:first-child .calendar-cell__fly").forEach(function (fly) { fly.remove(); });
+          } else dropCalendarPicsAfterSwitch();
           vibrateTap(8);
         });
         attachIOSSwitchHaptic(statsSwitch);
@@ -22047,8 +22935,19 @@
         }, 600);
       }
 
+      var wallpaperMigrationVersion = -1;
       function applyServerProfile(profile) {
         if (!profileIsLoggedIn() || !profile || typeof profile !== "object") return;
+        var wallpaper = window.__picktimeWallpaper;
+        if (wallpaper) {
+          if (wallpaper.isValid(profile.wallpaper)) {
+            wallpaper.fromAccount(profile.wallpaper);
+          } else if (!wallpaper.isDirty() && wallpaper.get() !== "default" &&
+                     wallpaperMigrationVersion !== window.__picktimeAuth.version()) {
+            wallpaperMigrationVersion = window.__picktimeAuth.version();
+            wallpaper.sync();
+          }
+        }
         var keyMap = {
           nickname: "picktime-nickname",
           signature: "picktime-signature",
@@ -22123,15 +23022,16 @@
         weight: { key: "picktime-weight" },
         targetWeight: { key: "picktime-target-weight" },
         birthyear: { key: "picktime-birthyear" },
-        gender: { key: "picktime-gender" }
+        gender: { key: "picktime-gender" },
+        wallpaper: { key: "picktime-wallpaper-v1" }
       };
       var profileSettingPending = {};
       var profileSettingRunning = {};
       var profileSettingNext = {};
 
       function profileSettingMatches(field, expected, saved) {
+        if (field === "wallpaper" || field === "gender") return String(saved) === String(expected);
         if (Number(expected) === 0) return saved === undefined || saved === null || saved === "" || Number(saved) === 0;
-        if (field === "gender") return String(saved) === String(expected);
         var a = Number(saved);
         var b = Number(expected);
         return isFinite(a) && isFinite(b) && Math.abs(a - b) < 0.001;
@@ -22140,6 +23040,7 @@
       function profileSettingSend(field, value) {
         var patch = {};
         patch[field] = value;
+        var version = window.__picktimeAuth.version();
         profileSettingPending[field] = (profileSettingPending[field] || 0) + 1;
         return recordsFetch("/api/auth/profile", {
           method: "POST",
@@ -22149,11 +23050,13 @@
           if (!res.ok) throw new Error("HTTP " + res.status);
           return res.json();
         }).then(function (data) {
+          if (version !== window.__picktimeAuth.version()) return;
           if (!data || !data.ok || !data.user || !data.user.profile) throw new Error("bad-response");
           if (!profileSettingMatches(field, value, data.user.profile[field])) throw new Error("mismatch");
+          if (field === "wallpaper") window.__picktimeWallpaper.markSynced(value);
           applyServerProfile(data.user.profile);
         }).catch(function () {
-          profileToast("资料保存失败");
+          if (version === window.__picktimeAuth.version()) profileToast("资料保存失败");
         }).then(function () {
           profileSettingPending[field] = Math.max(0, (profileSettingPending[field] || 1) - 1);
           if (!profileSettingPending[field]) delete profileSettingPending[field];
@@ -22162,13 +23065,26 @@
 
       function pushProfileSettingToServer(field, value) {
         if (!profileSettingSpecs[field] || !profileIsLoggedIn()) return;
+        var version = window.__picktimeAuth.version();
+        if (profileSettingRunning[field] && profileSettingRunning[field].version !== version) {
+          delete profileSettingRunning[field];
+          delete profileSettingNext[field];
+        }
         profileSettingNext[field] = value;
         if (profileSettingRunning[field]) return;
-        profileSettingRunning[field] = true;
+        var run = { version: version };
+        profileSettingRunning[field] = run;
         (function next() {
+          if (profileSettingRunning[field] !== run) return;
+          if (version !== window.__picktimeAuth.version()) {
+            delete profileSettingRunning[field];
+            delete profileSettingNext[field];
+            return;
+          }
           var sent = profileSettingNext[field];
           delete profileSettingNext[field];
           profileSettingSend(field, sent).then(function () {
+            if (profileSettingRunning[field] !== run) return;
             if (Object.prototype.hasOwnProperty.call(profileSettingNext, field)) { next(); return; }
             delete profileSettingRunning[field];
           });
@@ -22217,16 +23133,38 @@
       }
 
       window.__picktimePushProfileSetting = pushProfileSettingToServer;
+      if (window.__picktimeWallpaper) window.__picktimeWallpaper.retry();
+      var wallpaperPollBusy = false;
+      function refreshWallpaperFromServer() {
+        var wallpaper = window.__picktimeWallpaper;
+        if (!wallpaper || !profileIsLoggedIn() || wallpaper.isDirty() || wallpaperPollBusy || document.hidden) return;
+        var authVersion = window.__picktimeAuth.version();
+        var revision = wallpaper.getRevision();
+        wallpaperPollBusy = true;
+        recordsFetch("/api/auth/wallpaper").then(function (res) {
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          return res.json();
+        }).then(function (data) {
+          if (authVersion !== window.__picktimeAuth.version() || revision !== wallpaper.getRevision() || wallpaper.isDirty()) return;
+          if (data && data.ok && wallpaper.isValid(data.wallpaper)) wallpaper.fromAccount(data.wallpaper);
+        }).catch(function () {}).then(function () { wallpaperPollBusy = false; });
+      }
+      window.setInterval(refreshWallpaperFromServer, 10000);
       window.__picktimeRefreshProfileSettings = refreshProfileSettingsFromServer;
       window.__picktimeUpdateProfileSettingsUI = updateProfileSettingsUI;
 
       var profileSettingsVisibilityAt = 0;
       document.addEventListener("visibilitychange", function () {
         if (document.hidden) return;
+        if (window.__picktimeWallpaper) window.__picktimeWallpaper.retry();
+        refreshWallpaperFromServer();
         var now = Date.now();
         if (now - profileSettingsVisibilityAt < 10000) return;
         profileSettingsVisibilityAt = now;
         refreshProfileSettingsFromServer();
+      });
+      window.addEventListener("online", function () {
+        if (window.__picktimeWallpaper) window.__picktimeWallpaper.retry();
       });
 
       window.__picktimeApplyServerProfile = applyServerProfile;

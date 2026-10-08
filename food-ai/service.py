@@ -128,7 +128,7 @@ async def recognize(request: Request):
         return JSONResponse({"error": "请求中未找到图片"}, status_code=400)
     want_debug = bool(body.get("debug")) if isinstance(body, dict) else False
     job_id = str(body.get("jobId") or "")[:64] if isinstance(body, dict) else ""
-    # 账号服务（5002）校验试用期后注入用户自己的 Qwen / 美图 Key；没有则用服务端 Key
+    # 账号服务（5002）校验每日免费额度后注入用户自己的 Qwen / 美图 Key；没有则用服务端 Key
     user_api_key = str(request.headers.get("x-dashscope-api-key") or "").strip() or None
     meitu_ak = str(request.headers.get("x-meitu-ak") or "").strip() or None
     meitu_sk = str(request.headers.get("x-meitu-sk") or "").strip() or None
@@ -160,9 +160,9 @@ async def recognize(request: Request):
 
 @app.post("/api/cutout")
 async def cutout_only(request: Request):
-    """仅抠图（试用期结束后只用美图抠图、热量手动填写的场景）。
+    """仅抠图（使用每日免费额度或自己的美图密钥，热量手动填写）。
 
-    账号服务（5002）校验登录/试用期后，注入用户自己的美图 AK/SK。
+    账号服务（5002）校验登录/每日额度后，注入用户自己的美图 AK/SK。
     """
     if not _ready["ok"]:
         return JSONResponse({"error": "模型未就绪: %s" % _ready["error"]}, status_code=503)
@@ -282,14 +282,15 @@ async def food_tip(request: Request):
     if len(image) > 4 * 1024 * 1024:
         return JSONResponse({"error": "图片过大"}, status_code=413)
     lang = str(body.get("lang") or "zh-CN")[:10]
-    # 同一张图 + 同一语言只生成一次：重复打开大图/多个用户看同一张图时直接命中缓存
-    cache_key = hashlib.sha256((lang + "|" + image).encode("utf-8")).hexdigest()
+    name = str(body.get("name") or "")[:60]
+    # 同一张图 + 同一语言 + 同一名称只生成一次：重复打开大图/多个用户看同一张图时直接命中缓存
+    cache_key = hashlib.sha256((lang + "|" + name + "|" + image).encode("utf-8")).hexdigest()
     now = time.time()
     hit = TIP_CACHE.get(cache_key)
     if hit and now - hit["ts"] < TIP_CACHE_TTL:
         return JSONResponse({"tip": hit["tip"], "cached": True})
     try:
-        tip = await asyncio.to_thread(ai_chat.generate_tip, image, lang=lang)
+        tip = await asyncio.to_thread(ai_chat.generate_tip, image, name=name, lang=lang)
     except Exception as e:  # noqa: BLE001
         log("小贴士生成失败: %s" % e)
         return JSONResponse({"error": "生成失败: %s" % str(e)[:200]}, status_code=500)

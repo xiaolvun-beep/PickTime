@@ -1,6 +1,6 @@
 {
-  "name": "PickTime",
-  "short_name": "PickTime",
+  "name": "PickTime拾光",
+  "short_name": "PickTime拾光",
   "description": "拍照记录饮食，AI 热量与营养分析",
   "start_url": "/",
   "scope": "/",
